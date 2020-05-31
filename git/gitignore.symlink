@@ -1,0 +1,30 @@
+# general
+*~
+*.swp
+
+# editors
+.idea
+.vscode
+
+# thumbnail cache files
+._*
+Thumbs.db
+
+# node
+node_modules
+npm-debug.log
+.sass-cache
+
+# python
+*.pyc
+
+# folder view configuration files
+.DS_Store
+Desktop.ini
+
+# files that might appear on external disks
+.Spotlight-V100
+.Trashes
+.TemporaryItems
+.VolumeIcon.icns
+.fseventsd

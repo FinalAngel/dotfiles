@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+source "./_utils/index"
+
+# prepare setup
+info "Initiating dotfiles install"
+# abort if prerequisites are not met
+# TODO install through https://github.com/webpro/dotfiles/blob/master/remote-install.sh?
+# if not is_executable "git"; then
+#   fail_hard "git is not installed, aborting"
+# fi
+
+info "Creating symlinks"
+create_symlinks
+info "Creating gitconfig"
+source "./git/install"
+
+# initiate setup for macOS
+if [ "$(uname -s)" == "Darwin" ]
+then
+  info "Detected macOS"
+fi
+
+#initiate setup for Linux
+if [ "$(uname -s)" == "Darwin" ]
+then
+  info "Detected Linux"
+fi
+
+# cd "$(dirname $0)"/..
+
+# # find the installers and run them iteratively
+# find . -name install.sh | while read installer ; do sh -c "${installer}" ; done

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+DOTFILES_ROOT="$HOME/.dotfiles"
+source "${DOTFILES_ROOT}/_utils/index"
+
+# check if we can bootstrap the dotfiles
+info "Initiating dotfiles bootstrap"
+# TODO remove the !
+if [[ ! -d $DOTFILES_ROOT ]]; then
+  fail "Dotfiles already bootstrapped!"
+  fail_hard "Please use ${HOME}/scripts/install instead."
+fi
+
+# alright, let's do this
+source "${DOTFILES_ROOT}/scripts/install"

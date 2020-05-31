@@ -1,0 +1,149 @@
+
+# https://git-scm.com/docs/git-config
+
+# set global user config
+[include]
+    path = ~/.gitconfig.local
+
+# set global settings
+[alias]
+    # list available aliases
+    aliases = config --get-regexp alias
+
+    # general utilities
+    br = branch
+    ci = commit
+    ca = !git add -A && git commit -av
+    co = checkout
+    st = status -s
+    whoami = config user.email
+
+    # links to bin helpers
+    promote = !$ZSH/bin/git-promote
+    wtf     = !$ZSH/bin/git-wtf
+    rank-contributors = !$ZSH/bin/git-rank-contributors
+
+    # ahow verbose output about tags, branches or remotes
+    tags = tag -l
+    branches = branch -a
+    remotes = remote -v
+
+    # `git amend`: amend the currently staged files to the latest commit
+    amend = commit --amend --reuse-message=HEAD
+
+    # remove branches that have already been merged with master
+    # a.k.a. ‘delete merged’
+    cleanup = "!git branch --merged | grep -v '\\*' | xargs -n 1 git branch -d"
+
+    # `git d`: show the diff between the latest commit and the current state
+	  d = !"git diff-index --quiet HEAD -- || clear; git --no-pager diff --patch-with-stat"
+
+    # `git di $number`: shows the diff between the state `$number` revisions ago and the current state
+	  di = !"d() { git diff --patch-with-stat HEAD~$1; }; git diff-index --quiet HEAD -- || clear; d"
+
+    # `git go $branch` switch to a branch, creating it if necessary
+    go = "!f() { git checkout -b \"$1\" 2> /dev/null || git checkout \"$1\"; }; f"
+
+    # `git lg`: view abbreviated SHA, description, and history graph of the latest 20 commits
+	  lg = log --pretty=oneline -n 20 --graph --abbrev-commit
+
+    # `git rebase $where`: interactive rebase with the given number of latest commits
+    reb = "!r() { git rebase -i HEAD~$1; }; r"
+
+    # `git retag $tag`: remove the old tag with this name and tag the latest commit with it
+    retag = "!r() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; r"
+
+    # remove all commits
+    unstage = reset HEAD --
+
+[apply]
+    # detect whitespace errors when applying a patch
+    whitespace = fix
+
+[core]
+    # use custom `.gitignore` and `.gitattributes`
+    excludesfile = ~/.gitignore
+    attributesfile = ~/.gitattributes
+
+    # treat spaces before tabs and all kinds of trailing whitespace as an error
+    # [default] trailing-space: looks for spaces at the end of a line
+    # [default] space-before-tab: looks for spaces before tabs at the beginning of a line
+    whitespace = space-before-tab,-indent-with-non-tab,trailing-space
+
+    # make `git rebase` safer on macOS
+    # more info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
+    trustctime = false
+
+    # prevent showing files whose names contain non-ASCII symbols as unversioned
+    # http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
+    precomposeunicode = false
+
+    # speed up commands involving untracked files such as `git status`
+    # https://git-scm.com/docs/git-update-index#_untracked_cache
+    untrackedCache = true
+
+    # set the default editor for shell commands, can also be set using `GIT_EDITOR`
+    editor = vim
+
+[color]
+    branch = auto
+    diff = auto
+    status = auto
+    ui = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold # line info
+	old = red # deletions
+	new = green # additions
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[commit]
+	# https://help.github.com/articles/signing-commits-using-gpg/
+	# gpgsign = true
+
+[diff]
+    # [i]ndex, [w]ork tree, [c]ommit, [o]bject instead of a/b
+    mnemonicprefix = true
+    # detect copies as well as renames
+    renames = copies
+
+# https://git-scm.com/docs/git-difftool
+[difftool]
+    # prompt before each invocation of the diff tool
+    prompt = false
+
+[difftool "kaleidoscope"]
+    cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+
+[help]
+    # automatically correct and execute mistyped commands
+    autocorrect = 1
+
+[push]
+    # https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushdefault
+    default = current
+    # make `git push` push relevant annotated tags when pushing branches out
+	  followTags = true
+
+# URL shorthands
+[url "git://github.com/"]
+	insteadOf = "github:"
+
+[url "git@gitlab.com:"]
+    insteadOf = gitlab:
+
+[url "git://gist.github.com/"]
+	insteadOf = "gist:"
+
+[url "git@git.divio.com:"]
+    insteadOf = divio:
