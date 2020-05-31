@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-DOTFILES_ROOT="$HOME/.dotfiles"
+declare DOTFILES_ROOT="$HOME/.dotfiles"
+declare SSH_DIR="$HOME/.ssh"

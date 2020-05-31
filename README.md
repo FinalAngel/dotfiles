@@ -5,6 +5,8 @@ My personal dotfiles for macOS and Linux 👨‍💻
 - 📖 Read my blog post about these files
 -
 
+you are able to run packages independently or run the installing script again
+
 ## Component setup
 
 In general every folder is self-contained, meaning they can be installed independently. Though this script borrows concepts from `holman's dotfiles <https://github.com/holman/dotfiles>`\_ for ease of use.
@@ -18,3 +20,8 @@ all the repos
 ## Todo
 
 - add gpgsign
+- add internal ssh infrastructure
+
+# Manual steps
+
+- Copy the new id_rsa key to github, gitlab

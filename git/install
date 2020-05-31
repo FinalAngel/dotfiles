@@ -1,23 +1,53 @@
 #!/usr/bin/env bash
+source "$PWD/_utils/index"
 
-# only install the gitconfig is there
-if ! [ -f git/gitconfig.local.symlink ]
-then
+if ! is_executable "git"; then
+  fail_hard "Git is not installed, please install git first!"
+fi
+
+# setup id_rsa key
+if ! [ -f "$SSH_DIR/id_rsa.pub" ]; then
+  user 'Enter your SSH key email:'
+  read -e rsa_email
+
+  # generate the key
+  ssh-keygen -t rsa -f "$SSH_DIR/id_rsa" -b 4096 -C $rsa_email -N "" -q
+
+  # starting the ssh-agent
+  eval "$(ssh-agent -s)" > /dev/null
+
+  # register key
+  if is_mac; then
+    # create macOS specific configuration
+    touch ~/.ssh/config
+    echo -e "Host *\n  AddKeysToAgent yes\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_rsa" >> $SSH_DIR/config
+
+    ssh-add -K $SSH_DIR/id_rsa
+  else
+    ssh-add $SSH_DIR/id_rsa
+  fi
+
+  success "SSH key successfully generated in $SSH_DIR"
+else
+  warn "SSH key already setup, remove ~/.ssh to recreate"
+fi
+
+# setup gitconfig
+if ! [ -f git/gitconfig.local.symlink ]; then
   git_credential='cache'
 
-  if [ "$(uname -s)" == "Darwin" ]
-  then
+  if [ "$(uname -s)" == "Darwin" ]; then
     git_credential='osxkeychain'
   fi
 
-  user 'What is your git author name?'
+  user 'Enter your git author name:'
   read -e git_authorname
-  user 'What is your git author email?'
+  user 'Enter your git author email:'
   read -e git_authoremail
 
   sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s/GIT_CREDENTIAL_HELPER/$git_credential/g" git/gitconfig.local.symlink.example > git/gitconfig.local.symlink
 
-  success "Gitconfig successfully created"
+  success "Git successfully configured"
 else
-  warn "Gitconfig already present"
+  warn "Git already configured, remove ~/.dotfiles/gitconfig.local.symlink to recreate"
 fi

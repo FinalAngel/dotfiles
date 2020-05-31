@@ -88,3 +88,11 @@ create_symlinks () {
 is_executable() {
   type "$1" > /dev/null 2>&1
 }
+
+is_mac() {
+  [[ "$OSTYPE" == "darwin"* ]]
+}
+
+is_linux() {
+  [[ "$OSTYPE" == "linux-gnu"* ]]
+}

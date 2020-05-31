@@ -9,20 +9,18 @@ info "Initiating dotfiles install"
 #   fail_hard "git is not installed, aborting"
 # fi
 
-info "Creating symlinks"
+info "Setup [symlinks]"
 create_symlinks
-info "Creating gitconfig"
+info "Setup [git]"
 source "./git/install"
 
 # initiate setup for macOS
-if [ "$(uname -s)" == "Darwin" ]
-then
+if is_mac; then
   info "Detected macOS"
 fi
 
 #initiate setup for Linux
-if [ "$(uname -s)" == "Darwin" ]
-then
+if is_linux; then
   info "Detected Linux"
 fi
 
