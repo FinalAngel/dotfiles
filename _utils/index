@@ -3,6 +3,6 @@
 # exit immediately if a command exits with a non-zero status
 set -e
 
-source "$PWD/_utils/constants.sh" # needs to be first
-source "$PWD/_utils/messages.sh"
-source "$PWD/_utils/functions.sh"
+source "$PWD/_utils/constants" # needs to be first
+source "$PWD/_utils/messages"
+source "$PWD/_utils/functions"

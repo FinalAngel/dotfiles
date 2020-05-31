@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "./_utils/index"
+source "$PWD/_utils/index"
 
 # prepare setup
 info "Initiating dotfiles install"
@@ -12,7 +12,9 @@ info "Initiating dotfiles install"
 info "Setup [symlinks]"
 create_symlinks
 info "Setup [git]"
-source "./git/install"
+source "$PWD/git/install"
+info "Setup [homebrew]"
+source "$PWD/homebrew/install"
 
 # initiate setup for macOS
 if is_mac; then

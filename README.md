@@ -25,3 +25,4 @@ all the repos
 # Manual steps
 
 - Copy the new id_rsa key to github, gitlab
+- Download divio app and aseprite

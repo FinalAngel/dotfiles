@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+source "$PWD/_utils/index"
+
+# check if homebrew is installed
+if ! is_executable "brew"; then
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+
+  success "Homebrew successfully installed"
+else
+  warn "Homebrew already installed"
+fi
+
+# run updates
+source "$PWD/homebrew/update"

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+source "$PWD/_utils/index"
+
+info "Updating [homebrew], this might take some time..."
+brew update -q > /dev/null
+info "Upgrading [homebrew], this might take some time..."
+brew upgrade > /dev/null
+info "Cleaning [homebrew], this might take some time..."
+brew cleanup -q > /dev/null

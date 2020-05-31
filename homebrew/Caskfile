@@ -1,0 +1,82 @@
+cask_args appdir: "/Applications"
+
+# expand our horizon
+tap "homebrew/cask"
+tap "homebrew/cask-fonts"
+tap "homebrew/cask-versions"
+tap "homebrew/cask-drivers"
+
+# quicklook
+cask "qlcolorcode"
+cask "qlmarkdown"
+cask "quicklook-json"
+cask "quicklook-csv"
+cask "qlstephen"
+
+# fonts
+cask "font-dosis"
+cask "font-lato"
+cask "font-museo"
+cask "font-nunito"
+cask "font-open-sans"
+cask "font-roboto"
+cask "font-raleway"
+cask "font-source-code-pro"
+
+# core applications
+cask "1password"
+cask "1password-cli"
+cask "affinity-designer-beta"
+cask "affinity-photo-beta"
+cask "anki"
+cask "bartender"
+cask "calibre"
+cask "cleanmymac"
+cask "cyberduck"
+cask "dash"
+cask "discord"
+cask "downie"
+cask "dropbox"
+cask "firefox"
+cask "google-chrome"
+cask "gifox"
+cask "grammarly"
+cask "handbrake"
+cask "insomnia"
+cask "kaleidoscope"
+cask "notion"
+cask "one-switch"
+cask "plex"
+cask "sizeup"
+cask "skype"
+cask "slack"
+cask "steam"
+cask "synology-drive"
+cask "synologyassistant"
+cask "the-unarchiver"
+cask "tower"
+cask "tunnelbear"
+cask "visual-studio-code"
+cask "vlc"
+cask "whatsapp"
+
+# work specific
+cask "docker"
+cask "harvest"
+cask "keybase"
+cask "skitch"
+
+# personal stuff
+cask "guitar-pro"
+cask "hakuneko"
+cask "microsoft-teams"
+cask "sony-ps4-remote-play"
+
+# app store
+mas 'GoodNotes 5', id: 1444383602
+mas 'MindNode – Mind Map', id: 1218718027
+mas 'Airmail 4', id: 918858936
+mas '2Do', id: 477670270
+mas 'In Your Face', id: 1476964367
+mas 'Unclutter", id: 577085396
+mas 'Meta – music tag editor", id: 558317092
