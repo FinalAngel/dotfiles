@@ -14,16 +14,17 @@ create_symlinks
 info "Setup [git]"
 source "$PWD/git/install"
 info "Setup [homebrew]"
-source "$PWD/homebrew/install"
+warn "Homebrew setup skipped, re-enable"
+# source "$PWD/homebrew/install"
 
 # initiate setup for macOS
 if is_mac; then
-  info "Detected macOS"
+  info "Installing additional dependencies for macOS"
 fi
 
 #initiate setup for Linux
 if is_linux; then
-  info "Detected Linux"
+  info "Instlaling additional dependencies for Linux"
 fi
 
 # cd "$(dirname $0)"/..

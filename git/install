@@ -20,7 +20,7 @@ if ! [ -f "$SSH_DIR/id_rsa.pub" ]; then
   if is_mac; then
     # create macOS specific configuration
     touch ~/.ssh/config
-    echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_rsa" >> $SSH_DIR/config
+    echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown AddKeysToAgent,UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_rsa" >> $SSH_DIR/config
 
     ssh-add -K $SSH_DIR/id_rsa
   else

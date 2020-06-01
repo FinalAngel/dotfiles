@@ -11,8 +11,11 @@ else
 fi
 
 # run updates
-# source "$PWD/homebrew/update"
+source "$PWD/homebrew/update"
 
 # run install scripts
 brew bundle --file=$DOTFILES_ROOT/homebrew/Brewfile --no-lock
 brew bundle --file=$DOTFILES_ROOT/homebrew/Caskfile --no-lock
+
+# manually download apps
+source "$PWD/homebrew/manual"

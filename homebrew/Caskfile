@@ -1,16 +1,13 @@
-cask_args appdir: "~/Applications"
+cask_args appdir: "/Applications"
 
 # expand our horizon
 tap "homebrew/cask"
-tap "homebrew/cask-fonts"
 tap "homebrew/cask-versions"
 tap "homebrew/cask-drivers"
 
 # core applications
 cask "1password"
 cask "1password-cli"
-#cask "affinity-designer-beta"
-#cask "affinity-photo-beta"
 cask "anki"
 cask "bartender"
 cask "calibre"
@@ -39,6 +36,7 @@ cask "steam"
 cask "synology-drive"
 cask "synologyassistant"
 cask "the-unarchiver"
+cask "tableplus"
 cask "tower"
 cask "tunnelbear"
 cask "visual-studio-code"
@@ -65,7 +63,15 @@ cask "quicklook-json"
 cask "quicklook-csv"
 cask "qlstephen"
 
-# fonts
+# app store
+mas "GoodNotes 5", id: 1444383602
+mas "MindNode", id: 1289197285
+mas "Airmail 4", id: 918858936
+mas "2Do", id: 477670270
+mas "In Your Face", id: 1476964367
+mas "Unclutter", id: 577085396
+
+# TODO: somehow figure out how to download fonts
 #cask "font-dosis"
 #cask "font-lato"
 #cask "font-museo"
@@ -74,11 +80,3 @@ cask "qlstephen"
 #cask "font-roboto"
 #cask "font-raleway"
 #cask "font-source-code-pro"
-
-# app store
-mas "GoodNotes 5", id: 1444383602
-mas "MindNode", id: 1289197285
-mas "Airmail 4", id: 918858936
-mas "2Do", id: 477670270
-mas "In Your Face", id: 1476964367
-mas "Unclutter", id: 577085396

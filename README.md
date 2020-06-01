@@ -30,6 +30,8 @@ all the repos
 # Manual steps
 
 - Upload the new id_rsa key to github, gitlab
-- Download divio app, aseprite, beook, meta
+- Download aseprite manually
+- Open -dmg files and install manually
+- Test if font downloads works first
 
 Cisco Webex Meetings

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+source "$PWD/_utils/index"
+
+install_app() {
+  if [ ! -d "$APPLICATION_DIR/$3" ]; then
+    curl -L -s $1 -o "$APPLICATION_DIR/$2"
+    success "Downloaded $2"
+  else
+    success "$3 already installed"
+  fi
+}
+
+if is_mac; then
+  install_app "https://divio-app-releases.s3.amazonaws.com/releases/Divio-1.0.0.dmg" "Divio.dmg" "Divio.app"
+  install_app "https://beook.ch/downloads/setup/mac64/beook_mac64_install_6.4.0.dmg" "beook.dmg" "beook.app"
+  install_app "https://www.nightbirdsevolve.com/meta/updates/latest/" "Meta.dmg" "Meta.app"
+  install_app "https://store.serif.com/download/aa4dee/" "Affinity Designer.dmg" "Affinity Designer.app"
+  install_app "https://store.serif.com/download/075b51/" "Affinity Photo.dmg" "Affinity Photo.app"
+fi
