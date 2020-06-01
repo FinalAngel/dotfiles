@@ -19,12 +19,12 @@ warn "Homebrew setup skipped, re-enable"
 
 # initiate setup for macOS
 if is_mac; then
-  info "Installing additional dependencies for macOS"
+  info "Installing additional dependencies for [macOS]"
 fi
 
 #initiate setup for Linux
 if is_linux; then
-  info "Instlaling additional dependencies for Linux"
+  info "Instlaling additional dependencies for [Linux]"
 fi
 
 # cd "$(dirname $0)"/..

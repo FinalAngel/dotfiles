@@ -96,3 +96,9 @@ is_mac() {
 is_linux() {
   [[ "$OSTYPE" == "linux-gnu"* ]]
 }
+
+require_sudo() {
+  user "Require admin priviledges, you may need to enter your password"
+  sudo -v
+  while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+}

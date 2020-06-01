@@ -2,7 +2,14 @@
 source "$PWD/_utils/index"
 
 # get latest repo state
-git pull origin master
+info "Running general update scripts"
+git pull origin master -q
+success "Updated repository"
 
 # run general updates
 source "$PWD/homebrew/update"
+
+# system specific updates
+if is_mac; then
+  source "$PWD/macos/update"
+fi

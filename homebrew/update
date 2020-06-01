@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$PWD/_utils/index"
 
-success "Running update scripts for homebrew, this might take some time..."
+info "Running update scripts for [homebrew], this might take some time..."
 brew update -q > /dev/null
 success "Updated homebrew"
 brew upgrade > /dev/null

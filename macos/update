@@ -1,1 +1,7 @@
-softwareupdate --all --install --force
+#!/usr/bin/env bash
+source "$PWD/_utils/index"
+
+info "Running update scripts for [macOS], this might take some time..."
+require_sudo
+softwareupdate --install --all --force
+success "Updated software, this might need a reboot"

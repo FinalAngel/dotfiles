@@ -4,10 +4,11 @@ source "$DOTFILES_INSTALL_DIR/_utils/index"
 
 # check if we can bootstrap the dotfiles
 info "Initiating dotfiles bootstrap"
-# TODO remove the !
+
+warn "Check disabled, please re-enable"
 if [ ! -d $DOTFILES_ROOT ]; then
   fail "Dotfiles already bootstrapped!"
-  fail_hard "Please use $HOME/scripts/install instead."
+  fail_hard "Please use $HOME/scripts/install instead"
 fi
 
 # TODO clone repo and add it to -/dotfiles
