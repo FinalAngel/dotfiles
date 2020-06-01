@@ -21,6 +21,7 @@ In general every folder is self-contained, meaning they can be installed indepen
 ## Thanks to...
 
 all the repos
+https://github.com/kevinSuttle/macOS-Defaults/blob/master/.macos
 
 ## Todo
 

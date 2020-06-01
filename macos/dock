@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+source "$PWD/_utils/index"
+
+dockutil --no-restart --remove all
+dockutil --no-restart --add "/System/Applications/System Preferences.app"
+dockutil --no-restart --add "/System/Applications/App Store.app"
+dockutil --no-restart --add "/System/Applications/Utilities/Activity Monitor.app"
+dockutil --no-restart --add "/System/Applications/Utilities/Terminal.app"
+dockutil --no-restart --add "/Applications/iTerm.app"
+
+dockutil --no-restart --add '' --type spacer --section apps --after iTerm
+
+dockutil --no-restart --add "/Applications/Airmail 3.app"
+dockutil --no-restart --add "/Applications/2Do.app"
+dockutil --no-restart --add "/Applications/Harvest.app"
+dockutil --no-restart --add "/Applications/Grammarly.app"
+dockutil --no-restart --add "/Applications/1Password 7.app"
+dockutil --no-restart --add "/System/Applications/Books.app"
+
+dockutil --no-restart --add '' --type spacer --section apps --after Books
+
+dockutil --no-restart --add "/Applications/Pages.app"
+dockutil --no-restart --add "/Applications/Numbers.app"
+dockutil --no-restart --add "/Applications/Keynote.app"
+dockutil --no-restart --add "/Applications/Affinity Designer.app"
+dockutil --no-restart --add "/Applications/Affinity Photo.app"
+dockutil --no-restart --add "/Applications/MindNode.app"
+
+dockutil --no-restart --add '' --type spacer --section apps --after GoodNotes
+
+dockutil --no-restart --add "/Applications/Visual Studio Code.app"
+dockutil --no-restart --add "/Applications/Tower.app"
+dockutil --no-restart --add "/Applications/Kaleidoscope.app"
+dockutil --no-restart --add "/Applications/Dash.app"
+dockutil --no-restart --add "/Applications/Docker.app"
+dockutil --no-restart --add "/Applications/Divio.app"
+
+dockutil --no-restart --add '' --type spacer --section apps --after Divio
+
+dockutil --no-restart --add "/Applications/Slack.app"
+dockutil --no-restart --add "/Applications/Discord.app"
+dockutil --no-restart --add "/System/Applications/Messages.app"
+dockutil --no-restart --add "/Applications/Skype.app"
+dockutil --no-restart --add "/Applications/Keybase.app"
+dockutil --no-restart --add "/Applications/WhatsApp.app"
+
+dockutil --no-restart --add '' --type spacer --section apps --after WhatsApp
+
+dockutil --no-restart --add "/Applications/Google Chrome.app"
+dockutil --no-restart --add "/Applications/Firefox.app"
+dockutil --no-restart --add "/Applications/Safari.app"
+
+dockutil --no-restart --add '' --type spacer --section apps --after Safari
+
+dockutil --no-restart --add "/Applications/Plex.app"
+dockutil --no-restart --add "/Applications/Notion.app"
+dockutil --no-restart --add "/Applications/GoodNotes.localized/GoodNotes.app"
+dockutil --no-restart --add "/Applications/Anki.app"
+dockutil --no-restart --add "/Applications/beook.app"
+dockutil --no-restart --add "/Applications/VLC.app"
+
+dockutil --no-restart --add '~/Downloads' --view grid --display folder
+
+killall Dock
+
+success "Updated Dock"

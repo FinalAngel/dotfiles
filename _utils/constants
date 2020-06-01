@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# general paths
 declare DOTFILES_ROOT="$HOME/.dotfiles"
 declare SSH_DIR="$HOME/.ssh"
 declare APPLICATION_DIR="/Applications"
+
+# settings
+declare COMPUTER_NAME="Angelo’s MacBook Pro"
+declare COMPUTER_NAME_SLUG="Angelos-MacBook-Pro"
