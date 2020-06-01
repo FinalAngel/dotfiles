@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 source "$PWD/_utils/index"
 
+# get latest repo state
+git pull origin master
+
 # run general updates
 source "$PWD/homebrew/update"

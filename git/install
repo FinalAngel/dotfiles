@@ -7,7 +7,7 @@ fi
 
 # setup id_rsa key
 if ! [ -f "$SSH_DIR/id_rsa.pub" ]; then
-  user 'Enter your SSH key email:'
+  user "Enter your SSH key email:"
   read -e rsa_email
 
   # generate the key
@@ -29,25 +29,25 @@ if ! [ -f "$SSH_DIR/id_rsa.pub" ]; then
 
   success "SSH key successfully generated in $SSH_DIR"
 else
-  warn "SSH key already setup, remove ~/.ssh to recreate"
+  success "SSH key already setup, remove ~/.ssh to recreate"
 fi
 
 # setup gitconfig
 if ! [ -f git/gitconfig.local.symlink ]; then
-  git_credential='cache'
+  git_credential="cache"
 
   if [ "$(uname -s)" == "Darwin" ]; then
-    git_credential='osxkeychain'
+    git_credential="osxkeychain"
   fi
 
-  user 'Enter your git author name:'
+  user "Enter your git author name:"
   read -e git_authorname
-  user 'Enter your git author email:'
+  user "Enter your git author email:"
   read -e git_authoremail
 
   sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s/GIT_CREDENTIAL_HELPER/$git_credential/g" git/gitconfig.local.symlink.example > git/gitconfig.local.symlink
 
   success "Git successfully configured"
 else
-  warn "Git already configured, remove ~/.dotfiles/gitconfig.local.symlink to recreate"
+  success "Git already configured, remove ~/.dotfiles/gitconfig.local.symlink to recreate"
 fi
