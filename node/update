@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+source "$PWD/_utils/index"
+
+info "Running update scripts for [node]"
+source "$NVM_DIR/nvm.sh"
+
+npm install npm -g --loglevel=silent
+npm update -g --loglevel=silent

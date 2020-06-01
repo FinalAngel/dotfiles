@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+source "$PWD/_utils/index"
+
+info "Setup [node]"
+
+if [ ! -d "$NVM_DIR" ];then
+  # install from repo rather than
+  # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+  git clone https://github.com/creationix/nvm.git "$NVM_DIR"
+  cd "$NVM_DIR"
+  git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
+  source "$NVM_DIR/nvm.sh"
+  # install nvm versions
+  nvm install 6.17.0
+  nvm install 12.17.0
+
+  success "Nvm successfully installed"
+else
+  success "Nvm already setup, run update instead"
+fi
+
+npm_install () {
+  if test ! $(which $1)
+  then
+    if test $(which npm)
+    then
+      info "installing $2"
+      sudo npm install $2 -g --loglevel=silent
+      success "Installed npm package $2"
+    fi
+  fi
+}
+
+# install npm packages globally
+require_sudo
+npm_install "browser-sync" "browser-sync"
+npm_install "gulp" "gulp"
+npm_install "gatsby" "gatsby-cli"
+npm_install "npm-check-updates" "npm-check-updates"
+
+# TODO
+# need to add this to the bash file
+# export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm

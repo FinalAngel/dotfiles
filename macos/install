@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source "$PWD/_utils/index"
 
-info "Setup [macOS] defaults"
-# source "$PWD/macos/defaults"
+info "Setup [macOS]"
+source "$PWD/macos/defaults"
 source "$PWD/macos/dock"

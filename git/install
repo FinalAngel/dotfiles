@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 source "$PWD/_utils/index"
 
+info "Setup [git]"
+
 if ! is_executable "git"; then
   fail_hard "Git is not installed, please install git first!"
 fi

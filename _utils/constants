@@ -4,6 +4,7 @@
 declare DOTFILES_ROOT="$HOME/.dotfiles"
 declare SSH_DIR="$HOME/.ssh"
 declare APPLICATION_DIR="/Applications"
+declare NVM_DIR="$HOME/.nvm"
 
 # settings
 declare COMPUTER_NAME="Angelo’s MacBook Pro"

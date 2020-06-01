@@ -1,25 +1,17 @@
 #!/usr/bin/env bash
 source "$PWD/_utils/index"
 
-# prepare setup
-info "Initiating dotfiles install"
-# abort if prerequisites are not met
-# TODO install through https://github.com/webpro/dotfiles/blob/master/remote-install.sh?
-# if not is_executable "git"; then
-#   fail_hard "git is not installed, aborting"
-# fi
-
-info "Setup [symlinks]"
-create_symlinks
-info "Setup [git]"
+# load installer scripts
+source "$PWD/bin/dotfiles"
 source "$PWD/git/install"
-info "Setup [homebrew]"
 warn "Homebrew setup skipped, re-enable"
 # source "$PWD/homebrew/install"
+source "$PWD/node/install"
 
 # initiate setup for macOS
 if is_mac; then
-  source "$PWD/macos/install"
+  warn "macOS setup skipped, re-enable"
+  # source "$PWD/macos/install"
 fi
 
 #initiate setup for Linux
@@ -27,5 +19,13 @@ if is_linux; then
   info "Instlaling additional dependencies for [Linux]"
 fi
 
-# finally run update scrupt
+# finally run update script
 # source "$PWD/scripts/update"
+
+# abort if prerequisites are not met
+# TODO install through https://github.com/webpro/dotfiles/blob/master/remote-install.sh?
+# if not is_executable "git"; then
+#   fail_hard "git is not installed, aborting"
+# fi
+
+info "(☞ﾟヮﾟ)☞ Installation finished"
