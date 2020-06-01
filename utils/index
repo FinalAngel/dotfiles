@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# exit immediately if a command exits with a non-zero status
+set -e
+
+source "$PWD/utils/constants" # needs to be first
+source "$PWD/utils/messages"
+source "$PWD/utils/functions"

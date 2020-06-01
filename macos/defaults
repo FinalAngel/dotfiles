@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/_utils/index"
+source "$PWD/utils/index"
 
 osascript -e 'tell application "System Preferences" to quit'
 require_sudo

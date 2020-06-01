@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/_utils/index"
+source "$PWD/utils/index"
 
 # get latest repo state
 info "Running update scripts"
@@ -10,6 +10,7 @@ success "Updated repository"
 warn "Homebrew update disabled, re-enable"
 # source "$PWD/homebrew/update"
 source "$PWD/node/update"
+source "$PWD/git/update"
 
 # system specific updates
 if is_mac; then

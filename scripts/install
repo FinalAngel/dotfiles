@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/_utils/index"
+source "$PWD/utils/index"
 
 # load installer scripts
 source "$PWD/bin/dotfiles"
@@ -7,6 +7,7 @@ source "$PWD/git/install"
 warn "Homebrew setup skipped, re-enable"
 # source "$PWD/homebrew/install"
 source "$PWD/node/install"
+source "$PWD/zsh/install"
 
 # initiate setup for macOS
 if is_mac; then
@@ -16,16 +17,10 @@ fi
 
 #initiate setup for Linux
 if is_linux; then
-  info "Instlaling additional dependencies for [Linux]"
+  info "Installing additional dependencies for [Linux]"
 fi
 
 # finally run update script
 # source "$PWD/scripts/update"
 
-# abort if prerequisites are not met
-# TODO install through https://github.com/webpro/dotfiles/blob/master/remote-install.sh?
-# if not is_executable "git"; then
-#   fail_hard "git is not installed, aborting"
-# fi
-
-info "(☞ﾟヮﾟ)☞ Installation finished"
+info "👉 Installation finished"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/_utils/index"
+source "$PWD/utils/index"
 
 info "Running update scripts for [macOS], this might take some time..."
 require_sudo

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+source "$PWD/utils/index"
+
+# install zsh
+info "Setup [zsh]"
+
+if [ ! -d "$HOME/.oh-my-zsh" ];then
+  # run installation script
+  export RUNZSH=no
+  export CHSH=no
+  export KEEP_ZSHRC=yes
+  /bin/bash -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+  # install theme
+  mkdir "$ZSH_CUSTOM/themes"
+  git clone https://github.com/denysdovhan/spaceship-prompt.git "$ZSH_CUSTOM/themes/spaceship-prompt"
+  ln -s "$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme" "$ZSH_CUSTOM/themes/spaceship.zsh-theme"
+
+  success "Oh-my-zsh successfully installed"
+else
+  success "Oh-my-zsh already setup, run update instead"
+fi

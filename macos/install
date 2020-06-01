@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/_utils/index"
+source "$PWD/utils/index"
 
 info "Setup [macOS]"
 source "$PWD/macos/defaults"

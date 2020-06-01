@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/_utils/index"
+source "$PWD/utils/index"
 
 info "Setup [node]"
 
@@ -37,8 +37,3 @@ npm_install "browser-sync" "browser-sync"
 npm_install "gulp" "gulp"
 npm_install "gatsby" "gatsby-cli"
 npm_install "npm-check-updates" "npm-check-updates"
-
-# TODO
-# need to add this to the bash file
-# export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm

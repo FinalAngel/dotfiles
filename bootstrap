@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 DOTFILES_INSTALL_DIR="$HOME/.dotfiles"
-source "$DOTFILES_INSTALL_DIR/_utils/index"
+source "$DOTFILES_INSTALL_DIR/utils/index"
 
 # check if we can bootstrap the dotfiles
-info "(☞ﾟヮﾟ)☞ Initiating dotfiles bootstrap"
+info "👉 Initiating dotfiles bootstrap"
 
 warn "Dotfiles installer disabled, re-enable"
 if [ ! -d $DOTFILES_ROOT ]; then
@@ -15,3 +15,5 @@ fi
 
 # alright, let's do this
 source "$DOTFILES_ROOT/scripts/install"
+
+echo $BASEDIR
