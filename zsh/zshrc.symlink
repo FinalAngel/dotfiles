@@ -5,7 +5,7 @@ export ZSH="$HOME/.oh-my-zsh"
 export ZSH_CUSTOM="$HOME/.dotfiles/zsh"
 export EDITOR="vim"
 export PROJECTS=$CODE_DIR # your project folder that we can `c [tab]` to
-export STARSHIP_CONFIG=~/.starship
+export STARSHIP_CONFIG=~/.starship # for customisations
 
 # stash your environment variables in ~/.localrc. This means they'll stay out
 # of your main dotfiles repository (which may be public, like this one), but

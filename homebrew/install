@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Setup [homebrew]"
+info "Setup \033[0;37m[homebrew]\033[0m"
 
 # check if homebrew is installed
 if ! is_executable "brew"; then

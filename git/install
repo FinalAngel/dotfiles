@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Setup [git]"
+info "Setup \033[0;37m[git]\033[0m"
 
 if ! is_executable "git"; then
   fail_hard "Git is not installed, please install git first!"

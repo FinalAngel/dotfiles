@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Setup [fonts]"
+info "Setup \033[0;37m[fonts]\033[0m"
 
 # setup variables
 FONTS_DIR="$DOTFILES_ROOT/fonts"

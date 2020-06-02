@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Setup [symlinks]"
+info "Setup \033[0;37m[symlinks]\033[0m"
 create_symlinks

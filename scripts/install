@@ -9,13 +9,10 @@ warn "Homebrew setup skipped, re-enable"
 source "$PWD/node/install"
 source "$PWD/zsh/install"
 source "$PWD/fonts/install"
-# should be last
-source "$PWD/apps/install"
 
 # initiate setup for macOS
 if is_mac; then
-  warn "macOS setup skipped, re-enable"
-  # source "$PWD/macos/install"
+  source "$PWD/macos/install"
 fi
 
 #initiate setup for Linux

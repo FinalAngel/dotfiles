@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Setup [node]"
+info "Setup \033[0;37m[node]\033[0m"
 
 if [ ! -d "$NVM_DIR" ];then
   # install from repo rather than

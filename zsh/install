@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-# install zsh
-info "Setup [zsh]"
+info "Setup \033[0;37m[zsh]\033[0m"
 
 if [ ! -d "$HOME/.oh-my-zsh" ];then
   # run installation script

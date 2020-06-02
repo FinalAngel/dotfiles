@@ -27,6 +27,7 @@ brew "wget"
 # terminal
 brew "bash" # latest Bash version
 brew "starship"
+brew "tmux"
 brew "zsh"
 brew "zsh-syntax-highlighting"
 brew "zsh-autosuggestions"

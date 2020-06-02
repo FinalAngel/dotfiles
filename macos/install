@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Setup [macOS]"
-source "$PWD/macos/defaults"
-source "$PWD/macos/dock"
+info "Setup \033[0;37m[macOS]\033[0m"
+warn "macOS setup skipped, re-enable"
+# source "$PWD/macos/defaults"
+# source "$PWD/macos/dock"
+
+# TODO
+# need to restore my rsa key (.ssh folder) and other preferences
