@@ -11,9 +11,6 @@ if [ ! -d "$HOME/.oh-my-zsh" ];then
   export KEEP_ZSHRC=yes
   /bin/bash -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
-  # create linked symlink
-  ln -s "$DOTFILES_ROOT/zsh/spaceship-prompt/spaceship.zsh-theme" "$DOTFILES_ROOT/zsh/spaceship.zsh-theme"
-
   success "Oh-my-zsh successfully installed"
 else
   success "Oh-my-zsh already setup, run update instead"

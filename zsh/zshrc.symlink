@@ -3,9 +3,11 @@
 # shortcut to this dotfiles path is $ZSH
 export ZSH="$HOME/.oh-my-zsh"
 export ZSH_CUSTOM="$HOME/.dotfiles/zsh"
-export ZSH_THEME="spaceship"
 export EDITOR="vim"
 export PROJECTS=$CODE_DIR # your project folder that we can `c [tab]` to
+
+# initialise theme
+eval "$(starship init zsh)"
 
 # stash your environment variables in ~/.localrc. This means they'll stay out
 # of your main dotfiles repository (which may be public, like this one), but
@@ -19,9 +21,11 @@ if [ -d "$HOME/.oh-my-zsh" ]; then
   # if yes load standard initialisations script
   source $ZSH/oh-my-zsh.sh
   # load plugins
-  plugins=(brew git git-extras npm tmuxinator)
+  plugins=(brew git git-extras npm tmuxinator zsh-syntax-highlighting zsh-autosuggestions)
+  # load additional plugins
+  source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+  source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
-
 
 
 

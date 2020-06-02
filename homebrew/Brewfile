@@ -5,9 +5,8 @@ tap "homebrew/core"
 # core binaries
 brew "ack" # instead of grep
 brew "awscli"
-brew "bash" # Latest Bash version
 brew "bats" # "cat" on steroids
-brew "coreutils" # Those that come with macOS are outdated
+brew "coreutils" # those that come with macOS are outdated
 brew "dockutil"
 brew "ffmpeg"
 brew "findutils"
@@ -21,10 +20,16 @@ brew "mackup"
 brew "mas" # Mac App Store manager
 brew "openssh"
 brew "stow"
-brew "trash" # Manage the Trash bin
-brew "tree" # List directories in a tree structure
+brew "trash" # manage the Trash bin
+brew "tree" # list directories in a tree structure
 brew "wget"
+
+# terminal
+brew "bash" # latest Bash version
+brew "starship"
 brew "zsh"
+brew "zsh-syntax-highlighting"
+brew "zsh-autosuggestions"
 
 # deveopment
 brew "node"
