@@ -3,12 +3,12 @@ source "$PWD/utils/index"
 
 info "Setup [git]"
 
-if [ ! is_executable "git" ]; then
+if ! is_executable "git"; then
   fail_hard "Git is not installed, please install git first!"
 fi
 
 # setup id_rsa key
-if ! [ -f "$SSH_DIR/id_rsa.pub" ]; then
+if [ ! -f "$SSH_DIR/id_rsa.pub" ]; then
   user "Enter your SSH key email:"
   read -e rsa_email
 

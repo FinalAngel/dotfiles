@@ -4,7 +4,7 @@ source "$PWD/utils/index"
 info "Setup [homebrew]"
 
 # check if homebrew is installed
-if [ ! is_executable "brew" ]; then
+if ! is_executable "brew"; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
   success "Homebrew successfully installed, running update"
