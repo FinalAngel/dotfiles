@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+source "$PWD/utils/index"
+
+info "Setup [fonts]"
+
+# setup variables
+FONTS_DIR="$DOTFILES_ROOT/fonts"
+
+if is_mac; then
+  system_fonts_dir="$HOME/Library/Fonts"
+fi
+
+if is_linux; then
+  system_fonts_dir="$HOME/.local/share/fonts"
+  mkdir -p $system_fonts_dir
+fi
+
+# if file already exist we presume fonts have been installed
+if [ ! -f "$system_fonts_dir/FiraCode-Bold.otf" ]; then
+  # copy all fonts to user fonts directory
+  find "$FONTS_DIR" \( -name "*.[ot]tf" -or -name "*.pcf.gz" \) -type f -print0 | xargs -0 -n1 -I % cp "%" "$system_fonts_dir/"
+
+  # reset font cache on Linux
+  if which fc-cache > /dev/null 2>&1 ; then
+    fc-cache -f "$system_fonts_dir"
+  fi
+
+  success "Fonts successfully installed to $system_fonts_dir"
+else
+  success "Fonts already setup in $system_fonts_dir"
+fi
