@@ -1,5 +1,5 @@
 #!/bin/zsh
-source "$HOME/.dotfiles/utils/index"
+DOTFILES_ROOT="$HOME/.dotfiles"
 
 # this file is automatically loaded through oh-my-zsh
 # the ideal place to load all the others aliases :)

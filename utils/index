@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-DOTFILES_ROOT="$HOME/.dotfiles"
-
 # exit immediately if a command exits with a non-zero status
 set -e
 
-source "$DOTFILES_ROOT/utils/constants" # needs to be first
-source "$DOTFILES_ROOT/utils/messages"
-source "$DOTFILES_ROOT/utils/functions"
+# should only be used internally for install/update purposes
+source "$PWD/utils/constants" # needs to be first
+source "$PWD/utils/messages"
+source "$PWD/utils/functions"

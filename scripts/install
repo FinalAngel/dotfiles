@@ -2,7 +2,7 @@
 source "$PWD/utils/index"
 
 # load installer scripts
-source "$PWD/bin/dotfiles"
+source "$PWD/system/install"
 source "$PWD/git/install"
 warn "Homebrew setup skipped, re-enable"
 # source "$PWD/homebrew/install"
