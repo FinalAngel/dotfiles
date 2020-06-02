@@ -1,0 +1,1 @@
+alias blubb=ls
