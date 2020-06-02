@@ -5,9 +5,7 @@ export ZSH="$HOME/.oh-my-zsh"
 export ZSH_CUSTOM="$HOME/.dotfiles/zsh"
 export EDITOR="vim"
 export PROJECTS=$CODE_DIR # your project folder that we can `c [tab]` to
-
-# initialise theme
-eval "$(starship init zsh)"
+export STARSHIP_CONFIG=~/.starship
 
 # stash your environment variables in ~/.localrc. This means they'll stay out
 # of your main dotfiles repository (which may be public, like this one), but
@@ -18,32 +16,14 @@ fi
 
 # double check that it is safe to load zsh initialisation
 if [ -d "$HOME/.oh-my-zsh" ]; then
+  # define plugins first
+  plugins=(brew git git-extras npm python tmux tmuxinator vscode)
   # if yes load standard initialisations script
   source $ZSH/oh-my-zsh.sh
-  # load plugins
-  plugins=(brew git git-extras npm tmuxinator zsh-syntax-highlighting zsh-autosuggestions)
   # load additional plugins
   source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
   source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
-
-
-
-# ==============================================================================
-# OLD CONFIG FILE
-#
-
-# Source Prezto.s
-# if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-#   source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-# fi
-
-# # Customize to your needs...
-# source ~/.env.sh
-
-# # added by pipsi (https://github.com/mitsuhiko/pipsi)
-# export PATH="/Users/finalangel/.local/bin:$PATH"
-
-# # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-# export PATH="$PATH:$HOME/.rvm/bin"
+# initialise theme, needs to be at the end
+eval "$(starship init zsh)"
