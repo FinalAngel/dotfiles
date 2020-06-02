@@ -1,4 +1,4 @@
-# [dot]files
+# dotfiles
 
 My personal dotfiles for macOS and Linux 👨‍💻
 

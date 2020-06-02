@@ -4,9 +4,9 @@
 export ZSH="$HOME/.oh-my-zsh"
 export ZSH_CUSTOM="$HOME/.dotfiles/zsh"
 export ZSH_THEME="" # make sure no theme is set
-export EDITOR="vim" # use vim as default editor
 export PROJECTS=$CODE_DIR # your project folder that we can `c [tab]` to
 export STARSHIP_CONFIG=~/.starship # for customisations
+export HIST_STAMPS="dd/mm/yyyy"
 
 # stash your environment variables in ~/.localrc. This means they'll stay out
 # of your main dotfiles repository (which may be public, like this one), but
@@ -25,6 +25,11 @@ if [ -d "$HOME/.oh-my-zsh" ]; then
   source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
   source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
+
+# disable any beeping
+unsetopt BEEP
+# don't print "%"
+unsetopt prompt_cr prompt_sp
 
 # initialise theme, needs to be at the end
 eval "$(starship init zsh)"
