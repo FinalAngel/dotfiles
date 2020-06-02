@@ -5,8 +5,7 @@ dockutil --no-restart --remove all
 dockutil --no-restart --add "/System/Applications/System Preferences.app"
 dockutil --no-restart --add "/System/Applications/App Store.app"
 dockutil --no-restart --add "/System/Applications/Utilities/Activity Monitor.app"
-dockutil --no-restart --add "/System/Applications/Utilities/Terminal.app"
-dockutil --no-restart --add "/Applications/iTerm.app"
+dockutil --no-restart --add "/Applications/Hyper.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after iTerm
 
@@ -58,6 +57,10 @@ dockutil --no-restart --add "/Applications/GoodNotes.localized/GoodNotes.app"
 dockutil --no-restart --add "/Applications/Anki.app"
 dockutil --no-restart --add "/Applications/beook.app"
 dockutil --no-restart --add "/Applications/VLC.app"
+
+dockutil --no-restart --add '' --type spacer --section apps --after VLC
+
+# space for opened apps
 
 dockutil --no-restart --add '~/Downloads' --view grid --display folder
 
