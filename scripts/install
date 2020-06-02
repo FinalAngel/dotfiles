@@ -8,6 +8,7 @@ warn "Homebrew setup skipped, re-enable"
 # source "$PWD/homebrew/install"
 source "$PWD/node/install"
 source "$PWD/zsh/install"
+source "$PWD/vim/install"
 source "$PWD/fonts/install"
 
 # initiate setup for macOS

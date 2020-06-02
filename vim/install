@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+source "$PWD/utils/index"
+
+info "Setup \033[0;37m[vim]\033[0m"
+
+plugin_path="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim"
+
+if [ ! -f $plugin_path ]; then
+  sh -c "curl -fLo $plugin_path --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+
+  # symlink configuration file
+  mkdir -p "$HOME/.config/nvim/"
+  ln -Fs "$DOTFILES_ROOT/vim/init.vim" "$HOME/.config/nvim/init.vim"
+  nvim +PluginInstall +qall
+
+  success "VIM plugins successfully installed"
+else
+  success "VIM plugins already setup"
+fi
+
+# info "install plugins"
+nvim +PluginInstall +qall > /dev/null

@@ -7,8 +7,6 @@ alias dot="cd ~/.dotfiles && code ."
 # =====================================================
 # MY OLD ALIASES
 
-echo "Loaded ALIASES"
-
 # PATH
 # export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH
 export PATH=/usr/local/bin:/usr/local/sbin:~/bin:$PATH
