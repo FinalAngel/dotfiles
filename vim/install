@@ -12,12 +12,8 @@ if [ ! -f $plugin_path ]; then
   # symlink configuration file
   mkdir -p "$HOME/.config/nvim/"
   ln -Fs "$DOTFILES_ROOT/vim/init.vim" "$HOME/.config/nvim/init.vim"
-  nvim +PluginInstall +qall
 
   success "VIM plugins successfully installed"
 else
   success "VIM plugins already setup"
 fi
-
-# info "install plugins"
-nvim +PluginInstall +qall > /dev/null

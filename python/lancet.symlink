@@ -1,0 +1,17 @@
+# https://gitlab.com/divio/incubator/lancet
+# [lancet]
+# sentry_dsn = https://67223d176d7d4a4b81915b71894bc8e5@sentry.io/45354
+
+[tracker:gitlab]
+username = FinalAngel
+
+[scm-manager:gitlab]
+username = FinalAngel
+
+[tracker:jira]
+url = https://divio-ch.atlassian.net
+username = Angelo Dini
+
+[timer:harvest]
+username = 125528
+user_id = 131008

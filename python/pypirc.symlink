@@ -1,0 +1,10 @@
+[distutils]
+index-servers =
+  pypi
+  divio
+
+[pypi]
+username:FinalAngel # or aldryn
+
+[divio]
+username:divio

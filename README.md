@@ -27,6 +27,7 @@ https://github.com/kevinSuttle/macOS-Defaults/blob/master/.macos
 
 - add gpgsign
 - add internal ssh infrastructure
+- need to get "nvim +PluginInstall +qall" working for nvim
 
 # Manual steps
 
