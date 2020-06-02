@@ -15,5 +15,3 @@ fi
 
 # alright, let's do this
 source "$DOTFILES_ROOT/scripts/install"
-
-echo $BASEDIR

@@ -1,0 +1,13 @@
+# use Ctrl+A as the prefix key
+set -g prefix C-a
+unbind C-b
+bind C-a send-prefix
+
+# general configurations
+set -g mouse on
+set -g automatic-rename off
+setw -g mode-keys vi # use Vim shortcuts
+
+# make `Ctrl+A R` reload the config file
+unbind r
+bind r source-file ~/.tmux.conf
