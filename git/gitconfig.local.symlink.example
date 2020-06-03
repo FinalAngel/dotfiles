@@ -3,7 +3,7 @@
     email = AUTHOREMAIL
 
 [github]
-      user = AUTHORNAME
+    user = AUTHORNAME
 
 [credential]
-      helper = GIT_CREDENTIAL_HELPER
+    helper = GIT_CREDENTIAL_HELPER

@@ -38,10 +38,11 @@ fi
 if ! [ -f git/gitconfig.local.symlink ]; then
   git_credential="cache"
 
-  if [ "$(uname -s)" == "Darwin" ]; then
+  if is_mac; then
     git_credential="osxkeychain"
   fi
 
+  # need git information
   user "Enter your git author name:"
   read -e git_authorname
   user "Enter your git author email:"
