@@ -19,6 +19,7 @@ brew "imagemagick"
 brew "mackup"
 brew "mas" # Mac App Store manager
 brew "openssh"
+brew "pinentry-mac"
 brew "thefuck"
 brew "trash" # manage the Trash bin
 brew "tree" # list directories in a tree structure

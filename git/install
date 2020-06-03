@@ -60,6 +60,7 @@ fi
 
 # setup GPG for signing git commits
 if [ ! -d "$HOME/.gnupg" ]; then
+  user "Generating GPG key, use same email as for git:"
   # generate key, prompts will appear
   gpg --default-new-key-algo rsa4096 --gen-key
   user "Copy and paste the generated GPG key ID:"
