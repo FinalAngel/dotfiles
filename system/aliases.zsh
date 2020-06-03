@@ -39,10 +39,6 @@ alias dc="docker-compose"
 alias dcrun="dc run --rm"
 alias dclog="dc logs -f"
 alias dclint="docker run --env-file=.lint -it -v $(pwd):/app divio/lint /bin/lint"
-alias killnode="rm -rf node_modules/ package-lock.json && npm install"
-# alias lancet="$HOME/.virtualenvs/lancet/bin/lancet" # enable for development
-alias pip="pip3"
-alias python="python3"
 
 # helper
 alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info$)' | xargs rm -rf"

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+source "$PWD/utils/index"
+
+info "Update \033[0;37m[python]\033[0m"
+
+if test $(which python3); then
+  # sudo required because we set PIP_REQUIRE_VIRTUALENV
+  require_sudo
+  sudo pip install --upgrade setuptools > /dev/null 2>&1
+  success "Successfully upgraded setuptools"
+  sudo pip install --upgrade pip > /dev/null 2>&1
+  success "Successfully upgraded pip"
+  sudo pip install --upgrade virtualenv > /dev/null 2>&1
+  success "Successfully upgraded virtualenv"
+  sudo pip install --upgrade virtualenvwrapper > /dev/null 2>&1
+  success "Successfully upgraded virtualenvwrapper"
+  sudo pip install --upgrade twine > /dev/null 2>&1
+  success "Successfully upgraded twine"
+fi

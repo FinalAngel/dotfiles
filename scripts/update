@@ -11,6 +11,7 @@ source "$PWD/fonts/update"
 source "$PWD/git/update"
 source "$PWD/homebrew/update"
 source "$PWD/node/update"
+source "$PWD/python/update"
 
 # system specific installs
 if is_mac; then source "$PWD/macos/update"; fi

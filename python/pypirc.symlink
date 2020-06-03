@@ -1,10 +1,14 @@
+# https://pypi.org/help/#apitoken
+
 [distutils]
 index-servers =
   pypi
   divio
 
 [pypi]
-username:FinalAngel # or aldryn
+username: __token__
+password: xxxxxxxxx
 
 [divio]
-username:divio
+username: __token__
+password: xxxxxxxxx

@@ -1,4 +1,4 @@
-export ARCHFLAGS="-arch x86_64"
+#!/bin/zsh
 
 # python
 export PYTHONPATH=$PYTHONPATH
@@ -6,7 +6,9 @@ export PYTHONPATH=$PYTHONPATH
 # virtual environment
 export WORKON_HOME=$HOME/.virtualenvs
 export PROJECT_HOME=$HOME/Sites
-export PIP_REQUIRE_VIRTUALENV=true
 export PIP_DOWNLOAD_CACHE=$HOME/.pip/cache
-export VIRTUALENVWRAPPER_PYTHON=/usr/local/bin/python3
+export PIP_REQUIRE_VIRTUALENV=true # to avoid global installs
+export VIRTUALENVWRAPPER_PYTHON=python # uses alias
+
+# load virtualenvwrapper
 source /usr/local/bin/virtualenvwrapper.sh

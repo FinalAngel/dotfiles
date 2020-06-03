@@ -9,6 +9,7 @@ source "$PWD/fonts/install"
 source "$PWD/git/install"
 source "$PWD/homebrew/install"
 source "$PWD/node/install"
+source "$PWD/python/install"
 
 
 

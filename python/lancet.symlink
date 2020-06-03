@@ -1,7 +1,4 @@
 # https://gitlab.com/divio/incubator/lancet
-# [lancet]
-# sentry_dsn = https://67223d176d7d4a4b81915b71894bc8e5@sentry.io/45354
-
 [tracker:gitlab]
 username = FinalAngel
 

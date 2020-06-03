@@ -1,4 +1,19 @@
-pip install --upgrade setuptools
-pip install --upgrade pip
-pip install virtualenv
-pip install virtualenvwrapper
+#!/usr/bin/env bash
+source "$PWD/utils/index"
+
+info "Setup \033[0;37m[python]\033[0m"
+
+if test $(which python3); then
+  # sudo required because we set PIP_REQUIRE_VIRTUALENV
+  require_sudo
+  sudo pip install --upgrade setuptools > /dev/null 2>&1
+  success "Successfully upgraded setuptools"
+  sudo pip install --upgrade pip > /dev/null 2>&1
+  success "Successfully upgraded pip"
+  sudo pip install virtualenv > /dev/null 2>&1
+  success "Successfully installed virtualenv"
+  sudo pip install virtualenvwrapper > /dev/null 2>&1
+  success "Successfully installed virtualenvwrapper"
+  sudo pip install twine > /dev/null 2>&1
+  success "Successfully installed twine"
+fi
