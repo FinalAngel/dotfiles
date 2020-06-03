@@ -12,16 +12,11 @@ is_executable getconf && PATH=$($(command -v getconf) PATH)
 prepend_path "/bin"
 prepend_path "/usr/bin"
 prepend_path "/usr/local/bin"
-prepend_path "/usr/local/opt/coreutils/libexec/gnubin"
-prepend_path "/usr/local/opt/gnu-sed/libexec/gnubin"
-prepend_path "/usr/local/opt/grep/libexec/gnubin"
-prepend_path "/usr/local/opt/python/libexec/bin"
 prepend_path "/usr/local/opt/ruby/bin"
-prepend_path "$HOME/.dotfiles/bin"
-prepend_path "$HOME/bin"
 prepend_path "/sbin"
 prepend_path "/usr/sbin"
 prepend_path "/usr/local/sbin"
+prepend_path "$HOME/.dotfiles/bin"
 
 # remove duplicates (preserving prepended items)
 # source: http://unix.stackexchange.com/a/40755
