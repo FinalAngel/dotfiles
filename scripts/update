@@ -10,11 +10,6 @@ success "Updated repository"
 source "$PWD/fonts/update"
 source "$PWD/git/update"
 source "$PWD/homebrew/update"
-
-
-
-
-
 source "$PWD/node/update"
 
 # system specific installs

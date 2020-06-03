@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Running update scripts for [node]"
-source "$NVM_DIR/nvm.sh"
+info "Update \033[0;37m[node]\033[0m"
 
-npm install npm -g --loglevel=silent
-npm update -g --loglevel=silent
+require_sudo
+
+sudo npm update -g > /dev/null 2>&1
+success "NPM updated"
+
+sudo npm install npm -g > /dev/null 2>&1
+success "Global NPM packages updated"

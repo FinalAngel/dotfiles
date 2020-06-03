@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
+# system should probably be first
+# followed by homebrew
+
 # universal installs
 source "$PWD/fonts/install"
 source "$PWD/git/install"
 source "$PWD/homebrew/install"
+source "$PWD/node/install"
 
 
 
 
 
 source "$PWD/system/install"
-source "$PWD/node/install"
 source "$PWD/zsh/install"
 source "$PWD/vim/install"
 
 # system specific installs
 if is_mac; then source "$PWD/macos/install"; fi
 if is_linux; then source "$PWD/linux/install"; fi
-
-# finally run update script
-# source "$PWD/scripts/update"
 
 info "👉 Installation finished"

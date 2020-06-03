@@ -7,24 +7,16 @@ if [ ! -d "$NVM_DIR" ];then
   # install from repo rather than
   # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
   git clone https://github.com/creationix/nvm.git "$NVM_DIR"
-  cd "$NVM_DIR"
-  git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" origin`
   source "$NVM_DIR/nvm.sh"
-  # install nvm versions
-  nvm install 6.17.0
-  nvm install 12.17.0
 
-  success "Nvm successfully installed"
+  success "NVM successfully installed"
 else
-  success "Nvm already setup, run update instead"
+  success "NVM already setup"
 fi
 
 npm_install () {
-  if test ! $(which $1)
-  then
-    if test $(which npm)
-    then
-      info "installing $2"
+  if test ! $(which $1); then
+    if test $(which npm); then
       sudo npm install $2 -g --loglevel=silent
       success "Installed npm package $2"
     fi
@@ -37,3 +29,24 @@ npm_install "browser-sync" "browser-sync"
 npm_install "gulp" "gulp"
 npm_install "gatsby" "gatsby-cli"
 npm_install "npm-check-updates" "npm-check-updates"
+
+nvm_install () {
+  # make sure nvm command is available
+  source "$NVM_DIR/nvm.sh"
+
+  # install declared versions
+  if nvm list | grep -q "$1"; then
+    success "Node $1 already installed"
+  else
+    nvm install $1
+    success "Installed Node $1"
+  fi
+}
+
+# install needed npm versions
+nvm_install 6.17.0
+nvm_install 12.13.0
+nvm_install 12.17.0
+
+# run updates
+source "$PWD/node/update"
