@@ -24,7 +24,7 @@ fi
 
 # use scripts/install instead if already setup
 if [ -d "$TARGET" ]; then
-  fail_hard "Repository already setup, use scripts/install instead. Aborting!"
+  fail_hard "Repository already setup, use 'dot' manager instead. Aborting!"
 fi
 
 # one last check

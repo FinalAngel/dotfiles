@@ -29,8 +29,6 @@ alias top="htop"
 # directories
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
-alias dot="dotfiles && code ."
-alias dotfiles="cd $HOME/.dotfiles"
 alias lib="cd $HOME/Library"
 alias ws="cd $HOME/Sites"
 alias wsc="cd $HOME/Sites/_cloud" # to remove after new setup

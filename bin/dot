@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# `dot` handles updates, installation, editing
+
+set -e
+
+parentDirectory="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)"
+dotfilesDirectory="$(cd "$( dirname "$parentDirectory" )" && pwd -P)"
+
+displayUsageAndExit() {
+  echo "dot -- dotfiles management"
+  echo ""
+  echo "Usage: dot [options]"
+  echo ""
+  echo "Options:"
+  echo "  -i, --install  Runs installer again"
+  echo "  -u, --update   Runs installer again"
+  echo "  -e, --edit     Open dotfiles directory for editing"
+  echo "  -h, --help     Show this help message and exit"
+  echo ""
+  exit
+}
+
+while test $# -gt 0; do
+  case "$1" in
+    "-h"|"--help")
+      displayUsageAndExit
+      ;;
+    "-u"|"--update")
+      source "$dotfilesDirectory/scripts/update"
+      exit
+      ;;
+    "-i"|"--install")
+      source "$dotfilesDirectory/scripts/install"
+      exit
+      ;;
+    "-e"|"--edit")
+      exec "$EDITOR" "$dotfilesDirectory"
+      exit
+      ;;
+    *)
+      echo "Invalid option: $1"
+      displayUsageAndExit
+      ;;
+  esac
+  shift
+done
+
+# needs an argument
+displayUsageAndExit
