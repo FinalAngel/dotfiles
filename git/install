@@ -77,4 +77,3 @@ if [ ! -d "$HOME/.gnupg" ]; then
 else
   success "GPG key already configured, remove ~/.gnupg to recreate"
 fi
-
