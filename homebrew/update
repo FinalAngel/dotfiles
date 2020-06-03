@@ -6,9 +6,9 @@ info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
 brew update -q > /dev/null 2>&1
 success "Updated homebrew"
 brew upgrade > /dev/null 2>&1
-success "Upgraded homebrew"
+success "Updated formulae"
 brew cleanup > /dev/null 2>&1
-success "Cleaned homebrew"
+success "Cleaned formulae"
 
 # run bundles
 success "Brew'ing Brewfile and Caskfile"
