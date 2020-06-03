@@ -27,6 +27,7 @@ alias reload="source $HOME/.zshrc"
 alias top="htop"
 
 # directories
+alias apps="cd /Applications"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias lib="cd $HOME/Library"

@@ -3,13 +3,21 @@ source "$PWD/utils/index"
 
 install_app() {
   if [ ! -d "$APPLICATION_DIR/$3" ]; then
+    # download the files into /Applications
     curl -L -s $1 -o "$APPLICATION_DIR/$2"
-    success "Downloaded $2"
+    # use hdiutil to attach, extract and detach the app
+    hdiutil attach -mountpoint "/Volumes/APP" "$APPLICATION_DIR/$2" > /dev/null
+    cp -R "/Volumes/APP/$3" $APPLICATION_DIR
+    hdiutil detach "/Volumes/APP" > /dev/null
+    # cleanup
+    rm -rf "$APPLICATION_DIR/$2"
+    success "Installed $2"
   else
     success "$3 already installed"
   fi
 }
 
+# I'm a genius ¯\_(ツ)_/¯
 if is_mac; then
   install_app "https://divio-app-releases.s3.amazonaws.com/releases/Divio-1.0.0.dmg" "Divio.dmg" "Divio.app"
   install_app "https://beook.ch/downloads/setup/mac64/beook_mac64_install_6.4.0.dmg" "beook.dmg" "beook.app"

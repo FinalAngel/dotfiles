@@ -2,14 +2,14 @@
 source "$PWD/utils/index"
 
 # load installer scripts
-source "$PWD/system/install"
+source "$PWD/fonts/install"
 source "$PWD/git/install"
-warn "Homebrew setup skipped, re-enable"
-# source "$PWD/homebrew/install"
+source "$PWD/homebrew/install"
+
+source "$PWD/system/install"
 source "$PWD/node/install"
 source "$PWD/zsh/install"
 source "$PWD/vim/install"
-source "$PWD/fonts/install"
 
 # initiate setup for macOS
 if is_mac; then

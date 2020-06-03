@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Running update scripts for [homebrew], this might take some time..."
-brew update -q > /dev/null
+info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
+
+brew update -q > /dev/null 2>&1
 success "Updated homebrew"
-brew upgrade > /dev/null
+brew upgrade > /dev/null 2>&1
 success "Upgraded homebrew"
-brew cleanup > /dev/null
+brew cleanup > /dev/null 2>&1
 success "Cleaned homebrew"
+
+# run bundles
+info "Brew'ing Brewfile and Caskfile"
+brew bundle --file=$DOTFILES_ROOT/homebrew/Brewfile --no-lock
+brew bundle --file=$DOTFILES_ROOT/homebrew/Caskfile --no-lock

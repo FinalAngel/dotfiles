@@ -7,17 +7,13 @@ info "Setup \033[0;37m[homebrew]\033[0m"
 if ! is_executable "brew"; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 
-  success "Homebrew successfully installed, running update"
+  success "Homebrew successfully installed"
 else
-  success "Homebrew already installed, running update"
+  success "Homebrew already installed"
 fi
-
-# run updates
-source "$PWD/homebrew/update"
-
-# run install scripts
-brew bundle --file=$DOTFILES_ROOT/homebrew/Brewfile --no-lock
-brew bundle --file=$DOTFILES_ROOT/homebrew/Caskfile --no-lock
 
 # manually download apps
 source "$PWD/homebrew/manual"
+
+# run updates
+source "$PWD/homebrew/update"
