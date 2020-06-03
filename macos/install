@@ -15,3 +15,6 @@ mkdir $CODE_DIR
 
 # TODO
 # need to restore my rsa key (.ssh folder) and other preferences
+
+# TODO need to update gemfiles
+# 

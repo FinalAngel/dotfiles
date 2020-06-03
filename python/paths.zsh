@@ -1,7 +1,6 @@
 export ARCHFLAGS="-arch x86_64"
 
 # python
-export PATH=/usr/local/bin:/usr/local/sbin:~/bin:$PATH
 export PYTHONPATH=$PYTHONPATH
 
 # virtual environment

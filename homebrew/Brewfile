@@ -19,7 +19,7 @@ brew "imagemagick"
 brew "mackup"
 brew "mas" # Mac App Store manager
 brew "openssh"
-brew "stow"
+brew "thefuck"
 brew "trash" # manage the Trash bin
 brew "tree" # list directories in a tree structure
 brew "wget"
@@ -33,7 +33,7 @@ brew "zsh"
 brew "zsh-syntax-highlighting"
 brew "zsh-autosuggestions"
 
-# deveopment
+# development
 brew "node"
 brew "nginx"
 brew "python"

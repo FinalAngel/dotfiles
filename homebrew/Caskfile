@@ -57,12 +57,13 @@ cask "microsoft-teams"
 cask "sony-ps4-remote-play"
 cask "unity-hub"
 
-# quicklook
+# quicklook plugins https://github.com/sindresorhus/quick-look-plugins
 cask "qlcolorcode"
+cask "qlstephen"
 cask "qlmarkdown"
+cask "qlimagesize"
 cask "quicklook-json"
 cask "quicklook-csv"
-cask "qlstephen"
 
 # app store
 mas "GoodNotes 5", id: 1444383602

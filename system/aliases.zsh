@@ -12,8 +12,9 @@ fi
 # utilities
 alias ..="cd .."
 alias ...="cd ../.."
-alias ~="cd ~" # `cd` is probably faster to type though
+alias ~="cd ~"
 alias -- -="cd -"
+alias cd.='cd $(readlink -f .)' # go to real dir (i.e. if current dir is linked)
 
 alias c="clear"
 alias l="ls -lF ${colorflag}"
@@ -32,8 +33,7 @@ alias dot="dotfiles && code ."
 alias dotfiles="cd $HOME/.dotfiles"
 alias lib="cd $HOME/Library"
 alias ws="cd $HOME/Sites"
-alias wsc="cd $HOME/Sites/_cloud"
-alias wsd="cd $HOME/Sites/_projects"
+alias wsc="cd $HOME/Sites/_cloud" # to remove after new setup
 
 # development
 alias dc="docker-compose"
@@ -65,6 +65,7 @@ alias killchrome="ps ux | grep '[C]hrome Helper --type=renderer' | grep -v exten
 alias shrug="echo '¯\_(ツ)_/¯' | pbcopy"
 
 # additional aliases for git in git/gitconfig.symlink
+alias g="git"
 alias gt="gittower ."
 
 # load function
