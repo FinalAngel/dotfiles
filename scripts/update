@@ -11,9 +11,12 @@ source "$PWD/fonts/update"
 source "$PWD/git/update"
 source "$PWD/homebrew/update"
 
+
+
+
+
 source "$PWD/node/update"
 
-# system specific updates
-if is_mac; then
-  source "$PWD/macos/update"
-fi
+# system specific installs
+if is_mac; then source "$PWD/macos/update"; fi
+if is_linux; then source "$PWD/linux/update"; fi

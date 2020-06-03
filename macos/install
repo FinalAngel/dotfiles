@@ -2,19 +2,27 @@
 source "$PWD/utils/index"
 
 info "Setup \033[0;37m[macOS]\033[0m"
-warn "macOS setup skipped, re-enable"
-# source "$PWD/macos/defaults"
-# source "$PWD/macos/dock"
+
+source "$PWD/macos/defaults"
+source "$PWD/macos/dock"
 
 # create general code directory
-mkdir $CODE_DIR
+if [ ! -d $CODE_DIR ]; then
+  mkdir -p $CODE_DIR
+  success "Code directory created"
+else
+  success "Code directory already created"
+fi
 
-# TODO
-# require_sudo
-# sudo fdesetup enable
+# will return true or false
+`fdesetup isactive`
+if [ ! $? ]; then
+  require_sudo
+  sudo fdesetup enable
+  success "FileVault successfully enabled"
+else
+  success "FileVault already enabled"
+fi
 
-# TODO
-# need to restore my rsa key (.ssh folder) and other preferences
-
-# TODO need to update gemfiles
-# 
+# run updates
+source "$PWD/macos/update"

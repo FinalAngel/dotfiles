@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Running update scripts for [macOS], this might take some time..."
+info "Update \033[0;37m[macOS]\033[0m"
+
+# update software
 require_sudo
 softwareupdate --install --all --force
 success "Updated software, this might need a reboot"
+
+# update gem files
+require_sudo
+sudo gem update --system
+success "Gem files updated"

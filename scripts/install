@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-# load installer scripts
+# universal installs
 source "$PWD/fonts/install"
 source "$PWD/git/install"
 source "$PWD/homebrew/install"
+
+
+
+
 
 source "$PWD/system/install"
 source "$PWD/node/install"
 source "$PWD/zsh/install"
 source "$PWD/vim/install"
 
-# initiate setup for macOS
-if is_mac; then
-  source "$PWD/macos/install"
-fi
-
-#initiate setup for Linux
-if is_linux; then
-  info "Installing additional dependencies for [Linux]"
-fi
+# system specific installs
+if is_mac; then source "$PWD/macos/install"; fi
+if is_linux; then source "$PWD/linux/install"; fi
 
 # finally run update script
 # source "$PWD/scripts/update"

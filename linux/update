@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+source "$PWD/utils/index"
+
+info "Update \033[0;37m[linux]\033[0m"
+
+success "¯\_(ツ)_/¯"
