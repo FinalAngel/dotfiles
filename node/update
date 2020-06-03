@@ -6,7 +6,7 @@ info "Update \033[0;37m[node]\033[0m"
 require_sudo
 
 sudo npm update -g > /dev/null 2>&1
-success "NPM updated"
+success "Updated npm"
 
 sudo npm install npm -g > /dev/null 2>&1
-success "Global NPM packages updated"
+success "Updated global npm packages"

@@ -24,9 +24,11 @@ else
   success "FileVault already enabled"
 fi
 
-# TODO need to decide on how to handle that
-# mackup restore
-# mackup backup
+# restore app preferences
+if [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Mackup" ]; then
+  mackup restore -f
+  success "Restored app preferences"
+fi
 
 # run updates
 source "$DIR/macos/update"

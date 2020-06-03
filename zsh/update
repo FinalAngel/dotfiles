@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 source "$DIR/utils/index"
 
-info "Update \033[0;37m[tsh]\033[0m"
+info "Update \033[0;37m[zsh]\033[0m"
 
-upgrade_oh_my_zsh
+env ZSH="$ZSH" sh "$ZSH/tools/upgrade.sh" > /dev/null 2>&1
+command rm -rf "$ZSH/log/update.lock"
+
 success "Updated oh-my-zsh"

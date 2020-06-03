@@ -7,18 +7,20 @@ source "$DIR/utils/index"
 
 # get latest repo state
 info "Update \033[0;37m[repository]\033[0m"
-git pull origin master -q
+cd $DIR && git pull origin master -q
 success "Updated repository"
 
 # run general updates
-source "$DIR/fonts/update"
-source "$DIR/git/update"
 source "$DIR/homebrew/update"
+source "$DIR/git/update"
 source "$DIR/node/update"
 source "$DIR/python/update"
+source "$DIR/zsh/update"
+source "$DIR/fonts/update"
 
 # system specific installs
 if is_mac; then source "$DIR/macos/update"; fi
 if is_linux; then source "$DIR/linux/update"; fi
 
 info "👉 Updates finished"
+echo ""

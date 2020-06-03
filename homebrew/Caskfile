@@ -73,12 +73,3 @@ mas "2Do", id: 477670270
 mas "In Your Face", id: 1476964367
 mas "Unclutter", id: 577085396
 
-# TODO: somehow figure out how to download fonts
-#cask "font-dosis"
-#cask "font-lato"
-#cask "font-museo"
-#cask "font-nunito"
-#cask "font-open-sans"
-#cask "font-roboto"
-#cask "font-raleway"
-#cask "font-source-code-pro"

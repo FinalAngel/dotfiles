@@ -7,13 +7,13 @@ if test $(which python3); then
   # sudo required because we set PIP_REQUIRE_VIRTUALENV
   require_sudo
   sudo pip install --upgrade setuptools > /dev/null 2>&1
-  success "Setuptools updated"
+  success "Updated setuptools"
   sudo pip install --upgrade pip > /dev/null 2>&1
-  success "Pip updated"
+  success "Updated pip"
   sudo pip install --upgrade virtualenv > /dev/null 2>&1
-  success "Virtualenv updated"
+  success "Updated virtualenv"
   sudo pip install --upgrade virtualenvwrapper > /dev/null 2>&1
-  success "Virtualenvwrapper updated"
+  success "Updated virtualenvwrapper"
   sudo pip install --upgrade twine > /dev/null 2>&1
-  success "Twine updated"
+  success "Updated twine"
 fi
