@@ -18,7 +18,7 @@ fi
 # double check that it is safe to load zsh initialisation
 if [ -d "$HOME/.oh-my-zsh" ]; then
   # define plugins first
-  plugins=(brew git git-extras npm python tmux tmuxinator vscode)
+  plugins=(brew docker git git-extras npm python tmux tmuxinator vscode)
   # if yes load standard initialisations script
   source $ZSH/oh-my-zsh.sh
   # load additional plugins
