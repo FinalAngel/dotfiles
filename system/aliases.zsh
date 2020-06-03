@@ -62,7 +62,7 @@ alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && kil
 alias killchrome="ps ux | grep '[C]hrome Helper --type=renderer' | grep -v extension-process | tr -s ' ' | cut -d ' ' -f2 | xargs kill"
 
 # fun stuff
-alias shrug="echo '¯\_(ツ)_/¯' | pbcopy"
+alias meh="echo '¯\_(ツ)_/¯' | pbcopy"
 
 # additional aliases for git in git/gitconfig.symlink
 alias g="git"
