@@ -12,5 +12,5 @@ if [ ! -d "$HOME/.oh-my-zsh" ];then
 
   success "Oh-my-zsh successfully installed"
 else
-  success "Oh-my-zsh already setup, run update instead"
+  success "Oh-my-zsh already setup"
 fi

@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 source "$PWD/utils/index"
 
-info "Running update scripts for [zsh]"
+info "Update \033[0;37m[tsh]\033[0m"
 
-# update themes git
-# update zsh installation
-
-# update submodule
-git submodule update --init --remote
+upgrade_oh_my_zsh
+success "Updated oh-my-zsh"

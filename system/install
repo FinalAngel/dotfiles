@@ -2,4 +2,5 @@
 source "$PWD/utils/index"
 
 info "Setup \033[0;37m[symlinks]\033[0m"
+
 create_symlinks

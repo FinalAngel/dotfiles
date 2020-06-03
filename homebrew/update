@@ -11,6 +11,6 @@ brew cleanup > /dev/null 2>&1
 success "Cleaned homebrew"
 
 # run bundles
-info "Brew'ing Brewfile and Caskfile"
+success "Brew'ing Brewfile and Caskfile"
 brew bundle --file=$DOTFILES_ROOT/homebrew/Brewfile --no-lock
 brew bundle --file=$DOTFILES_ROOT/homebrew/Caskfile --no-lock
