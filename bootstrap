@@ -1,17 +1,40 @@
 #!/usr/bin/env bash
-DOTFILES_INSTALL_DIR="$HOME/.dotfiles"
-source "$DOTFILES_INSTALL_DIR/utils/index"
+SOURCE="https://github.com/finalangel/dotfiles"
+TARBALL="$SOURCE/tarball/master"
+TARGET="$HOME/.dotfiles"
+TAR_CMD="tar -xzv -C "$TARGET" --strip-components=1"
+
+# barebone functions as utils is not yet available
+is_executable() { type "$1" > /dev/null 2>&1; }
+info () { printf "\r  [ \033[00;34m..\033[0m ] $1\n"; }
+success () { printf "\r\033[2K  [ \033[00;32mOK\033[0m ] $1\n"; }
+fail_hard () { printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $1\n" && echo "" && exit; }
 
 # check if we can bootstrap the dotfiles
 info "👉 Initiating dotfiles bootstrap"
 
-warn "Dotfiles installer disabled, re-enable"
-if [ ! -d $DOTFILES_ROOT ]; then
-  fail "Dotfiles already bootstrapped!"
-  fail_hard "Please use $HOME/scripts/install instead"
+# either git, curl or wget is required
+if is_executable "git"; then
+  CMD="git clone $SOURCE $TARGET"
+elif is_executable "curl"; then
+  CMD="curl -#L $TARBALL | $TAR_CMD"
+elif is_executable "wget"; then
+  CMD="wget --no-check-certificate -O - $TARBALL | $TAR_CMD"
 fi
 
-# TODO clone repo and add it to -/dotfiles
+# use scripts/install instead if already setup
+if [ -d "$TARGET" ]; then
+  fail_hard "Repository already setup, use scripts/install instead. Aborting!"
+fi
 
-# alright, let's do this
-source "$DOTFILES_ROOT/scripts/install"
+# one last check
+if [ -z "$CMD" ]; then
+  fail_hard "No git, curl or wget available. Aborting!"
+else
+  info "Setup \033[0;37m[repository]\033[0m"
+  mkdir -p "$TARGET"
+  eval "$CMD"
+  success "Repository successfully setup"
+  # now load the installer
+  source "$TARGET/scripts/install"
+fi
