@@ -21,7 +21,7 @@
     # links to bin helpers
     promote = !$ZSH/bin/git-promote
     wtf     = !$ZSH/bin/git-wtf
-    rank-contributors = !$ZSH/bin/git-rank-contributors
+    rank    = !$ZSH/bin/git-rank
 
     # ahow verbose output about tags, branches or remotes
     tags = tag -l
