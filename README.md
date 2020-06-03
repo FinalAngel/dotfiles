@@ -25,8 +25,8 @@ https://github.com/kevinSuttle/macOS-Defaults/blob/master/.macos
 
 ## Todo
 
-- add gpgsign
-- add internal ssh infrastructure
+- DONE add gpgsign (added)
+- add personal ssh infrastructure?
 - need to get "nvim +PluginInstall +qall" working for nvim
 - would be nice to add tests https://github.com/webpro/dotfiles/tree/master/test
 

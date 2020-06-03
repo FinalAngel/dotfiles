@@ -9,7 +9,7 @@ fi
 
 # setup id_rsa key
 if [ ! -f "$SSH_DIR/id_rsa.pub" ]; then
-  user "Enter your SSH key email:"
+  user "Enter your email for the SSH key:"
   read -e rsa_email
 
   # generate the key
@@ -17,6 +17,11 @@ if [ ! -f "$SSH_DIR/id_rsa.pub" ]; then
 
   # starting the ssh-agent
   eval "$(ssh-agent -s)" > /dev/null
+
+  # ask to register key
+  cat "$SSH_DIR/id_rsa.pub"
+  user "Copy the RSA public key to github/gitlab! Enter to continue."
+  read -e _
 
   # register key
   if is_mac; then
@@ -48,9 +53,27 @@ if ! [ -f git/gitconfig.local.symlink ]; then
   user "Enter your git author email:"
   read -e git_authoremail
 
-  sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s/GIT_CREDENTIAL_HELPER/$git_credential/g" git/gitconfig.local.symlink.example > git/gitconfig.local.symlink
-
   success "Git successfully configured"
 else
   success "Git already configured, remove ~/.dotfiles/gitconfig.local.symlink to recreate"
 fi
+
+# setup GPG for signing git commits
+if [ ! -d "$HOME/.gnupg" ]; then
+  # generate key, prompts will appear
+  gpg --default-new-key-algo rsa4096 --gen-key
+  user "Copy and paste the generated GPG key ID:"
+  read -e gpg_key
+  gpg --armor --export $gpg_key
+  user "Copy the GPG public key to github/gitlab! Enter to continue."
+  read -e _
+
+  # install and restart config
+  echo "pinentry-program /usr/local/bin/pinentry-mac" >> "$HOME/.gnupg/gpg-agent.conf"
+  gpgconf --kill gpg-agent
+
+  success "GPG key successfully setup"
+else
+  success "GPG key already configured, remove ~/.gnupg to recreate"
+fi
+

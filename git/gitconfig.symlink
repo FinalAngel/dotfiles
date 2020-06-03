@@ -109,7 +109,10 @@
 
 [commit]
 	# https://help.github.com/articles/signing-commits-using-gpg/
-	# gpgsign = true
+	gpgsign = true
+
+[gpg]
+	program = /usr/local/bin/gpg
 
 [diff]
     # [i]ndex, [w]ork tree, [c]ommit, [o]bject instead of a/b
