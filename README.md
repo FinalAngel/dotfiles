@@ -34,10 +34,6 @@ https://github.com/kevinSuttle/macOS-Defaults/blob/master/.macos
 
 - Upload the new id_rsa key to github, gitlab
 - Download aseprite manually
-- Open -dmg files and install manually
-- Test if font downloads works first
-
-Cisco Webex Meetings
 
 ## Docs
 

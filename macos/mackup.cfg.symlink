@@ -1,9 +1,8 @@
 # https://github.com/lra/mackup/blob/master/doc/.mackup.cfg
 
 [storage]
-engine = file_system
-path = .dotfiles/macos/
-directory = config
+engine = icloud
+directory = Mackup
 
 [applications_to_sync]
 # 1password # TODO create PR

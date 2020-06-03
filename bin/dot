@@ -12,8 +12,8 @@ displayUsageAndExit() {
   echo "Usage: dot [options]"
   echo ""
   echo "Options:"
-  echo "  -i, --install  Runs installer again"
-  echo "  -u, --update   Runs installer again"
+  echo "  -i, --install  Runs installer"
+  echo "  -u, --update   Runs updater"
   echo "  -e, --edit     Open dotfiles directory for editing"
   echo "  -h, --help     Show this help message and exit"
   echo ""
@@ -39,6 +39,7 @@ while test $# -gt 0; do
       ;;
     *)
       echo "Invalid option: $1"
+      echo ""
       displayUsageAndExit
       ;;
   esac
