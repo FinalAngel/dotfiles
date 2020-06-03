@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-link_file () {
+function link_file () {
   local src=$1 dst=$2
 
   local overwrite= backup= skip=
@@ -75,7 +75,7 @@ link_file () {
   fi
 }
 
-create_symlinks () {
+function create_symlinks () {
   local overwrite_all=false backup_all=false skip_all=false
 
   for src in $(find -H "$DOTFILES_ROOT" -maxdepth 2 -name "*.symlink" -not -path "*.git*")
@@ -85,19 +85,19 @@ create_symlinks () {
   done
 }
 
-is_executable() {
+function is_executable() {
   type "$1" > /dev/null 2>&1
 }
 
-is_mac() {
+function is_mac() {
   [[ "$OSTYPE" == "darwin"* ]]
 }
 
-is_linux() {
+function is_linux() {
   [[ "$OSTYPE" == "linux-gnu"* ]]
 }
 
-require_sudo() {
+function require_sudo() {
   user "Require admin priviledges, you may need to enter your password"
   sudo -v
   while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
