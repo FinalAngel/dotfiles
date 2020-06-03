@@ -6,5 +6,12 @@ warn "macOS setup skipped, re-enable"
 # source "$PWD/macos/defaults"
 # source "$PWD/macos/dock"
 
+# create general code directory
+mkdir $CODE_DIR
+
+# TODO
+# require_sudo
+# sudo fdesetup enable
+
 # TODO
 # need to restore my rsa key (.ssh folder) and other preferences
