@@ -1,4 +1,4 @@
-# use nvim as default editor
+#!/bin/zsh
 export SVN_EDITOR="nvim"
 export EDITOR="code"
 export LANG="en_US.UTF-8"

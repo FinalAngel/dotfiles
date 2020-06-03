@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 function link_file () {
   local src=$1 dst=$2
 

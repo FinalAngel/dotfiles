@@ -1,6 +1,4 @@
 #!/bin/zsh
-
-# shortcut to this dotfiles path is $ZSH
 export ZSH="$HOME/.oh-my-zsh"
 export ZSH_CUSTOM="$HOME/.dotfiles/zsh"
 export ZSH_THEME="" # make sure no theme is set

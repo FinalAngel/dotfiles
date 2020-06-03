@@ -1,5 +1,4 @@
 #!/bin/zsh
-
 # detect which `ls` flavor is in use
 if ls --color > /dev/null 2>&1; then # GNU `ls`
 	colorflag="--color"
@@ -64,6 +63,14 @@ alias meh="echo '¯\_(ツ)_/¯' | pbcopy"
 # additional aliases for git in git/gitconfig.symlink
 alias g="git"
 alias gt="gittower ."
+
+# use Git’s colored diff when available
+hash git &>/dev/null;
+if [ $? -eq 0 ]; then
+  function diff() {
+    git diff --no-index --color-words "$@";
+  }
+fi;
 
 # load function
 source "$HOME/.dotfiles/system/functions.zsh"

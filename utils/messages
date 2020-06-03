@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 function empty () {
   printf "\n"
 }

@@ -1,6 +1,4 @@
 #!/bin/zsh
-
-# python
 export PYTHONPATH=$PYTHONPATH
 
 # virtual environment
