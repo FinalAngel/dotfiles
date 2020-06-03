@@ -5,6 +5,7 @@ info "Setup \033[0;37m[fonts]\033[0m"
 
 # setup variables
 FONTS_DIR="$DOTFILES_ROOT/fonts"
+FONTS_FILE="$FONTS_DIR/fonts.txt"
 
 if is_mac; then
   system_fonts_dir="$HOME/Library/Fonts"
@@ -15,17 +16,18 @@ if is_linux; then
   mkdir -p $system_fonts_dir
 fi
 
-# if file already exist we presume fonts have been installed
-if [ ! -f "$system_fonts_dir/FiraCode-Bold.otf" ]; then
-  # copy all fonts to user fonts directory
-  find "$FONTS_DIR" \( -name "*.[ot]tf" -or -name "*.pcf.gz" \) -type f -print0 | xargs -0 -n1 -I % cp "%" "$system_fonts_dir/"
-
-  # reset font cache on Linux
-  if which fc-cache > /dev/null 2>&1 ; then
-    fc-cache -f "$system_fonts_dir"
+# specificly copy fonts files defined in FONTS_FILE
+while read font; do
+  if [ ! -f "$system_fonts_dir/$font" ]; then
+    find "$FONTS_DIR" \( -name "*$font" \) -type f -print0 | xargs -0 -n1 -I % cp "%" "$system_fonts_dir/"
+    success "Font $font successfully installed to $system_fonts_dir"
+  else
+    success "Font $font already installed"
   fi
+done < "$FONTS_FILE"
 
-  success "Fonts successfully installed to $system_fonts_dir"
-else
-  success "Fonts already setup in $system_fonts_dir"
+# clear fonts cache
+if which fc-cache > /dev/null 2>&1 ; then
+  fc-cache -f "$system_fonts_dir"
+  success "Font cache cleared"
 fi

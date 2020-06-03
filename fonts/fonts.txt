@@ -1,0 +1,6 @@
+FiraCode-Bold.otf
+FiraCode-Light.otf
+FiraCode-Medium.otf
+FiraCode-Regular.otf
+FiraCode-Retina.otf
+FiraCode-SemiBold.otf
