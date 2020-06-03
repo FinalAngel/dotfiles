@@ -27,7 +27,7 @@ while read font; do
 done < "$FONTS_FILE"
 
 # clear fonts cache
-if which fc-cache > /dev/null 2>&1 ; then
+if which fc-cache > /dev/null 2>&1; then
   fc-cache -f "$system_fonts_dir"
   success "Font cache cleared"
 fi
