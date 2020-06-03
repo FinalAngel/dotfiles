@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/utils/index"
+source "$DIR/utils/index"
 
 info "Setup \033[0;37m[vim]\033[0m"
 
@@ -11,7 +11,7 @@ if [ ! -f $plugin_path ]; then
 
   # symlink configuration file
   mkdir -p "$HOME/.config/nvim/"
-  ln -Fs "$DOTFILES_ROOT/vim/init.vim" "$HOME/.config/nvim/init.vim"
+  ln -Fs "$DIR/vim/init.vim" "$HOME/.config/nvim/init.vim"
 
   success "VIM plugins successfully installed"
 else

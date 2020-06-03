@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/utils/index"
+source "$DIR/utils/index"
 
 info "Setup \033[0;37m[git]\033[0m"
 
@@ -40,7 +40,7 @@ else
 fi
 
 # setup gitconfig
-if ! [ -f git/gitconfig.local.symlink ]; then
+if ! [ -f "$DIR/git/gitconfig.local.symlink" ]; then
   git_credential="cache"
 
   if is_mac; then

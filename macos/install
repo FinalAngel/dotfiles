@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-source "$PWD/utils/index"
+source "$DIR/utils/index"
 
 info "Setup \033[0;37m[macOS]\033[0m"
 
-source "$PWD/macos/defaults"
-source "$PWD/macos/dock"
+source "$DIR/macos/defaults"
+source "$DIR/macos/dock"
 
 # create general code directory
 if [ ! -d $CODE_DIR ]; then
@@ -29,4 +29,4 @@ fi
 # mackup backup
 
 # run updates
-source "$PWD/macos/update"
+source "$DIR/macos/update"

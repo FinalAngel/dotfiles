@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
-source "$PWD/utils/index"
+declare PARENT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
+
+# load utilities
+source "$DIR/utils/index"
 
 # universal installs
-source "$PWD/fonts/install"
-source "$PWD/git/install"
-source "$PWD/homebrew/install"
-source "$PWD/node/install"
-source "$PWD/python/install"
-source "$PWD/system/install"
-source "$PWD/vim/install"
-source "$PWD/zsh/install"
+source "$DIR/fonts/install"
+source "$DIR/git/install"
+source "$DIR/homebrew/install"
+source "$DIR/node/install"
+source "$DIR/python/install"
+source "$DIR/system/install"
+source "$DIR/vim/install"
+source "$DIR/zsh/install"
 
 # system specific installs
-if is_mac; then source "$PWD/macos/install"; fi
-if is_linux; then source "$PWD/linux/install"; fi
+if is_mac; then source "$DIR/macos/install"; fi
+if is_linux; then source "$DIR/linux/install"; fi
 
 info "👉 Installation finished"

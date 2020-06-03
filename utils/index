@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
+declare PARENT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 
 # exit immediately if a command exits with a non-zero status
 set -e
 
 # should only be used internally for install/update purposes
-source "$PWD/utils/constants" # needs to be first
-source "$PWD/utils/messages"
-source "$PWD/utils/functions"
+source "$DIR/utils/constants"
+source "$DIR/utils/messages"
+source "$DIR/utils/functions"

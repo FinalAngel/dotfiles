@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-source "$PWD/utils/index"
+declare PARENT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
+
+# load utilities
+source "$DIR/utils/index"
 
 # get latest repo state
 info "Update \033[0;37m[repository]\033[0m"
@@ -7,14 +11,14 @@ git pull origin master -q
 success "Updated repository"
 
 # run general updates
-source "$PWD/fonts/update"
-source "$PWD/git/update"
-source "$PWD/homebrew/update"
-source "$PWD/node/update"
-source "$PWD/python/update"
+source "$DIR/fonts/update"
+source "$DIR/git/update"
+source "$DIR/homebrew/update"
+source "$DIR/node/update"
+source "$DIR/python/update"
 
 # system specific installs
-if is_mac; then source "$PWD/macos/update"; fi
-if is_linux; then source "$PWD/linux/update"; fi
+if is_mac; then source "$DIR/macos/update"; fi
+if is_linux; then source "$DIR/linux/update"; fi
 
 info "👉 Updates finished"

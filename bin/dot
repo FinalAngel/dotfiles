@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # `dot` handles updates, installation, editing
 
+# exit immediately if a command exits with a non-zero status
 set -e
 
-parentDirectory="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd -P)"
-dotfilesDirectory="$(cd "$( dirname "$parentDirectory" )" && pwd -P)"
+PARENT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 
 displayUsageAndExit() {
   echo "dot -- dotfiles management"
@@ -14,7 +15,7 @@ displayUsageAndExit() {
   echo "Options:"
   echo "  -i, --install  Runs installer"
   echo "  -u, --update   Runs updater"
-  echo "  -e, --edit     Open dotfiles directory for editing"
+  echo "  -e, --edit     Edit dotfiles"
   echo "  -h, --help     Show this help message and exit"
   echo ""
   exit
@@ -26,15 +27,15 @@ while test $# -gt 0; do
       displayUsageAndExit
       ;;
     "-u"|"--update")
-      source "$dotfilesDirectory/scripts/update"
+      source "$DIR/scripts/update"
       exit
       ;;
     "-i"|"--install")
-      source "$dotfilesDirectory/scripts/install"
+      source "$DIR/scripts/install"
       exit
       ;;
     "-e"|"--edit")
-      exec "$EDITOR" "$dotfilesDirectory"
+      exec "$EDITOR" "$DIR"
       exit
       ;;
     *)

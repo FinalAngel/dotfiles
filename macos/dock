@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/utils/index"
+source "$DIR/utils/index"
 
 dockutil --no-restart --remove all
 dockutil --no-restart --add "/System/Applications/System Preferences.app"

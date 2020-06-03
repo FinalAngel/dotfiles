@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source "$PWD/utils/index"
+source "$DIR/utils/index"
 
 info "Update \033[0;37m[tsh]\033[0m"
 
