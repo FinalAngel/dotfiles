@@ -1,0 +1,17 @@
+# https://github.com/lra/mackup/blob/master/doc/.mackup.cfg
+
+[storage]
+engine = file_system
+path = .dotfiles/macos/
+directory = config
+
+[applications_to_sync]
+# 1password # TODO create PR
+2do
+airmail
+# anki # TODO create PR
+# beook # TODO create PR
+# discord # TODO create PR
+sizeup
+# slack # TODO create PR
+vscode

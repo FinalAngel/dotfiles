@@ -24,5 +24,9 @@ else
   success "FileVault already enabled"
 fi
 
+# TODO need to decide on how to handle that
+# mackup restore
+# mackup backup
+
 # run updates
 source "$PWD/macos/update"
