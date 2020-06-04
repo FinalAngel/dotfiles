@@ -2,16 +2,16 @@
 
 ![Dotfiles preview](https://raw.githubusercontent.com/finalangel/dotfiles/master/preview.png)
 
-🤗 These dotfiles help me to setup and maintain my macOS or linux installations.
+🤗 &nbsp;These dotfiles help me to setup and maintain my macOS or linux installations.
 They intend to automate the installation and update process of, well,
 everything. Feel free to explore, copy and re-use the code to your liking.
 
-- 📖 Read my [blog post](https://angelo.dini.dev/blog) about these files
-- 🌐 Visit my [website](https://angelo.dini.dev)
+- 📖 &nbsp;Read my [blog post](https://angelo.dini.dev/blog) about these files
+- 🌐 &nbsp;Visit my [website](https://angelo.dini.dev)
 
 ## Installation
 
-💥 **Warning**: Please fork and review the code first, before giving these dotfiles
+💥 &nbsp;**Warning**: Please fork and review the code first, before giving these dotfiles
 a try. In theory, they can be installed on an existing system as well, but a
 fresh installation is recommended. Use at your own risk.
 
@@ -20,11 +20,11 @@ installer automatically 🤖:
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/finalangel/dotfiles/master/bootstrap)"
 
-🤔 Yeah that's it, really, I think...
+🤔 &nbsp;Yeah that's it, really, I think...
 
 ## The `dot` command
 
-👉 Once installed, use the following command to manage the dotfiles:
+👉 &nbsp;Once installed, use the following command to manage the dotfiles:
 
     $ dot --help
     Usage: dot [options]
@@ -71,7 +71,7 @@ the more the merrier. I generally still want to improve on:
 
 ## Credits
 
-❤️ Many thanks to the [dotfiles](https://dotfiles.github.io/) community and
+❤️ &nbsp;Many thanks to the [dotfiles](https://dotfiles.github.io/) community and
 the excellent work from [dotphiles](https://github.com/dotphiles/dotphiles),
 [holman](https://github.com/holman/dotfiles),
 [mathiasbynens](https://github.com/mathiasbynens/dotfiles),
