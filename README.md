@@ -61,7 +61,7 @@ The following package flavors are installed:
 
 ## Contributions
 
-🐛 Feel free to send me pull requests if something is misconfigured or could be
+🐛 &nbsp;Feel free to send me pull requests if something is misconfigured or could be
 enhanced upon. These are very personal but if they work for others as well,
 the more the merrier. I generally still want to improve on:
 
