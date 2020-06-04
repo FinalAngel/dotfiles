@@ -1,16 +1,25 @@
 # https://github.com/lra/mackup/blob/master/doc/.mackup.cfg
-
 [storage]
 engine = icloud
 directory = Mackup
 
 [applications_to_sync]
-# 1password # TODO create PR
+# CUSTOM APPS
+# https://github.com/lra/mackup/tree/master/doc#add-support-for-an-application-or-any-file-or-directory
+# from ~/Library/Preferences/
+# from ~/Library/Application Support/
+# or anything in ~/, e.g ~/.vscode
+my-anki
+my-calibre
+my-zsh
+
+# SUPPORTED APPS
+# https://github.com/lra/mackup/tree/master/mackup/applications
 2do
 airmail
-# anki # TODO create PR
-# beook # TODO create PR
-# discord # TODO create PR
+bartender
+cyberduck
+dash
+insomnia
 sizeup
-# slack # TODO create PR
 vscode

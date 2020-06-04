@@ -25,9 +25,12 @@ else
 fi
 
 # restore app preferences
-if [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Mackup" ]; then
+if [ ! -d "$HOME/.mackup" ]; then
+  # copy custom apps as symlinks
+  ln -Fs "$DIR/macos/.mackup" "$HOME/.mackup"
+  # restore files
   mackup restore -f
-  success "Restored app preferences"
+  success "App preferences restored"
 fi
 
 # run updates
