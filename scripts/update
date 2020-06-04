@@ -18,6 +18,7 @@ source "$DIR/node/update"
 source "$DIR/python/update"
 source "$DIR/vim/update"
 source "$DIR/zsh/update"
+source "$DIR/vscode/update"
 source "$DIR/fonts/update"
 
 # system specific installs

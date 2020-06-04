@@ -1,1 +1,17 @@
-# https://github.com/webpro/dotfiles/blob/master/install/Codefile
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Install \033[0;37m[vscode]\033[0m"
+
+source "$DIR/vscode/paths.zsh"
+
+if test $(which code); then
+  while read package; do
+    code --install-extension $package --force > /dev/null 2>&1
+    success "VScode extension $package installed"
+  done < "$DIR/vscode/Codefile"
+
+  success "VScode successfully configured"
+fi
+
+# settings handled via mackup
