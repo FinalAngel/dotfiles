@@ -11,9 +11,9 @@ cd $DIR && git pull origin master -q
 success "Updated repository"
 
 # run general updates
+source "$DIR/git/update"
 source "$DIR/system/update"
 source "$DIR/homebrew/update"
-source "$DIR/git/update"
 source "$DIR/node/update"
 source "$DIR/python/update"
 source "$DIR/vim/update"

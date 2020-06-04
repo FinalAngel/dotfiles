@@ -12,13 +12,13 @@ everything. Feel free to explore, copy and re-use the code to your liking 🤗.
 ## Installation
 
 **Warning**: Please fork and review the code first, before giving these dotfiles
-a try. In theory, they can be installed on an existing system as well but a
+a try. In theory, they can be installed on an existing system as well, but a
 fresh installation is recommended. Use at your own risk 💥.
 
 The following command will install the dotfiles into `~/.dotfiles` and runs the
 installer automatically 🤖:
 
-- `bash -c "curl -fsSL https://raw.githubusercontent.com/finalangel/dotfiles/master/bootstrap"`
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/finalangel/dotfiles/master/bootstrap)"
 
 Yeah that's it, really, I think...
 
@@ -39,13 +39,13 @@ Once installed, use the following command to manage the dotfiles:
 
 Except for `utils/` and `scripts/` every folder is its self-containing
 **topic/** providing an `install` and `update` script. You can easily disable
-individual **topics/** by commenting the lines in `scripts/`.
+individual **topics/** by commenting the lines in `scripts/`. On top of that:
 
-`aliases.zsh` and `paths.zsh` files are automatically loaded. Every `.symlink`
-file will be mapped to `~/.[filename]`. Everything in the `bin/` folder gets
-automatically added to your `$PATH`.
+- every `aliases.zsh` and `paths.zsh` file in **topics/** is automatically loaded
+- every `.symlink` file in **topics/** will be mapped to `~/.[filename]`
+- everything in the `bin/` folder gets automatically added to your `$PATH`
 
-The following package flavours are installed:
+The following package flavors are installed:
 
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
 - [Git with GPG signing](https://gnupg.org/) enabled
