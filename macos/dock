@@ -66,4 +66,4 @@ dockutil --no-restart --add '~/Downloads' --view grid --display folder
 
 killall Dock
 
-success "Updated Dock"
+success "Dock successfully configured"

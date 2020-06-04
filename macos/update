@@ -14,7 +14,7 @@ sudo gem update --system > /dev/null 2>&1
 success "Updated gems"
 
 # backup app preferences
-if [ -d "$HOME/Library/Mobile Documents/com~apple~CloudDocs/Mackup" ]; then
+if [ -d "$HOME/.mackup" ]; then
   mackup backup -f
-  success "Backed up application configurations"
+  success "App preferences backed-up"
 fi

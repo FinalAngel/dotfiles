@@ -438,4 +438,4 @@ defaults write com.irradiatedsoftware.SizeUp StartAtLogin -bool true
 # don’t show the preferences window on next start
 defaults write com.irradiatedsoftware.SizeUp ShowPrefsOnNextStart -bool false
 
-success "Updated system defaults, you may need to restart your computer"
+success "System defaults successfully configured"
