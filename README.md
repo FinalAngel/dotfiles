@@ -20,6 +20,8 @@ installer automatically 🤖:
 
 - `bash -c "curl -fsSL https://raw.githubusercontent.com/finalangel/dotfiles/master/bootstrap"`
 
+Yeah that's it, really, I think...
+
 ## The `dot` command
 
 Once installed, use the following command to manage the dotfiles:
