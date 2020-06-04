@@ -1,44 +1,78 @@
-# dotfiles
+# Angelo's dotfiles
 
-My personal dotfiles for macOS and Linux 👨‍💻
+![Dotfiles preview](https://raw.githubusercontent.com/finalangel/dotfiles/master/preview.png)
 
-- 📖 Read my blog post about these files
--
+These dotfiles help me to setup and maintain my macOS or linux installations.
+They intend to automate the installation and update process of, well,
+everything. Feel free to explore, copy and re-use the code to your liking 🤗.
 
-you are able to run packages independently or run the installing script again
+- 📖 Read my [blog post](https://angelo.dini.dev/blog) about these files
+- 🌐 Visit my [website](https://angelo.dini.dev)
 
-## Errors
+## Installation
 
-If you get errors, read the prompt and solve them before running the script again.
-this normally means that you need to install something manually, e.g. xcode-select.
+**Warning**: Please fork and review the code first, before giving these dotfiles
+a try. In theory, they can be installed on an existing system as well but a
+fresh installation is recommended. Use at your own risk 💥.
 
-## Component setup
+The following command will install the dotfiles into `~/.dotfiles` and runs the
+installer automatically 🤖:
 
-In general every folder is self-contained, meaning they can be installed independently. Though this script borrows concepts from `holman's dotfiles <https://github.com/holman/dotfiles>`\_ for ease of use.
+- `bash -c "curl -fsSL https://raw.githubusercontent.com/finalangel/dotfiles/master/bootstrap"`
 
-- **topic/\*.symlink**: Any file ending in \*.symlink gets symlinked into your \$HOME. This is so you can keep all of those versioned in your dotfiles but still keep those autoloaded files in your home directory. These get symlinked in when you run script/bootstrap.
+## The `dot` command
 
-## Thanks to...
+Once installed, use the following command to manage the dotfiles:
 
-all the repos
-https://github.com/kevinSuttle/macOS-Defaults/blob/master/.macos
+    $ dot --help
+    Usage: dot [options]
 
-## Todo
+    Options:
+      -i, --install  Runs installer
+      -u, --update   Runs updater
+      -e, --edit     Edit dotfiles
+      -h, --help     Show this help message and exit
 
-- DONE add gpgsign (added)
-- add personal ssh infrastructure?
-- need to get "nvim +PluginInstall +qall" working for nvim
-- would be nice to add tests https://github.com/webpro/dotfiles/tree/master/test
+## What's included
 
-# Manual steps
+Except for `utils/` and `scripts/` every folder is its self-containing
+**topic/** providing an `install` and `update` script. You can easily disable
+individual **topics/** by commenting the lines in `scripts/`.
 
-- Upload the new id_rsa key to github, gitlab
-- Download aseprite manually
+`aliases.zsh` and `paths.zsh` files are automatically loaded. Every `.symlink`
+file will be mapped to `~/.[filename]`. Everything in the `bin/` folder gets
+automatically added to your `$PATH`.
 
-## Docs
+The following package flavours are installed:
 
-.localrc for local environment variables
+- [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
+- [Git with GPG signing](https://gnupg.org/) enabled
+- [Homebrew](https://brew.sh/) with cask and manual installs (via scripts)
+- [Mackup](https://github.com/lra/mackup) to backup macOS application settings
+- [Neovim](https://neovim.io/)
+- [Node with NVM](https://github.com/nvm-sh/nvm) manager
+- [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
+- [Python with virtualenv](https://virtualenv.pypa.io/en/latest/) management
+- [Starship](https://starship.rs/) 🚀
+- [Tmux](https://github.com/tmux/tmux)
+- [VSCode](https://code.visualstudio.com/) and plugins
 
-## IDEAS
+## Contributions
 
-- [meet] copy meet link
+Feel free to send me pull requests if something is misconfigured or could be
+enhanced upon. These are very personal but if they work for others as well,
+the more the merrier. I generally still want to improve on 🐛:
+
+- Vim setup (plugin automation and better workflow)
+- The dot command could be [improved](https://github.com/webpro/dotfiles/blob/master/bin/dotfiles)
+- Adding [tests](https://github.com/webpro/dotfiles/tree/master/test) would be nice :)
+
+## Credits
+
+Many thanks to the [dotfiles](https://dotfiles.github.io/) community and
+the excellent work from [dotphiles](https://github.com/dotphiles/dotphiles),
+[holman](https://github.com/holman/dotfiles),
+[mathiasbynens](https://github.com/mathiasbynens/dotfiles),
+[pchampio](https://github.com/pchampio/dotfiles) and
+[webpro](https://github.com/webpro/dotfiles). This work wouldn't be possible
+without them ❤️.
