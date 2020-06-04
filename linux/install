@@ -3,4 +3,6 @@ source "$DIR/utils/index"
 
 info "Install \033[0;37m[linux]\033[0m"
 
+# should probably use https://snapcraft.io/store
+
 success "¯\_(ツ)_/¯"
