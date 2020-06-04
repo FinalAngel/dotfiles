@@ -10,12 +10,13 @@
     aliases = config --get-regexp alias
 
     # general utilities
-    br = branch
-    ci = commit
-    ca = !git add -A && git commit -av
-    co = checkout
-    st = status -s
-    whoami = config user.email
+    br = "branch"
+    ci = "commit"
+    ca = "!git add -A && git commit -av"
+    co = "checkout"
+    st = "status -s"
+    pu = "!git pull && git push"
+    whoami = "config user.email"
 
     # links to bin helpers
     promote = !$ZSH/bin/git-promote
@@ -23,12 +24,12 @@
     rank    = !$ZSH/bin/git-rank
 
     # ahow verbose output about tags, branches or remotes
-    tags = tag -l
-    branches = branch -a
-    remotes = remote -v
+    tags = "tag -l"
+    branches = "branch -a"
+    remotes = "remote -v"
 
     # `git amend`: amend the currently staged files to the latest commit
-    amend = commit --amend --reuse-message=HEAD
+    amend = "commit --amend --reuse-message=HEAD"
 
     # remove branches that have already been merged with master
     # a.k.a. ‘delete merged’
@@ -87,8 +88,10 @@
 [color]
     branch = auto
     diff = auto
+    interactive = auto
     status = auto
     ui = auto
+    pager = true
 
 [color "branch"]
 	current = yellow reverse
@@ -96,10 +99,10 @@
 	remote = green
 
 [color "diff"]
-	meta = yellow bold
 	frag = magenta bold # line info
-	old = red # deletions
+	meta = yellow bold
 	new = green # additions
+	old = red # deletions
 
 [color "status"]
 	added = yellow
@@ -130,6 +133,9 @@
 [help]
     # automatically correct and execute mistyped commands
     autocorrect = 1
+
+[pull]
+    rebase = false
 
 [push]
     # https://git-scm.com/docs/git-config#Documentation/git-config.txt-pushdefault

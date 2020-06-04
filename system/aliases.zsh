@@ -41,7 +41,7 @@ alias dclog="dc logs -f"
 alias dclint="docker run --env-file=.lint -it -v $(pwd):/app divio/lint /bin/lint"
 
 # helper
-alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info$)' | xargs rm -rf"
+alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info|\.tox|\.coverage$)' | xargs rm -rf"
 alias copyssh="pbcopy < $HOME/.ssh/id_rsa.pub"
 alias listgpg="gpg --list-secret-keys --keyid-format LONG"
 alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
@@ -50,12 +50,6 @@ alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[
 alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
 alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup'
 alias week='date +%V'
-
-# os specific
-alias afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
-alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
-alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
-alias killchrome="ps ux | grep '[C]hrome Helper --type=renderer' | grep -v extension-process | tr -s ' ' | cut -d ' ' -f2 | xargs kill"
 
 # fun stuff
 alias meh="echo '¯\_(ツ)_/¯' | pbcopy"
