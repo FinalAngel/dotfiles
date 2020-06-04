@@ -2,29 +2,29 @@
 
 ![Dotfiles preview](https://raw.githubusercontent.com/finalangel/dotfiles/master/preview.png)
 
-These dotfiles help me to setup and maintain my macOS or linux installations.
+🤗 These dotfiles help me to setup and maintain my macOS or linux installations.
 They intend to automate the installation and update process of, well,
-everything. Feel free to explore, copy and re-use the code to your liking 🤗.
+everything. Feel free to explore, copy and re-use the code to your liking.
 
 - 📖 Read my [blog post](https://angelo.dini.dev/blog) about these files
 - 🌐 Visit my [website](https://angelo.dini.dev)
 
 ## Installation
 
-**Warning**: Please fork and review the code first, before giving these dotfiles
+💥 **Warning**: Please fork and review the code first, before giving these dotfiles
 a try. In theory, they can be installed on an existing system as well, but a
-fresh installation is recommended. Use at your own risk 💥.
+fresh installation is recommended. Use at your own risk.
 
 The following command will install the dotfiles into `~/.dotfiles` and runs the
 installer automatically 🤖:
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/finalangel/dotfiles/master/bootstrap)"
 
-Yeah that's it, really, I think...
+🤔 Yeah that's it, really, I think...
 
 ## The `dot` command
 
-Once installed, use the following command to manage the dotfiles:
+👉 Once installed, use the following command to manage the dotfiles:
 
     $ dot --help
     Usage: dot [options]
@@ -61,9 +61,9 @@ The following package flavors are installed:
 
 ## Contributions
 
-Feel free to send me pull requests if something is misconfigured or could be
+🐛 Feel free to send me pull requests if something is misconfigured or could be
 enhanced upon. These are very personal but if they work for others as well,
-the more the merrier. I generally still want to improve on 🐛:
+the more the merrier. I generally still want to improve on:
 
 - Vim setup (plugin automation and better workflow)
 - The dot command could be [improved](https://github.com/webpro/dotfiles/blob/master/bin/dotfiles)
@@ -71,10 +71,10 @@ the more the merrier. I generally still want to improve on 🐛:
 
 ## Credits
 
-Many thanks to the [dotfiles](https://dotfiles.github.io/) community and
+❤️ Many thanks to the [dotfiles](https://dotfiles.github.io/) community and
 the excellent work from [dotphiles](https://github.com/dotphiles/dotphiles),
 [holman](https://github.com/holman/dotfiles),
 [mathiasbynens](https://github.com/mathiasbynens/dotfiles),
 [pchampio](https://github.com/pchampio/dotfiles) and
 [webpro](https://github.com/webpro/dotfiles). This work wouldn't be possible
-without them ❤️.
+without them.
