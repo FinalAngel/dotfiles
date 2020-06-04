@@ -28,3 +28,8 @@ Desktop.ini
 .TemporaryItems
 .VolumeIcon.icns
 .fseventsd
+
+# work
+.aldryn
+data/
+data.tar.gz
