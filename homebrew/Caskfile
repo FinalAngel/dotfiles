@@ -73,3 +73,9 @@ mas "2Do", id: 477670270
 mas "In Your Face", id: 1476964367
 mas "Unclutter", id: 577085396
 
+# custom
+cask "~/.dotfiles/homebrew/casks/affinity-designer.rb"
+cask "~/.dotfiles/homebrew/casks/affinity-photo.rb"
+cask "~/.dotfiles/homebrew/casks/beook.rb"
+cask "~/.dotfiles/homebrew/casks/divio-app.rb"
+cask "~/.dotfiles/homebrew/casks/meta.rb"

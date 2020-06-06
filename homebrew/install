@@ -12,8 +12,5 @@ else
   success "Homebrew already installed"
 fi
 
-# manually download apps
-source "$DIR/homebrew/manual"
-
 # run updates
 source "$DIR/homebrew/update"
