@@ -53,7 +53,7 @@ if ! [ -f "$DIR/git/gitconfig.local.symlink" ]; then
   user "Enter your git author email:"
   read -e git_authoremail
 
-  sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s/GIT_CREDENTIAL_HELPER/$git_credential/g" git/gitconfig.local.symlink.example > git/gitconfig.local.symlink
+  sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s/GIT_CREDENTIAL_HELPER/$git_credential/g" "$DIR/git/gitconfig.local.symlink.example" > "$DIR/git/gitconfig.local.symlink"
 
   success "Git successfully configured"
 else
