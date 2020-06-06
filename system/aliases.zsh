@@ -16,6 +16,7 @@ alias -- -="cd -"
 alias cd.='cd $(readlink -f .)' # go to real dir (i.e. if current dir is linked)
 
 alias c="clear"
+alias q="exit"
 alias l="ls -lF ${colorflag}"
 alias ll="/usr/local/opt/coreutils/libexec/gnubin/ls -AhlFo --color --group-directories-first"
 alias la="ls -lAF ${colorflag}"

@@ -46,7 +46,7 @@ nvm_install () {
 # install needed npm versions
 nvm_install 6.17.0
 nvm_install 12.13.0
-nvm_install 12.17.0
+nvm_install 12.18.0
 
 # run updates
 source "$DIR/node/update"
