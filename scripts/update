@@ -11,14 +11,14 @@ cd $DIR && git pull origin master -q
 success "Updated repository"
 
 # run general updates
+source "$DIR/system/update"
+source "$DIR/zsh/update"
+source "$DIR/vim/update"
 source "$DIR/homebrew/update"
 source "$DIR/git/update"
 source "$DIR/node/update"
 source "$DIR/python/update"
-source "$DIR/vim/update"
-source "$DIR/zsh/update"
 source "$DIR/vscode/update"
-source "$DIR/system/update"
 source "$DIR/fonts/update"
 
 # system specific installs

@@ -17,14 +17,13 @@ fi
 npm_install () {
   if test ! $(which $1); then
     if test $(which npm); then
-      sudo npm install $2 -g --loglevel=silent
+      npm install $2 -g --loglevel=silent
       success "Installed npm package $2"
     fi
   fi
 }
 
 # install npm packages globally
-require_sudo
 npm_install "browser-sync" "browser-sync"
 npm_install "gulp" "gulp"
 npm_install "gatsby" "gatsby-cli"

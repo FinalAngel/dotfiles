@@ -4,16 +4,16 @@ source "$DIR/utils/index"
 info "Setup \033[0;37m[python]\033[0m"
 
 if test $(which python3); then
-  # sudo required because we set PIP_REQUIRE_VIRTUALENV
-  require_sudo
-  sudo pip install --upgrade setuptools > /dev/null 2>&1
+  export PIP_REQUIRE_VIRTUALENV=false
+  pip3 install --upgrade setuptools > /dev/null 2>&1
   success "Setuptools successfully upgraded"
-  sudo pip install --upgrade pip > /dev/null 2>&1
+  pip3 install --upgrade pip > /dev/null 2>&1
   success "Pip successfully upgraded "
-  sudo pip install virtualenv > /dev/null 2>&1
+  pip3 install virtualenv > /dev/null 2>&1
   success "Virtualenv successfully installed"
-  sudo pip install virtualenvwrapper > /dev/null 2>&1
+  pip3 install virtualenvwrapper > /dev/null 2>&1
   success "Virtualenvwrapper successfully installed"
-  sudo pip install twine > /dev/null 2>&1
+  pip3 install twine > /dev/null 2>&1
   success "Twine successfully installed"
+  export PIP_REQUIRE_VIRTUALENV=true
 fi

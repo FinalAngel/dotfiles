@@ -6,13 +6,14 @@ declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 source "$DIR/utils/index"
 
 # universal installs
-source "$DIR/homebrew/install"
+source "$DIR/system/install"
 source "$DIR/zsh/install"
+source "$DIR/vim/install"
+source "$DIR/homebrew/install"
 source "$DIR/git/install"
 source "$DIR/node/install"
 source "$DIR/python/install"
-source "$DIR/vim/install"
-source "$DIR/system/install"
+source "$DIR/vscode/install"
 source "$DIR/fonts/install"
 
 # system specific installs
