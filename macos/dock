@@ -9,7 +9,7 @@ dockutil --no-restart --add "/Applications/Hyper.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after iTerm
 
-dockutil --no-restart --add "/Applications/Airmail 3.app"
+dockutil --no-restart --add "/Applications/Airmail.app"
 dockutil --no-restart --add "/Applications/2Do.app"
 dockutil --no-restart --add "/Applications/Harvest.app"
 dockutil --no-restart --add "/Applications/Grammarly.app"
@@ -53,7 +53,7 @@ dockutil --no-restart --add '' --type spacer --section apps --after Safari
 
 dockutil --no-restart --add "/Applications/Plex.app"
 dockutil --no-restart --add "/Applications/Notion.app"
-dockutil --no-restart --add "/Applications/GoodNotes.localized/GoodNotes.app"
+dockutil --no-restart --add "/Applications/GoodNotes.app"
 dockutil --no-restart --add "/Applications/Anki.app"
 dockutil --no-restart --add "/Applications/beook.app"
 dockutil --no-restart --add "/Applications/VLC.app"

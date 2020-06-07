@@ -32,7 +32,6 @@ alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias lib="cd $HOME/Library"
 alias ws="cd $HOME/Sites"
-alias wsc="cd $HOME/Sites/_cloud" # to remove after new setup
 alias dotfiles="cd $HOME/.dotfiles"
 
 # development

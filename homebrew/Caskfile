@@ -13,7 +13,6 @@ cask "bartender"
 cask "calibre"
 cask "cleanmymac"
 cask "cyberduck"
-# cask "dash"
 cask "discord"
 cask "downie"
 cask "dropbox"
@@ -30,7 +29,6 @@ cask "ngrok"
 cask "notion"
 cask "one-switch"
 cask "plex"
-# cask "sizeup"
 cask "skype"
 cask "slack"
 cask "steam"
@@ -66,16 +64,21 @@ cask "quicklook-json"
 cask "quicklook-csv"
 
 # app store
-mas "GoodNotes 5", id: 1444383602
-mas "MindNode", id: 1289197285
-mas "Airmail 4", id: 918858936
 mas "2Do", id: 477670270
+mas "Airmail 4", id: 918858936
+mas "GoodNotes 5", id: 1444383602
 mas "In Your Face", id: 1476964367
+mas "Keynote", id: 409183694
+mas "MindNode", id: 1289197285
+mas "Numbers", id: 409203825
+mas "Pages", id: 409201541
 mas "Unclutter", id: 577085396
 
 # custom
 cask "~/.dotfiles/homebrew/casks/affinity-designer.rb"
 cask "~/.dotfiles/homebrew/casks/affinity-photo.rb"
 cask "~/.dotfiles/homebrew/casks/beook.rb"
+cask "~/.dotfiles/homebrew/casks/dash.rb"
 cask "~/.dotfiles/homebrew/casks/divio-app.rb"
 cask "~/.dotfiles/homebrew/casks/meta.rb"
+cask "~/.dotfiles/homebrew/casks/sizeup.rb"
