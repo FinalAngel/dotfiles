@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# https://www.ianmaddaus.com/portfolio/refind/
+
+version="0.12.0"
+des_path="$HOME/.dotfiles/macos"
+file_path="$HOME/.dotfiles/macos/refind.zip"
+refind="/Volumes/ESP/EFI/refind"
+check=$(csrutil status)
+
+# needs to be manually installed and is not included in the auto-installer
+if [[ $check == "System Integrity Protection status: disabled." ]]; then
+    # install refind
+    curl -fLo $file_path "https://downloads.sourceforge.net/project/refind/$version/refind-bin-$version.zip"
+    unzip "$file_path" -d "$des_path"
+    /bin/bash -c "$des_path/refind-bin-$version/refind-install"
+    # cleanup
+    rm -rf "$des_path"
+
+    # install theme
+    # https://github.com/EvanPurkhiser/rEFInd-minimal
+    mkdir -p "$refind/theme"
+    git clone git@github.com:EvanPurkhiser/rEFInd-minimal.git "$refind/theme/rEFInd-minimal"
+
+    # write config file
+    echo "" >> "$refind/refind.conf"
+    echo "include themes/rEFInd-minimal/theme.conf" >> "$refind/refind.conf"
+fi
