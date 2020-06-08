@@ -3,4 +3,7 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[vim]\033[0m"
 
-success "Nothing to update"
+# update plugins
+nvim +PlugInstall +qall
+
+success "Updated vim plugins "

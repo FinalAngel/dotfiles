@@ -13,6 +13,9 @@ if [ ! -f $plugin_path ]; then
   mkdir -p "$HOME/.config/nvim/"
   ln -Fs "$DIR/vim/init.vim" "$HOME/.config/nvim/init.vim"
 
+  # install plugins
+  vim +PlugInstall +qall
+
   success "VIM plugins successfully installed"
 else
   success "VIM plugins already setup"
