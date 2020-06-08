@@ -13,7 +13,7 @@ alias ..="cd .."
 alias ...="cd ../.."
 alias ~="cd ~"
 alias -- -="cd -"
-alias cd.='cd $(readlink -f .)' # go to real dir (i.e. if current dir is linked)
+alias cd.="cd $(readlink -f .)" # go to real dir (i.e. if current dir is linked)
 
 alias c="clear"
 alias q="exit"
@@ -22,7 +22,7 @@ alias ll="/usr/local/opt/coreutils/libexec/gnubin/ls -AhlFo --color --group-dire
 alias la="ls -lAF ${colorflag}"
 alias ls="command ls ${colorflag}"
 alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
-alias path='echo -e ${PATH//:/\\n}'
+alias path="echo -e ${PATH//:/\\n}"
 alias reload="source $HOME/.zshrc"
 alias top="htop"
 
@@ -47,24 +47,16 @@ alias listgpg="gpg --list-secret-keys --keyid-format LONG"
 alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
 alias ip="ipconfig getifaddr en0"
 alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
-alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);"'
-alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup'
-alias week='date +%V'
+alias urlencode="python -c 'import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);'"
+alias update="sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup"
+alias week="date +%V"
+
+# divio
+alias ddivio="ALDRYN_HOST=dev.aldryn.net divio"
+alias ldivio="ALDRYN_HOST=local.aldryn.net divio"
 
 # fun stuff
 alias meh="echo '¯\_(ツ)_/¯' | pbcopy"
-
-# additional aliases for git in git/gitconfig.symlink
-alias g="git"
-alias gt="gittower ."
-
-# use Git’s colored diff when available
-hash git &>/dev/null;
-if [ $? -eq 0 ]; then
-  function diff() {
-    git diff --no-index --color-words "$@";
-  }
-fi;
 
 # load function
 source "$HOME/.dotfiles/system/functions.zsh"
