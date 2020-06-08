@@ -13,7 +13,7 @@ alias ..="cd .."
 alias ...="cd ../.."
 alias ~="cd ~"
 alias -- -="cd -"
-alias cd.="cd $(readlink -f .)" # go to real dir (i.e. if current dir is linked)
+alias cd.='cd $(readlink -f .)' # go to real dir (i.e. if current dir is linked)
 
 alias c="clear"
 alias q="exit"

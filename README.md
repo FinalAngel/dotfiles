@@ -68,7 +68,6 @@ The following package flavors are installed:
 enhanced upon. These are very personal but if they work for others as well,
 the more the merrier. I generally still want to improve on:
 
-- Vim setup (plugin automation and better workflow)
 - The dot command could be [improved](https://github.com/webpro/dotfiles/blob/master/bin/dotfiles)
 - Adding [tests](https://github.com/webpro/dotfiles/tree/master/test) would be nice :)
 
