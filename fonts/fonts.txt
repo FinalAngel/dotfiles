@@ -4,3 +4,10 @@ FiraCode-Medium.otf
 FiraCode-Regular.otf
 FiraCode-Retina.otf
 FiraCode-SemiBold.otf
+Dosis-Bold.ttf
+Dosis-ExtraBold.ttf
+Dosis-ExtraLight.ttf
+Dosis-Light.ttf
+Dosis-Medium.ttf
+Dosis-Regular.ttf
+Dosis-SemiBold.ttf
