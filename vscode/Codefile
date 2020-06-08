@@ -13,3 +13,4 @@ EditorConfig.EditorConfig
 esbenp.prettier-vscode
 dbaeumer.vscode-eslint
 msjsdiag.debugger-for-chrome
+tombonnike.vscode-status-bar-format-toggle
