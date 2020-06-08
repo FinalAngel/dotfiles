@@ -29,5 +29,9 @@ if (empty($TMUX))
   endif
 endif
 
+let g:onedark_color_overrides = {
+\ "black": {"gui": "#2F343F", "cterm": "235", "cterm16": "0" },
+\}
+
 syntax on
 colorscheme onedark
