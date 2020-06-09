@@ -1,5 +1,5 @@
 #!/bin/zsh
-alias afk="pmset displaysleepnow"
+alias afk="sleep 1 && pmset displaysleepnow"
 alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
 alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
 alias killchrome="ps ux | grep '[C]hrome Helper --type=renderer' | grep -v extension-process | tr -s ' ' | cut -d ' ' -f2 | xargs kill"

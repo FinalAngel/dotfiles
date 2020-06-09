@@ -189,6 +189,9 @@ defaults write com.apple.screencapture disable-shadow -bool true
 # enable subpixel font rendering on non-Apple LCDs
 defaults write NSGlobalDomain AppleFontSmoothing -int 2
 
+# enable snap-to-grid for icons on the desktop
+/usr/libexec/PlistBuddy -c "Set :DesktopViewSettings:IconViewSettings:arrangeBy grid" ~/Library/Preferences/com.apple.finder.plist
+
 ###############################################################################
 # Finder                                                                      #
 ###############################################################################
