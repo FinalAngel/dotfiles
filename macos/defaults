@@ -50,6 +50,31 @@ defaults write com.apple.menuextra.battery ShowPercent YES
 # disable opening and closing window animations
 defaults write NSGlobalDomain NSAutomaticWindowAnimationsEnabled -bool false
 
+# smooth scrolling
+defaults write -g NSScrollAnimationEnabled -bool false
+
+# opening and closing Quick Look windows
+defaults write -g QLPanelAnimationDuration -float 0
+
+# rubberband scrolling (doesn't affect web views)
+defaults write -g NSScrollViewRubberbanding -bool false
+
+# showing a toolbar or menu bar in full screen
+defaults write -g NSToolbarFullScreenAnimationDuration -float 0
+
+# scrolling column views
+defaults write -g NSBrowserColumnAnimationSpeedMultiplier -float 0
+
+# showing and hiding Mission Control, command+numbers
+defaults write com.apple.dock expose-animation-duration -float 0
+
+# showing and hiding Launchpad
+defaults write com.apple.dock springboard-show-duration -float 0
+defaults write com.apple.dock springboard-hide-duration -float 0
+
+# changing pages in Launchpad
+defaults write com.apple.dock springboard-page-duration -float 0
+
 # increase window resize speed for Cocoa applications
 defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
 
@@ -240,6 +265,12 @@ sudo chflags nohidden /Volumes
 # Dock                                                                        #
 ###############################################################################
 
+# use scale effect for minimizing applications
+defaults write com.apple.dock mineffect -string scale
+
+# minimize dock items to their applications
+defaults write com.apple.dock minimize-to-application -bool true
+
 # show indicator lights for open applications in the Dock
 defaults write com.apple.dock show-process-indicators -bool true
 
@@ -248,6 +279,8 @@ defaults write com.apple.dock launchanim -bool false
 
 # disable automatically hide and show the Dock
 defaults write com.apple.dock autohide -bool false
+defaults write com.apple.dock autohide-time-modifier -float 0
+defaults write com.apple.dock autohide-delay -float 0
 
 # make Dock icons of hidden applications translucent
 defaults write com.apple.dock showhidden -bool true
