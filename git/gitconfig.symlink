@@ -83,7 +83,7 @@
     untrackedCache = true
 
     # set the default editor for shell commands, can also be set using `GIT_EDITOR`
-    editor = vim
+    editor = nvim
 
 [color]
     branch = auto
