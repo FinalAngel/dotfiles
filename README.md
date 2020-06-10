@@ -57,7 +57,7 @@ The following package flavors are installed:
 - [Neovim](https://neovim.io/)
 - [Node with NVM](https://github.com/nvm-sh/nvm) manager
 - [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
-- [Python with virtualenv](https://virtualenv.pypa.io/en/latest/) management
+- [Python with pyenv](https://virtualenv.pypa.io/en/latest/) and virtualenv
 - [Starship](https://starship.rs/) 🚀
 - [Tmux](https://github.com/tmux/tmux)
 - [VSCode](https://code.visualstudio.com/) and plugins
