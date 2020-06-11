@@ -124,3 +124,11 @@ backup_cp() {
   mv ${version}.${now}.zip ~/Desktop
   rm ${now}.dump
 }
+
+restore_backup_cp() {
+  file="$1"
+  dc up -d postgres
+  docker exec control-panel_postgres_1 dropdb -U control control
+  docker exec control-panel_postgres_1 createdb -U control control
+  docker exec control-panel_postgres_1 psql -U control -f "$file" control
+}

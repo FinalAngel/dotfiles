@@ -33,5 +33,9 @@ if [ ! -d "$HOME/.mackup" ]; then
   success "App preferences restored"
 fi
 
+# symlink hosts file
+require_sudo
+sudo ln -Fs "$DIR/macos/hosts" "/etc/hosts"
+
 # run updates
 source "$DIR/macos/update"
