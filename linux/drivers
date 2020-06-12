@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+# installs wireless driver for macbook 14,3
+cp "$DIR/linux/config/brcmfmac43602-pcie.txt" "/lib/firmware/brcm/"
+
+# install and configure mbp fan drivers
+sudo echo "
+coretemp
+applesmc" >> /etc/modules
+pamac install mbpfan-git
+sudo sensors-detect
+sudo systemctl enable mbpfan
+sudo systemctl start mbpfan
+# https://ineed.coffee/3838/a-beginners-tutorial-for-mbpfan-under-ubuntu/
+sudo echo "
+min_fan1_speed = 1300
+max_fan1_speed = 6100
+low_temp = 60
+high_temp = 64
+max_temp = 80
+polling_interval = 3" >> /etc/mbpfan.conf
+
+# make sure suspend works correctly
+sudo echo "
+HandlePowerKey=suspend
+HandleLidSwitch=suspend
+" >> /etc/systemd/logind.conf
+
+# install drivers for the front camera
+# https://github.com/patjak/bcwc_pcie/wiki/Get-Started

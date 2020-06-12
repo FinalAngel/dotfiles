@@ -3,6 +3,20 @@ source "$DIR/utils/index"
 
 info "Install \033[0;37m[linux]\033[0m"
 
-# should probably use https://snapcraft.io/store
+# be aware that linux is not optimised for macs and you will have to adapt
+# this heavily depending on your machine. For further information about your
+# model have a look at the following resources:
+# - https://wiki.archlinux.org/index.php/Mac
+# - https://github.com/Dunedan/mbp-2016-linux/
+# - https://gist.github.com/roadrunner2/1289542a748d9a104e7baec6a92f9cd7
+
+source "$DIR/linux/drivers"
+
+# make sure our system is on the latest version
+sudo pacman -Syyu
+# enable AUR as package source
+sudo pacman -S pamac
+
+# configure snap https://snapcraft.io/store
 
 success "¯\_(ツ)_/¯"
