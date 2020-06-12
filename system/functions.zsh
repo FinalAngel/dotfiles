@@ -126,7 +126,7 @@ backup_cp() {
 }
 
 restore_backup_cp() {
-  file="$1"
+  file="/app/$1"
   dc up -d postgres
   docker exec control-panel_postgres_1 dropdb -U control control
   docker exec control-panel_postgres_1 createdb -U control control
