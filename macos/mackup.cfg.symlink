@@ -11,6 +11,7 @@ directory = Mackup
 # or anything in ~/, e.g ~/.vscode
 my-anki
 my-calibre
+my-sml
 my-zsh
 
 # SUPPORTED APPS
