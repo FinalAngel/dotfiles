@@ -2,7 +2,7 @@
 DOTFILES_ROOT="$HOME/.dotfiles"
 
 # this file is automatically loaded through oh-my-zsh
-# the ideal place to load all the others paths :)
+# the ideal place to load all the other paths :)
 typeset -U config_files
 config_files=($DOTFILES_ROOT/**/paths.zsh)
 

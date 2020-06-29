@@ -44,6 +44,7 @@ alias dclint="docker run --env-file=.lint -it -v $(pwd):/app divio/lint /bin/lin
 alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info|\.tox|\.coverage$)' | xargs rm -rf"
 alias copyssh="pbcopy < $HOME/.ssh/id_rsa.pub"
 alias listgpg="gpg --list-secret-keys --keyid-format LONG"
+alias copygpg="pbcopy < gpg --armor --export $1"
 alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
 alias ip="ipconfig getifaddr en0"
 alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
@@ -57,6 +58,3 @@ alias ldivio="ALDRYN_HOST=local.aldryn.net divio"
 
 # fun stuff
 alias meh="echo '¯\_(ツ)_/¯' | pbcopy"
-
-# load function
-source "$HOME/.dotfiles/system/functions.zsh"

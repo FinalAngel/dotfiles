@@ -44,7 +44,7 @@ Except for `utils/` and `scripts/` every folder is its self-containing
 **topic/** providing an `install` and `update` script. You can easily disable
 individual **topics/** by commenting the lines in `scripts/`. On top of that:
 
-- every `aliases.zsh` and `paths.zsh` file in **topics/** is automatically loaded
+- every `aliases.zsh`, `paths.zsh` and `functions.zsh` file in **topics/** is automatically loaded
 - every `.symlink` file in **topics/** will be mapped to `~/.[filename]`
 - everything in the `bin/` folder gets automatically added to your `$PATH`
 
