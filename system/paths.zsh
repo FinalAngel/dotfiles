@@ -29,3 +29,4 @@ export PATH
 
 # get pyenv to work, needs to be declared here
 eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"

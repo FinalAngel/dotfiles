@@ -9,10 +9,6 @@ if test $(which python3); then
   success "Updated setuptools"
   pip3 install --upgrade pip > /dev/null 2>&1
   success "Updated pip"
-  pip3 install --upgrade virtualenv > /dev/null 2>&1
-  success "Updated virtualenv"
-  pip3 install --upgrade virtualenvwrapper > /dev/null 2>&1
-  success "Updated virtualenvwrapper"
   pip3 install --upgrade twine > /dev/null 2>&1
   success "Updated twine"
   export PIP_REQUIRE_VIRTUALENV=true
