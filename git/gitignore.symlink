@@ -17,6 +17,7 @@ npm-debug.log
 
 # python
 *.pyc
+.python-version
 
 # folder view configuration files
 .DS_Store
