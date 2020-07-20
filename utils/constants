@@ -5,5 +5,5 @@ declare NVM_DIR="$HOME/.nvm"
 declare CODE_DIR="$HOME/Sites"
 
 # settings
-declare COMPUTER_NAME="Angelo’s MacBook Pro"
+declare COMPUTER_NAME="Angelo's MacBook Pro"
 declare COMPUTER_NAME_SLUG="Angelos-MacBook-Pro"
