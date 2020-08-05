@@ -6,7 +6,7 @@
 They intend to automate the installation and update process of, well,
 everything. Feel free to explore, copy and re-use the code to your liking.
 
-- 📖 &nbsp;Read my [blog post](https://angelo.dini.dev/blog) about these files
+- 📖 &nbsp;Read my [blog post](https://angelo.dini.dev/blog/dotfiles/) about these files
 - 🌐 &nbsp;Visit my [website](https://angelo.dini.dev)
 
 ## Installation
