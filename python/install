@@ -12,4 +12,8 @@ if test $(which python3); then
   pip3 install twine > /dev/null 2>&1
   success "Twine successfully installed"
   export PIP_REQUIRE_VIRTUALENV=true
+
+  curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+  source ~/.poetry/env
+  success "Successfully installed poetry"
 fi
