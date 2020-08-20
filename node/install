@@ -28,6 +28,7 @@ npm_install "browser-sync" "browser-sync"
 npm_install "gulp" "gulp"
 npm_install "gatsby" "gatsby-cli"
 npm_install "npm-check-updates" "npm-check-updates"
+npm_install "typescript" "typescript"
 
 nvm_install () {
   # make sure nvm command is available
