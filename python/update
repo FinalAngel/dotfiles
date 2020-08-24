@@ -3,13 +3,4 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[python]\033[0m"
 
-if test $(which python3); then
-  export PIP_REQUIRE_VIRTUALENV=false
-  pip3 install --upgrade setuptools > /dev/null 2>&1
-  success "Updated setuptools"
-  pip3 install --upgrade pip > /dev/null 2>&1
-  success "Updated pip"
-  pip3 install --upgrade twine > /dev/null 2>&1
-  success "Updated twine"
-  export PIP_REQUIRE_VIRTUALENV=true
-fi
+success "Nothing to update"

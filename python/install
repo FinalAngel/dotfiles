@@ -11,6 +11,8 @@ if test $(which python3); then
   success "Pip successfully upgraded "
   pip3 install twine > /dev/null 2>&1
   success "Twine successfully installed"
+  pip3 install black > /dev/null 2>&1
+  success "Black successfully installed"
   export PIP_REQUIRE_VIRTUALENV=true
 
   curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
