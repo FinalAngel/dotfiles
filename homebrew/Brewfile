@@ -37,6 +37,7 @@ brew "zsh-syntax-highlighting"
 brew "zsh-autosuggestions"
 
 # development
+brew "enchant"
 brew "node"
 brew "nginx"
 brew "python"
