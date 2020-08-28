@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[tmux]\033[0m"
+
+gem install tmuxinator
+
+success "VIM plugins successfully installed"
