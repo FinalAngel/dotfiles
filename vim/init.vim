@@ -3,14 +3,14 @@
 " - Avoid using standard Vim directory names like 'plugin'
 call plug#begin('~/.vim/plugged')
 
+" install onedark theme https://github.com/joshdick/onedark.vim
+Plug 'joshdick/onedark.vim'
+" Plug 'vxsx/vim-solarized8' (might need to switch to this one)
+
 " language packs for vim https://github.com/sheerun/vim-polyglot
 Plug 'sheerun/vim-polyglot'
 Plug 'neoclide/coc.nvim', {'branch': 'release' }
 Plug 'editorconfig/editorconfig-vim'
-
-" install onedark theme https://github.com/joshdick/onedark.vim
-Plug 'joshdick/onedark.vim'
-" Plug 'vxsx/vim-solarized8' (might need to switch to this one)
 
 " status line shown on the right hand of the vim editor
 Plug 'vim-airline/vim-airline'
@@ -26,18 +26,22 @@ Plug 'Yggdroot/indentLine'
 " error preview https://github.com/dense-analysis/ale
 Plug 'w0rp/ale'
 
+" show tree view
+Plug 'sjl/gundo.vim'
+
 " further plugins
 Plug 'ctrlpvim/ctrlp.vim', { 'on': 'CtrlP' }
 Plug 'mileszs/ack.vim', { 'on': 'Ack' }
-Plug 'junegunn/vim-easy-align'
 Plug 'tomtom/tcomment_vim', { 'on': 'TComment' }
-Plug 'michaeljsmith/vim-indent-object'
 Plug 'tpope/vim-unimpaired'
 Plug 'chrisbra/matchit'
+Plug 'AndrewRadev/splitjoin.vim'
+
+" editor assistance
+Plug 'junegunn/vim-easy-align'
+Plug 'michaeljsmith/vim-indent-object'
 Plug 'lukaszb/vim-web-indent'
 Plug 'wellle/targets.vim'
-Plug 'sjl/gundo.vim'
-Plug 'AndrewRadev/splitjoin.vim'
 
 " Initialize plugin system
 call plug#end()
@@ -56,6 +60,13 @@ endif
 if (has("termguicolors"))
   set termguicolors
 endif
+
+" overrides for onedark theme
+" https://github.com/joshdick/onedark.vim/blob/master/colors/onedark.vim
+let g:onedark_termcolors=256
+let g:onedark_color_overrides = {
+\ "black": {"gui": "#2F343F", "cterm": "235", "cterm16": "0" },
+\}
 
 syntax on
 colorscheme onedark
