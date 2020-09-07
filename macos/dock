@@ -2,31 +2,35 @@
 source "$DIR/utils/index"
 
 dockutil --no-restart --remove all
+
+# global
 dockutil --no-restart --add "/System/Applications/System Preferences.app"
 dockutil --no-restart --add "/System/Applications/App Store.app"
 dockutil --no-restart --add "/System/Applications/Utilities/Activity Monitor.app"
-dockutil --no-restart --add "/Applications/Hyper.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after iTerm
 
+# management utilities
 dockutil --no-restart --add "/Applications/Airmail.app"
 dockutil --no-restart --add "/Applications/2Do.app"
 dockutil --no-restart --add "/Applications/Harvest.app"
 dockutil --no-restart --add "/Applications/Grammarly.app"
 dockutil --no-restart --add "/Applications/1Password 7.app"
-dockutil --no-restart --add "/System/Applications/Books.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after Books
 
+# work utilities
+dockutil --no-restart --add "/Applications/Calendar.app"
 dockutil --no-restart --add "/Applications/Pages.app"
 dockutil --no-restart --add "/Applications/Numbers.app"
 dockutil --no-restart --add "/Applications/Keynote.app"
 dockutil --no-restart --add "/Applications/Affinity Designer.app"
 dockutil --no-restart --add "/Applications/Affinity Photo.app"
-dockutil --no-restart --add "/Applications/MindNode.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after GoodNotes
 
+# development
+dockutil --no-restart --add "/Applications/Hyper.app"
 dockutil --no-restart --add "/Applications/Visual Studio Code.app"
 dockutil --no-restart --add "/Applications/Tower.app"
 dockutil --no-restart --add "/Applications/Kaleidoscope.app"
@@ -36,26 +40,33 @@ dockutil --no-restart --add "/Applications/Divio.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after Divio
 
+# messaging
 dockutil --no-restart --add "/Applications/Slack.app"
 dockutil --no-restart --add "/Applications/Discord.app"
+dockutil --no-restart --add "/Applications/Microsoft Teams.app"
 dockutil --no-restart --add "/System/Applications/Messages.app"
 dockutil --no-restart --add "/Applications/Skype.app"
 dockutil --no-restart --add "/Applications/Keybase.app"
 dockutil --no-restart --add "/Applications/WhatsApp.app"
+dockutil --no-restart --add "/Applications/Discord.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after WhatsApp
 
+# the internet things
 dockutil --no-restart --add "/Applications/Google Chrome.app"
 dockutil --no-restart --add "/Applications/Firefox.app"
 dockutil --no-restart --add "/Applications/Safari.app"
+dockutil --no-restart --add "/Applications/Plex.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after Safari
 
-dockutil --no-restart --add "/Applications/Plex.app"
+# school & stuff
 dockutil --no-restart --add "/Applications/Notion.app"
 dockutil --no-restart --add "/Applications/GoodNotes.app"
+dockutil --no-restart --add "/Applications/MindNode.app"
 dockutil --no-restart --add "/Applications/Anki.app"
 dockutil --no-restart --add "/Applications/beook.app"
+dockutil --no-restart --add "/System/Applications/Books.app"
 dockutil --no-restart --add "/Applications/VLC.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after VLC
