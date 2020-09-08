@@ -1,6 +1,6 @@
 cask "sonoss1" do
-  version "12.1"
-  sha256 "1a98300bd16bb2f727eb1921db80777cc23178a483d56b44a9bb5d95d9ea6602"
+  version "11.2"
+  sha256 "ca9d7cdbc8d60970cd4933cbdff3c7600acaa905dc38d131777cef26bdd6eef8"
   url "https://www.sonos.com/redir/controller_software_mac"
   app "Sonos S1 Controller.app"
   zap trash: [
