@@ -7,6 +7,7 @@ dockutil --no-restart --remove all
 dockutil --no-restart --add "/System/Applications/System Preferences.app"
 dockutil --no-restart --add "/System/Applications/App Store.app"
 dockutil --no-restart --add "/System/Applications/Utilities/Activity Monitor.app"
+dockutil --no-restart --add "/Applications/Hyper.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after iTerm
 
@@ -30,7 +31,6 @@ dockutil --no-restart --add "/Applications/Affinity Photo.app"
 dockutil --no-restart --add '' --type spacer --section apps --after GoodNotes
 
 # development
-dockutil --no-restart --add "/Applications/Hyper.app"
 dockutil --no-restart --add "/Applications/Visual Studio Code.app"
 dockutil --no-restart --add "/Applications/Tower.app"
 dockutil --no-restart --add "/Applications/Kaleidoscope.app"
