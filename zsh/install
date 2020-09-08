@@ -9,8 +9,6 @@ if [ ! -d "$HOME/.oh-my-zsh" ];then
   export CHSH=no
   export KEEP_ZSHRC=yes
   /bin/bash -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-  # fix permissions
-  compaudit | xargs chmod g-w,o-w > /dev/null 2>&1
 
   success "Oh-my-zsh successfully installed"
 else
