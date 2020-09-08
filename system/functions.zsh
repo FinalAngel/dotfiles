@@ -114,21 +114,3 @@ function o() {
 function tre() {
   tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
 }
-
-# backsup control panel and creates nice zip file
-backup_cp() {
-  local now=$(date +'%Y-%m-%d.%H.%M')
-  local version=$(cat src/version.py | sed 's/.*"\(.*\)".*/\1/')
-  docker exec control-panel_postgres_1 pg_dump postgres://control:cQyDbLGT3HrPmFqdY4hlVSitKA0ExXUg@postgres:5432/control --file /app/${now}.dump
-  zip ${version}.${now}.zip -r data ${now}.dump
-  mv ${version}.${now}.zip ~/Desktop
-  rm ${now}.dump
-}
-
-restore_backup_cp() {
-  file="/app/$1"
-  dc up -d postgres
-  docker exec control-panel_postgres_1 dropdb -U control control
-  docker exec control-panel_postgres_1 createdb -U control control
-  docker exec control-panel_postgres_1 psql -U control -f "$file" control
-}
