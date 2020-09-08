@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Update \033[0;37m[tmux]\033[0m"
+
+success "Nothing to update"
