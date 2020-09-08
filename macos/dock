@@ -55,13 +55,14 @@ dockutil --no-restart --add '' --type spacer --section apps --after WhatsApp
 dockutil --no-restart --add "/Applications/Google Chrome.app"
 dockutil --no-restart --add "/Applications/Firefox.app"
 dockutil --no-restart --add "/Applications/Safari.app"
-dockutil --no-restart --add "/Applications/Plex.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after Safari
 
 # school & stuff
+dockutil --no-restart --add "/Applications/Plex.app"
 dockutil --no-restart --add "/Applications/Notion.app"
 dockutil --no-restart --add "/Applications/GoodNotes.app"
+dockutil --no-restart --add "/Applications/MarginNote 3.app"
 dockutil --no-restart --add "/Applications/MindNode.app"
 dockutil --no-restart --add "/Applications/Anki.app"
 dockutil --no-restart --add "/Applications/beook.app"
