@@ -114,6 +114,7 @@ defaults write NSGlobalDomain NSDisableAutomaticTermination -bool true
 defaults write com.apple.menuextra.clock DateFormat -string "EEE d MMM HH:mm"
 
 # disable location services
+# TODO: needs fixes
 # uuid=$("/usr/sbin/system_profiler" SPHardwareDataType | grep "Hardware UUID" | awk '{ print $3 }')
 # prefDomain="com.apple.locationd.$uuid"
 # byHostPath="/var/db/locationd/Library/Preferences/ByHost/com.apple.locationd"
