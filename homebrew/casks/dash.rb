@@ -1,6 +1,6 @@
 cask "dash" do
   version "5.1.6"
-  sha256 "dd0d23c03f447b6b904765444e8863d55f4cb15c8d1669d039d14e095eb5466a"
+  sha256 "6c49b237710f05bcd09656247d392f1fc770c04b6a4e2d8ac8ef572dc196efd2"
   url "http://frankfurt.kapeli.com/downloads/v5/Dash.zip"
   app "Dash.app"
   zap trash: [

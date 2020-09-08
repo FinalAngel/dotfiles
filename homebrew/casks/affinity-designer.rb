@@ -1,6 +1,6 @@
 cask "affinity-designer" do
-  version "1.8.3"
-  sha256 "881182faf9ad41eb1635cac5e7c1ce474e5a63b3f508380d9030848115fea7ba"
+  version "1.8.4"
+  sha256 "be5a3f58dfb69eaba73ef7897970dd7e91dc880c6da8025f1e4d64f3ab6db718"
   url "https://store.serif.com/download/aa4dee/"
   app "Affinity Designer.app"
   zap trash: [

@@ -1,6 +1,6 @@
 cask "affinity-photo" do
-  version "1.8.3"
-  sha256 "7a9f8af6742b947fbc15e3ed83cc470fccdd455372aeec1fe4a15591153d224f"
+  version "1.8.4"
+  sha256 "a2c4023810409bfb3de58a9b68963f5b8b763e5aaa4b42aa429731a27b475853"
   url "https://store.serif.com/download/075b51/"
   app "Affinity Photo.app"
   zap trash: [

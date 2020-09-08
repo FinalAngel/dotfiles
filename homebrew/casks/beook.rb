@@ -1,7 +1,7 @@
 cask "beook" do
-  version "6.4.0"
-  sha256 "432770463fcf026fb43f74eb6a4c1b05a742342ab9ed6782581dfc318c2788c6"
-  url "https://beook.ch/downloads/setup/mac64/beook_mac64_install_#{version}.dmg"
+  version "6.4.4"
+  sha256 "733f29375253caaf44d406ce617d1bc6ba99dea29717ab3af7aed5dbde1ba953"
+  url "https://beook.ch/downloads/setup/mac64/beook_mac64_install_#{version}.pkg"
   app "beook.app"
   zap trash: [
                "~/Library/Preferences/beook.plist",
