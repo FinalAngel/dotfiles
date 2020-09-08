@@ -4,6 +4,6 @@ source "$DIR/utils/index"
 info "Setup \033[0;37m[tmux]\033[0m"
 
 require_sudo
-sudo gem install tmuxinator
+sudo gem install tmuxinator > /dev/null
 
 success "VIM plugins successfully installed"
