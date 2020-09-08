@@ -16,7 +16,7 @@ a try. In theory, they can be installed on an existing system as well, but a
 fresh installation is recommended. Use at your own risk.
 
 **macOS notes**: Make sure to install the Xcode Command Line Tools by running
-`xcode-select --install` first and log into the Apple App Store.
+`xcode-select --install` first, then log into iCloud and the Apple App Store.
 
 The following command will install the dotfiles into `~/.dotfiles` and runs the
 installer automatically 🤖:

@@ -15,14 +15,15 @@ else
 fi
 
 # will return true or false
-`fdesetup isactive`
-if [ ! $? ]; then
-  require_sudo
-  sudo fdesetup enable
-  success "FileVault successfully enabled"
-else
-  success "FileVault already enabled"
-fi
+# TODO: needs to be fixed
+# `fdesetup isactive`
+# if [ ! $? ]; then
+#   require_sudo
+#   sudo fdesetup enable
+#   success "FileVault successfully enabled"
+# else
+#   success "FileVault already enabled"
+# fi
 
 # restore app preferences
 if [ ! -d "$HOME/.mackup" ]; then
