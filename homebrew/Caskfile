@@ -47,6 +47,7 @@ cask "tunnelbear"
 cask "visual-studio-code"
 cask "vlc"
 cask "whatsapp"
+cask "webex-meetings"
 
 # work specific
 cask "docker"
