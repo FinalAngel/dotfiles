@@ -114,18 +114,18 @@ defaults write NSGlobalDomain NSDisableAutomaticTermination -bool true
 defaults write com.apple.menuextra.clock DateFormat -string "EEE d MMM HH:mm"
 
 # disable location services
-uuid=$("/usr/sbin/system_profiler" SPHardwareDataType | grep "Hardware UUID" | awk '{ print $3 }')
-prefDomain="com.apple.locationd.$uuid"
-byHostPath="/var/db/locationd/Library/Preferences/ByHost/com.apple.locationd"
-ls_enabled_uuid=$(sudo -u "_locationd" defaults -currentHost read "${prefDomain}" LocationServicesEnabled)
-ls_enabled_byhost=$(sudo defaults read "${byHostPath}" LocationServicesEnabled)
-# process booleans
-if [[ $ls_enabled_uuid && $ls_enabled_byhost ]]; then
-  sudo -u "_locationd" defaults -currentHost write "${prefDomain}" LocationServicesEnabled -int 0
-  sudo defaults write "${byHostPath}" LocationServicesEnabled -int 0
-else
-  success "Location Services are already disabled."
-fi
+# uuid=$("/usr/sbin/system_profiler" SPHardwareDataType | grep "Hardware UUID" | awk '{ print $3 }')
+# prefDomain="com.apple.locationd.$uuid"
+# byHostPath="/var/db/locationd/Library/Preferences/ByHost/com.apple.locationd"
+# ls_enabled_uuid=$(sudo -u "_locationd" defaults -currentHost read "${prefDomain}" LocationServicesEnabled)
+# ls_enabled_byhost=$(sudo defaults read "${byHostPath}" LocationServicesEnabled)
+# # process booleans
+# if [[ $ls_enabled_uuid && $ls_enabled_byhost ]]; then
+#   sudo -u "_locationd" defaults -currentHost write "${prefDomain}" LocationServicesEnabled -int 0
+#   sudo defaults write "${byHostPath}" LocationServicesEnabled -int 0
+# else
+#   success "Location Services are already disabled."
+# fi
 
 ###############################################################################
 # Keyboard & Input                                                            #
