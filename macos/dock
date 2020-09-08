@@ -42,7 +42,6 @@ dockutil --no-restart --add '' --type spacer --section apps --after Divio
 
 # messaging
 dockutil --no-restart --add "/Applications/Slack.app"
-dockutil --no-restart --add "/Applications/Discord.app"
 dockutil --no-restart --add "/Applications/Microsoft Teams.app"
 dockutil --no-restart --add "/System/Applications/Messages.app"
 dockutil --no-restart --add "/Applications/Skype.app"
