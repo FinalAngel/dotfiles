@@ -55,6 +55,7 @@ dockutil --no-restart --add '' --type spacer --section apps --after WhatsApp
 dockutil --no-restart --add "/Applications/Google Chrome.app"
 dockutil --no-restart --add "/Applications/Firefox.app"
 dockutil --no-restart --add "/Applications/Safari.app"
+dockutil --no-restart --add "/Applications/VLC.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after Safari
 
@@ -67,7 +68,6 @@ dockutil --no-restart --add "/Applications/MindNode.app"
 dockutil --no-restart --add "/Applications/Anki.app"
 dockutil --no-restart --add "/Applications/beook.app"
 dockutil --no-restart --add "/System/Applications/Books.app"
-dockutil --no-restart --add "/Applications/VLC.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after VLC
 
