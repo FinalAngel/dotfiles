@@ -2,7 +2,7 @@
 
 ![Dotfiles preview](https://raw.githubusercontent.com/finalangel/dotfiles/master/preview.png)
 
-🤗 &nbsp;These dotfiles help me to setup and maintain my macOS or linux installations.
+🤗 &nbsp;These dotfiles help me to set up and maintain my macOS or Linux installations.
 They intend to automate the installation and update process of, well,
 everything. Feel free to explore, copy and re-use the code to your liking.
 
@@ -48,7 +48,7 @@ individual **topics/** by commenting the lines in `scripts/`. On top of that:
 - every `.symlink` file in **topics/** will be mapped to `~/.[filename]`
 - everything in the `bin/` folder gets automatically added to your `$PATH`
 
-The following package flavors are installed:
+The following package flavours are installed:
 
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
 - [Git with GPG signing](https://gnupg.org/) enabled
@@ -65,8 +65,8 @@ The following package flavors are installed:
 ## Contributions
 
 🐛 &nbsp;Feel free to send me pull requests if something is misconfigured or could be
-enhanced upon. These are very personal but if they work for others as well,
-the more the merrier. I generally still want to improve on:
+enhanced upon. These are very personal, but if they work for others as well,
+the more, the merrier. I generally still want to improve on:
 
 - The dot command could be [improved](https://github.com/webpro/dotfiles/blob/master/bin/dotfiles)
 - Adding [tests](https://github.com/webpro/dotfiles/tree/master/test) would be nice :)
