@@ -72,8 +72,9 @@ cask "quicklook-csv"
 # app store
 mas "2Do", id: 477670270
 mas "Airmail 4", id: 918858936
-mas "Harvest", id: 506189836
+mas "Be Focused - Focus Timer", id: 973134470
 mas "GoodNotes 5", id: 1444383602
+mas "Harvest", id: 506189836
 mas "In Your Face", id: 1476964367
 mas "Keynote", id: 409183694
 mas "MindNode", id: 1289197285
