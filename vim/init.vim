@@ -5,7 +5,6 @@ call plug#begin('~/.vim/plugged')
 
 " install onedark theme https://github.com/joshdick/onedark.vim
 Plug 'joshdick/onedark.vim'
-" Plug 'vxsx/vim-solarized8' (might need to switch to this one)
 
 " language packs for vim https://github.com/sheerun/vim-polyglot
 Plug 'sheerun/vim-polyglot'
@@ -65,7 +64,7 @@ endif
 " https://github.com/joshdick/onedark.vim/blob/master/colors/onedark.vim
 let g:onedark_termcolors=256
 let g:onedark_color_overrides = {
-\ "black": {"gui": "#2F343F", "cterm": "235", "cterm16": "0" },
+\ "black": {"gui": "#282C34", "cterm": "235", "cterm16": "0" },
 \}
 
 syntax on
