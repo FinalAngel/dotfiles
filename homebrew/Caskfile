@@ -50,8 +50,10 @@ cask "tunnelbear"
 # development
 cask "docker"
 cask "hyper"
+cask "java"
 cask "keybase"
 cask "ngrok"
+cask "virtualbox"
 
 # personal
 cask "calibre"
