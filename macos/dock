@@ -7,7 +7,8 @@ dockutil --no-restart --remove all
 dockutil --no-restart --add "/System/Applications/System Preferences.app"
 dockutil --no-restart --add "/System/Applications/App Store.app"
 dockutil --no-restart --add "/System/Applications/Utilities/Activity Monitor.app"
-dockutil --no-restart --add "/Applications/Hyper.app"
+dockutil --no-restart --add "/System/Applications/Utilities/Terminal.app"
+# dockutil --no-restart --add "/Applications/Hyper.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after iTerm
 

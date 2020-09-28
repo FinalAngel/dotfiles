@@ -19,6 +19,7 @@ prepend_path "/usr/local/opt/curl/bin"
 prepend_path "/sbin"
 prepend_path "/usr/sbin"
 prepend_path "/usr/local/sbin"
+prepend_path "/usr/local/texlive/2020/bin/x86_64-darwin"
 prepend_path "$HOME/.dotfiles/bin"
 
 # remove duplicates (preserving prepended items)
