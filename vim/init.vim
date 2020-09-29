@@ -64,7 +64,7 @@ endif
 " https://github.com/joshdick/onedark.vim/blob/master/colors/onedark.vim
 let g:onedark_termcolors=256
 let g:onedark_color_overrides = {
-\ "black": {"gui": "#282C34", "cterm": "235", "cterm16": "0" },
+\ "black": {"gui": "#282C33", "cterm": "235", "cterm16": "0" },
 \}
 
 syntax on
@@ -198,6 +198,7 @@ set ruler
     nmap <C-k> <C-w>k
     nmap <C-l> <C-w>l
 
+    " arrow key mapping
     nmap <Up>    5<C-w>+
     nmap <Down>  5<C-w>-
     nmap <Left>  5<C-w><

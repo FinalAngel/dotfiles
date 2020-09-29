@@ -49,7 +49,6 @@ cask "tunnelbear"
 
 # development
 cask "docker"
-cask "hyper"
 cask "java"
 cask "keybase"
 cask "ngrok"
