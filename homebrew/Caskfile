@@ -57,6 +57,7 @@ cask "virtualbox"
 # personal
 cask "calibre"
 cask "guitar-pro"
+cask "geogebra"
 cask "hakuneko"
 cask "logitech-options"
 cask "sony-ps4-remote-play"

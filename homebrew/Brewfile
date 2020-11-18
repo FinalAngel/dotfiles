@@ -29,6 +29,7 @@ brew "wget"
 
 # terminal
 brew "bash" # latest Bash version
+brew "glances"
 brew "htop"
 brew "neovim" # instead of vim
 brew "starship"
