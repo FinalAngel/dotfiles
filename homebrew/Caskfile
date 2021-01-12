@@ -62,8 +62,6 @@ cask "hakuneko"
 cask "logitech-options"
 cask "sony-ps4-remote-play"
 cask "steam"
-cask "synology-drive"
-cask "synologyassistant"
 cask "tg-pro"
 cask "unity-hub"
 
