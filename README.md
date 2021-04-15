@@ -29,14 +29,15 @@ installer automatically 🤖:
 
 👉 &nbsp;Once installed, use the following command to manage the dotfiles:
 
-    $ dot --help
-    Usage: dot [options]
+    $ dotfiles --help
+    Usage: dotfiles [options]
 
     Options:
+      -e, --edit     Edit dotfiles
+      -g, --go       Go to dotfiles directory
+      -h, --help     Show help
       -i, --install  Runs installer
       -u, --update   Runs updater
-      -e, --edit     Edit dotfiles
-      -h, --help     Show this help message and exit
 
 ## What's included
 
@@ -68,7 +69,6 @@ The following package flavours are installed:
 enhanced upon. These are very personal, but if they work for others as well,
 the more, the merrier. I generally still want to improve on:
 
-- The dot command could be [improved](https://github.com/webpro/dotfiles/blob/master/bin/dotfiles)
 - Adding [tests](https://github.com/webpro/dotfiles/tree/master/test) would be nice :)
 
 ## Credits

@@ -33,7 +33,6 @@ alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias lib="cd $HOME/Library"
 alias ws="cd $HOME/Sites"
-alias dotfiles="cd $HOME/.dotfiles"
 
 # development
 alias dc="docker-compose"

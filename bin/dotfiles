@@ -8,15 +8,16 @@ PARENT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 
 displayUsageAndExit() {
-  echo "dot -- dotfiles management"
+  echo "dotfiles -- dotfiles management"
   echo ""
-  echo "Usage: dot [options]"
+  echo "Usage: dotfiles [options]"
   echo ""
   echo "Options:"
+  echo "  -e, --edit     Edit dotfiles"
+  echo "  -g, --goto     Go to dotfiles directory"
+  echo "  -h, --help     Show help"
   echo "  -i, --install  Runs installer"
   echo "  -u, --update   Runs updater"
-  echo "  -e, --edit     Edit dotfiles"
-  echo "  -h, --help     Show this help message and exit"
   echo ""
   exit
 }
@@ -36,6 +37,10 @@ while test $# -gt 0; do
       ;;
     "-e"|"--edit")
       exec "$EDITOR" "$DIR"
+      exit
+      ;;
+    "-g"|"--go")
+      exec cd "$DIR"
       exit
       ;;
     *)
