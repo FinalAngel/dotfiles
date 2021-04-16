@@ -35,6 +35,7 @@ dockutil --no-restart --add "/Applications/Visual Studio Code.app"
 dockutil --no-restart --add "/Applications/Tower.app"
 dockutil --no-restart --add "/Applications/Kaleidoscope.app"
 dockutil --no-restart --add "/Applications/Dash.app"
+dockutil --no-restart --add "/Applications/Insomnia.app"
 dockutil --no-restart --add "/Applications/Docker.app"
 dockutil --no-restart --add "/Applications/Divio.app"
 
@@ -45,8 +46,8 @@ dockutil --no-restart --add "/Applications/Slack.app"
 dockutil --no-restart --add "/Applications/Microsoft Teams.app"
 dockutil --no-restart --add "/System/Applications/Messages.app"
 dockutil --no-restart --add "/Applications/Skype.app"
-dockutil --no-restart --add "/Applications/Keybase.app"
 dockutil --no-restart --add "/Applications/WhatsApp.app"
+dockutil --no-restart --add "/Applications/Keybase.app"
 dockutil --no-restart --add "/Applications/Discord.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after WhatsApp
