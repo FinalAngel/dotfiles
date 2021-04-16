@@ -40,7 +40,8 @@ while test $# -gt 0; do
       exit
       ;;
     "-g"|"--go")
-      exec cd "$DIR"
+      cd $DIR
+      $SHELL
       exit
       ;;
     *)
