@@ -66,7 +66,6 @@ dockutil --no-restart --add "/Applications/GoodNotes.app"
 dockutil --no-restart --add "/Applications/MarginNote 3.app"
 dockutil --no-restart --add "/Applications/MindNode.app"
 dockutil --no-restart --add "/Applications/Anki.app"
-dockutil --no-restart --add "/Applications/beook.app"
 dockutil --no-restart --add "/System/Applications/Books.app"
 
 dockutil --no-restart --add '' --type spacer --section apps --after VLC
