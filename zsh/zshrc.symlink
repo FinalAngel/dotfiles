@@ -5,6 +5,7 @@ export ZSH_THEME="" # make sure no theme is set
 export PROJECTS=$CODE_DIR # your project folder that we can `c [tab]` to
 export STARSHIP_CONFIG=~/.starship # for customisations
 export HIST_STAMPS="dd/mm/yyyy"
+export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
 
 # stash your environment variables in ~/.localrc. This means they'll stay out
 # of your main dotfiles repository (which may be public, like this one), but

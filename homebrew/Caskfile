@@ -49,6 +49,9 @@ cask "one-switch"
 cask "sensei"
 cask "turbo-boost-switcher"
 cask "tunnelbear"
+cask "tinkertool"
+cask "cheatsheet"
+cask "imageoptim"
 
 # development
 cask "docker"
@@ -68,6 +71,7 @@ cask "synologyassistant"
 cask "steam"
 cask "tg-pro"
 cask "unity-hub"
+cask "mathpix"
 
 # quicklook plugins https://github.com/sindresorhus/quick-look-plugins
 cask "qlcolorcode"
@@ -79,6 +83,7 @@ cask "quicklook-csv"
 
 # app store
 mas "2Do", id: 477670270
+mas "Alfred", id: 405843582
 mas "Airmail 4", id: 918858936
 mas "Be Focused - Focus Timer", id: 973134470
 mas "GoodNotes 5", id: 1444383602
@@ -89,6 +94,7 @@ mas "MindNode", id: 1289197285
 mas "Numbers", id: 409203825
 mas "Pages", id: 409201541
 mas "Unclutter", id: 577085396
+mas "Dropzone 4", id: 1485052491
 
 # custom
 cask "~/.dotfiles/homebrew/casks/affinity-designer.rb"

@@ -48,14 +48,15 @@ alias copygpg="pbcopy < gpg --armor --export $1"
 alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
 alias ip="ipconfig getifaddr en0"
 alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
+alias route="netstat -rn"
 alias urlencode="python -c 'import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);'"
 alias update="sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup"
 alias week="date +%V"
 alias 8000="kill -9 $(lsof -i TCP:8000 | grep LISTEN | awk '{print $2}')"
 
 # divio
-alias ddivio="ALDRYN_HOST=dev.aldryn.net divio"
-alias ldivio="ALDRYN_HOST=local.aldryn.net divio"
+alias ddivio="DIVIO_HOST=dev.aldryn.net divio"
+alias ldivio="DIVIO_HOST=local.aldryn.net divio"
 
 # fun stuff
 alias meh="echo '¯\_(ツ)_/¯' | pbcopy"
