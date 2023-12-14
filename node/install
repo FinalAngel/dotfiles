@@ -17,18 +17,15 @@ fi
 npm_install () {
   if test ! $(which $1); then
     if test $(which npm); then
-      npm install $2 -g --loglevel=silent
+      npm install $2 -g --loglevel=silent --force
       success "Installed npm package $2"
     fi
   fi
 }
 
 # install npm packages globally
-npm_install "browser-sync" "browser-sync"
-npm_install "gulp" "gulp"
-npm_install "gatsby" "gatsby-cli"
-npm_install "npm-check-updates" "npm-check-updates"
-npm_install "typescript" "typescript"
+# npm_install "npm-check-updates" "npm-check-updates"
+# npm_install "typescript" "typescript"
 
 nvm_install () {
   # make sure nvm command is available
@@ -44,11 +41,9 @@ nvm_install () {
 }
 
 # install needed npm versions
-nvm_install 6.17.0
-nvm_install 10.15.1
-nvm_install 12.13.0
-nvm_install 12.18.0
-nvm_install 14.15.1
+nvm_install 12
+nvm_install 18
+nvm_install 21
 
 # run updates
 source "$DIR/node/update"

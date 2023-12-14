@@ -15,8 +15,4 @@ if test $(which python3); then
   success "Black successfully installed"
   # docutils, rstcheck
   export PIP_REQUIRE_VIRTUALENV=true
-
-  curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-  source ~/.poetry/env
-  success "Successfully installed poetry"
 fi

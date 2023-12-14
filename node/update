@@ -3,8 +3,8 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[node]\033[0m"
 
-npm update -g > /dev/null 2>&1
+npm update -g > /dev/null
 success "Updated npm"
 
-npm install npm -g > /dev/null 2>&1
+npm install npm -g > /dev/null
 success "Updated global npm packages"
