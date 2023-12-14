@@ -24,8 +24,8 @@ npm_install () {
 }
 
 # install npm packages globally
-# npm_install "npm-check-updates" "npm-check-updates"
-# npm_install "typescript" "typescript"
+npm_install "npm-check-updates" "npm-check-updates"
+npm_install "typescript" "typescript"
 
 nvm_install () {
   # make sure nvm command is available
