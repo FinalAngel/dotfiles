@@ -3,4 +3,6 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[symlinks]\033[0m"
 
+sudo softwareupdate --install-rosetta --agree-to-license
+
 create_symlinks

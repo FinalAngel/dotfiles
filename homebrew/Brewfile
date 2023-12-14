@@ -5,7 +5,6 @@ tap "homebrew/core"
 # core binaries
 brew "ack" # instead of grep
 brew "awscli"
-brew "bats" # "cat" on steroids
 brew "coreutils" # those that come with macOS are outdated
 brew "chrome-cli"
 brew "dockutil"

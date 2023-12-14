@@ -4,7 +4,6 @@ cask_args appdir: "/Applications"
 
 tap "homebrew/cask"
 tap "homebrew/cask-versions"
-tap "homebrew/cask-drivers"
 
 # core applications
 
@@ -21,7 +20,6 @@ cask "downie"
 cask "dropbox"
 cask "firefox"
 cask "figma"
-cask "geogebra"
 cask "gifox"
 cask "google-chrome"
 cask "grammarly"
@@ -53,9 +51,10 @@ cask "gfxcardstatus"
 cask "one-switch"
 cask "rectangle"
 cask "sensei"
-cask "turbo-boost-switcher"
+
+# cask "turbo-boost-switcher"
+
 cask "tunnelbear"
-cask "tinkertool"
 cask "cheatsheet"
 cask "imageoptim"
 
@@ -63,25 +62,21 @@ cask "imageoptim"
 
 cask "dash"
 cask "docker"
-cask "java"
 cask "keybase"
 cask "ngrok"
-cask "virtualbox"
 
 # personal
 
 cask "calibre"
 cask "guitar-pro"
-cask "geogebra"
 cask "hakuneko"
 cask "logitech-options"
 cask "meta"
-cask "sony-ps4-remote-play"
+cask "sony-ps-remote-play"
 cask "synologyassistant"
 cask "steam"
 cask "tg-pro"
 cask "unity-hub"
-cask "mathpix"
 
 # quicklook plugins https://github.com/sindresorhus/quick-look-plugins
 
