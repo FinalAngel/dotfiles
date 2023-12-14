@@ -3,6 +3,8 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
 
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 brew update -q > /dev/null 2>&1
 success "Updated homebrew"
 brew upgrade > /dev/null 2>&1
