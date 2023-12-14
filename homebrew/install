@@ -5,7 +5,7 @@ info "Setup \033[0;37m[homebrew]\033[0m"
 
 # check if homebrew is installed
 if ! is_executable "brew"; then
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   success "Homebrew successfully installed"
 else
