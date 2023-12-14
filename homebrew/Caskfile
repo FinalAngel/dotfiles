@@ -1,14 +1,19 @@
 cask_args appdir: "/Applications"
 
 # expand our horizon
+
 tap "homebrew/cask"
 tap "homebrew/cask-versions"
 tap "homebrew/cask-drivers"
 
 # core applications
+
 cask "1password"
 cask "1password-cli"
 cask "anki"
+cask "affinity-designer"
+cask "affinity-photo"
+cask "affinity-publisher"
 cask "balenaetcher"
 cask "cyberduck"
 cask "discord"
@@ -26,7 +31,6 @@ cask "iterm2"
 cask "kaleidoscope"
 cask "marginnote"
 cask "microsoft-office"
-cask "microsoft-teams"
 cask "notion"
 cask "pdfpen"
 cask "plex"
@@ -42,10 +46,12 @@ cask "whatsapp"
 cask "webex-meetings"
 
 # system mods
+
 cask "appcleaner"
 cask "bartender"
 cask "gfxcardstatus"
 cask "one-switch"
+cask "rectangle"
 cask "sensei"
 cask "turbo-boost-switcher"
 cask "tunnelbear"
@@ -54,6 +60,8 @@ cask "cheatsheet"
 cask "imageoptim"
 
 # development
+
+cask "dash"
 cask "docker"
 cask "java"
 cask "keybase"
@@ -61,11 +69,13 @@ cask "ngrok"
 cask "virtualbox"
 
 # personal
+
 cask "calibre"
 cask "guitar-pro"
 cask "geogebra"
 cask "hakuneko"
 cask "logitech-options"
+cask "meta"
 cask "sony-ps4-remote-play"
 cask "synologyassistant"
 cask "steam"
@@ -74,6 +84,7 @@ cask "unity-hub"
 cask "mathpix"
 
 # quicklook plugins https://github.com/sindresorhus/quick-look-plugins
+
 cask "qlcolorcode"
 cask "qlstephen"
 cask "qlmarkdown"
@@ -82,11 +93,12 @@ cask "quicklook-json"
 cask "quicklook-csv"
 
 # app store
+
 mas "2Do", id: 477670270
 mas "Alfred", id: 405843582
-mas "Airmail 4", id: 918858936
+mas "Airmail", id: 918858936
 mas "Be Focused - Focus Timer", id: 973134470
-mas "GoodNotes 5", id: 1444383602
+mas "GoodNotes 6", id: 1444383602
 mas "Harvest", id: 506189836
 mas "In Your Face", id: 1476964367
 mas "Keynote", id: 409183694
@@ -95,12 +107,5 @@ mas "Numbers", id: 409203825
 mas "Pages", id: 409201541
 mas "Unclutter", id: 577085396
 mas "Dropzone 4", id: 1485052491
-
-# custom
-cask "~/.dotfiles/homebrew/casks/affinity-designer.rb"
-cask "~/.dotfiles/homebrew/casks/affinity-photo.rb"
-cask "~/.dotfiles/homebrew/casks/dash.rb"
-cask "~/.dotfiles/homebrew/casks/divio-app.rb"
-cask "~/.dotfiles/homebrew/casks/meta.rb"
-cask "~/.dotfiles/homebrew/casks/sizeup.rb"
-cask "~/.dotfiles/homebrew/casks/sonoss1.rb"
+mas "Microsoft Remote Desktop", id: 1295203466
+mas "VMware Remote Console", id: 1230249825

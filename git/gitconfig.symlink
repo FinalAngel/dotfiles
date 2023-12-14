@@ -114,7 +114,7 @@
 	gpgsign = true
 
 [gpg]
-	program = /usr/local/bin/gpg
+	program = /usr/local/MacGPG2/bin/gpg2
 
 [diff]
     # [i]ndex, [w]ork tree, [c]ommit, [o]bject instead of a/b
