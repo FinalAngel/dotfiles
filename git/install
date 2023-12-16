@@ -72,9 +72,9 @@ if [ ! -d "$HOME/.gnupg" ]; then
   read -e _
 
   # install and restart config
-  echo "pinentry-program /usr/local/bin/pinentry-mac" >> "$HOME/.gnupg/gpg-agent.conf"
-  gpgconf --kill gpg-agent
   git config --global gpg.program "$(which gpg)"
+  echo "pinentry-program $(which pinentry-mac)" >> "$HOME/.gnupg/gpg-agent.conf"
+  gpgconf --kill gpg-agent
 
   success "GPG key successfully setup"
 else
