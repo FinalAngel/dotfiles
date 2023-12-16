@@ -5,7 +5,6 @@ export ZSH_THEME="" # make sure no theme is set
 export PROJECTS=$CODE_DIR # your project folder that we can `c [tab]` to
 export STARSHIP_CONFIG=~/.starship # for customisations
 export HIST_STAMPS="dd/mm/yyyy"
-export JAVA_HOME=$(/usr/libexec/java_home -v 1.7)
 
 # stash your environment variables in ~/.localrc. This means they'll stay out
 # of your main dotfiles repository (which may be public, like this one), but
@@ -21,8 +20,8 @@ if [ -d "$HOME/.oh-my-zsh" ]; then
   # if yes load standard initialisations script
   source $ZSH/oh-my-zsh.sh
   # load additional plugins
-  source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-  source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+  source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
 # disable any beeping

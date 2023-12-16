@@ -22,6 +22,9 @@ prepend_path "/usr/local/sbin"
 prepend_path "/usr/local/texlive/2020/bin/x86_64-darwin"
 prepend_path "$HOME/.dotfiles/bin"
 
+# homebrew
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 # remove duplicates (preserving prepended items)
 # source: http://unix.stackexchange.com/a/40755
 PATH=$(echo -n $PATH | awk -v RS=: '{ if (!arr[$0]++) {printf("%s%s",!ln++?"":":",$0)}}')
