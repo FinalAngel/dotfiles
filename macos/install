@@ -4,7 +4,7 @@ source "$DIR/utils/index"
 info "Setup \033[0;37m[macOS]\033[0m"
 
 source "$DIR/macos/defaults"
-# source "$DIR/macos/dock"
+source "$DIR/macos/dock"
 
 # create general code directory
 if [ ! -d $CODE_DIR ]; then

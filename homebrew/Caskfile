@@ -6,7 +6,6 @@ tap "homebrew/cask"
 tap "homebrew/cask-versions"
 
 # core applications
-
 cask "1password"
 cask "1password-cli"
 cask "anki"
@@ -48,6 +47,7 @@ cask "webex-meetings"
 cask "appcleaner"
 cask "bartender"
 cask "gfxcardstatus"
+cask "hpedrorodrigues/tools/dockutil"
 cask "one-switch"
 cask "rectangle"
 cask "sensei"
