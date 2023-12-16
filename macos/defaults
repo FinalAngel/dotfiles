@@ -20,9 +20,6 @@ defaults write NSGlobalDomain AppleLocale -string "en_CH@currency=CHF"
 defaults write NSGlobalDomain AppleMeasurementUnits -string "Centimeters"
 defaults write NSGlobalDomain AppleMetricUnits -bool true
 
-# set the timezone (see `sudo systemsetup -listtimezones` for other values)
-sudo systemsetup -settimezone "Europe/Zurich" > /dev/null
-
 # set standby delay to 24 hours (default is 1 hour)
 sudo pmset -a standbydelay 86400
 
@@ -31,12 +28,10 @@ sudo pmset -a lidwake 1
 sudo pmset -c sleep 0
 sudo pmset -b sleep 0
 sudo pmset -a displaysleep 0
-sudo systemsetup -setcomputersleep Off > /dev/null
 sudo pmset -a hibernatemode 0
 
 # restart automatically on power loss or when the computer freezes
 sudo pmset -a autorestart 1
-sudo systemsetup -setrestartfreeze on
 
 # disable audio feedback when volume is changed
 defaults write com.apple.sound.beep.feedback -bool false
@@ -484,15 +479,3 @@ defaults write com.google.Chrome.canary DisablePrintPreview -bool true
 # expand the print dialog by default
 defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true
 defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true
-
-###############################################################################
-# SizeUp.app                                                                  #
-###############################################################################
-
-# start SizeUp at login
-defaults write com.irradiatedsoftware.SizeUp StartAtLogin -bool true
-
-# don’t show the preferences window on next start
-defaults write com.irradiatedsoftware.SizeUp ShowPrefsOnNextStart -bool false
-
-success "System defaults successfully configured"

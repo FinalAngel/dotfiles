@@ -4,7 +4,7 @@ source "$DIR/utils/index"
 info "Setup \033[0;37m[macOS]\033[0m"
 
 source "$DIR/macos/defaults"
-source "$DIR/macos/dock"
+# source "$DIR/macos/dock"
 
 # create general code directory
 if [ ! -d $CODE_DIR ]; then
@@ -14,15 +14,10 @@ else
   success "Code directory already created"
 fi
 
-# will return true or false
-fdesetup isactive &>/dev/null;
-if [ $? == false ]; then
-  require_sudo
-  sudo fdesetup enable
-  success "FileVault successfully enabled"
-else
-  success "FileVault already enabled"
-fi
+# setup FileVault
+require_sudo
+sudo fdesetup enable
+success "FileVault successfully enabled"
 
 # restore app preferences
 if [ ! -d "$HOME/.mackup" ]; then
