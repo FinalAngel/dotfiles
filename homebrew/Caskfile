@@ -27,12 +27,14 @@ cask "insomnia"
 cask "iterm2"
 cask "kaleidoscope"
 cask "marginnote"
+cask "macupdater"
 cask "microsoft-office"
 cask "notion"
 cask "pdfpen"
 cask "plex"
-cask "skitch"
+cask "plexamp"
 cask "skype"
+cask "sonos"
 cask "telegram"
 cask "slack"
 cask "the-unarchiver"
@@ -91,7 +93,6 @@ cask "quicklook-csv"
 # app store
 
 mas "2Do", id: 477670270
-mas "Alfred", id: 405843582
 mas "Airmail", id: 918858936
 mas "Be Focused - Focus Timer", id: 973134470
 mas "GoodNotes 6", id: 1444383602
@@ -101,6 +102,7 @@ mas "Keynote", id: 409183694
 mas "MindNode", id: 1289197285
 mas "Numbers", id: 409203825
 mas "Pages", id: 409201541
+mas "Skitch", id: 425955336
 mas "Unclutter", id: 577085396
 mas "Dropzone 4", id: 1485052491
 mas "Microsoft Remote Desktop", id: 1295203466
