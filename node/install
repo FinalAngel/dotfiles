@@ -42,6 +42,7 @@ nvm_install () {
 
 # install needed npm versions
 nvm_install 12
+nvm_install 16
 nvm_install 18
 nvm_install 21
 

@@ -9,11 +9,7 @@ directory = Mackup
 # from ~/Library/Preferences/
 # from ~/Library/Application Support/
 # or anything in ~/, e.g ~/.vscode
-my-anki
-my-calibre
 my-dotfiles
-my-sml
-my-zsh
 
 # SUPPORTED APPS
 # https://github.com/lra/mackup/tree/master/mackup/applications
@@ -22,5 +18,5 @@ airmail
 bartender
 dash
 insomnia
-iterm2
 vscode
+zsh
