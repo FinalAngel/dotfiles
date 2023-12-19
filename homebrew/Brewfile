@@ -4,7 +4,6 @@ tap "homebrew/core"
 
 # core binaries
 brew "ack" # instead of grep
-brew "awscli"
 brew "coreutils" # those that come with macOS are outdated
 brew "chrome-cli"
 brew "ffmpeg"
@@ -12,12 +11,9 @@ brew "findutils"
 brew "gh"
 brew "git"
 brew "gnupg2"
-brew "httpie"
 brew "hub"
-brew "imagemagick"
 brew "mackup"
 brew "mas" # Mac App Store manager
-brew "openssh"
 brew "pinentry-mac"
 brew "ruby"
 brew "thefuck"
@@ -44,6 +40,3 @@ brew "nginx"
 brew "python"
 brew "pyenv"
 brew "pyenv-virtualenv"
-brew "readline"
-brew "openssl"
-brew "zlib"

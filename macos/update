@@ -10,7 +10,7 @@ success "Updated software, this might need a reboot"
 
 # update gem files
 require_sudo
-# sudo gem update --system > /dev/null 2>&1
+sudo gem update --system > /dev/null 2>&1
 success "Skipped gems"
 
 # backup app preferences
