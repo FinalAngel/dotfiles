@@ -11,12 +11,3 @@ brew upgrade > /dev/null 2>&1
 success "Updated formulae"
 brew cleanup > /dev/null 2>&1
 success "Cleaned formulae"
-
-# run bundles
-success "Brew'ing Brewfile and Caskfile"
-brew bundle --file=$DIR/homebrew/Brewfile --no-lock > /dev/null 2>&1
-brew bundle --file=$DIR/homebrew/Caskfile --no-lock > /dev/null 2>&1
-
-# cleanup
-brew untap homebrew/cask > /dev/null 2>&1
-brew untap homebrew/core > /dev/null 2>&1
