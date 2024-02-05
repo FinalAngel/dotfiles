@@ -13,6 +13,8 @@ if test $(which python3); then
   success "Twine successfully installed"
   pip3 install black > /dev/null 2>&1
   success "Black successfully installed"
+  pip3 install pipenv > /dev/null 2>&1
+  success "Pipenv successfully installed"
   # docutils, rstcheck
   export PIP_REQUIRE_VIRTUALENV=true
 fi

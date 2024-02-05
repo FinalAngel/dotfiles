@@ -34,7 +34,10 @@ brew "zsh-syntax-highlighting"
 brew "zsh-autosuggestions"
 
 # development
+brew "direnv"
 brew "enchant"
+brew "glab"
+brew "maven"
 brew "node"
 brew "nginx"
 brew "python"

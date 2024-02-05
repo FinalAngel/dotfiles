@@ -36,7 +36,7 @@ while test $# -gt 0; do
       exit
       ;;
     "-e"|"--edit")
-      exec "$EDITOR" "$DIR"
+      exec "code" "$DIR"
       exit
       ;;
     "-g"|"--go")

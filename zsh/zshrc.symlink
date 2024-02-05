@@ -37,3 +37,6 @@ eval $(thefuck --alias)
 
 # initialise theme, needs to be at the end
 eval "$(starship init zsh)"
+
+# initialise direnv
+eval "$(direnv hook zsh)"
