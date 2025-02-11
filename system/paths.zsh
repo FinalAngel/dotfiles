@@ -1,5 +1,5 @@
 #!/bin/zsh
-export ARCHFLAGS="-arch x86_64"
+export ARCHFLAGS="-arch $(uname -m)"
 
 # required helpers
 prepend_path() { [ -d $1 ] && PATH="$1:$PATH"; }

@@ -13,5 +13,3 @@ if test $(which code); then
 
   success "VScode successfully configured"
 fi
-
-# settings handled via mackup

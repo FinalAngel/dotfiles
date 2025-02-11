@@ -54,7 +54,6 @@ The following package flavours are installed:
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
 - [Git with GPG signing](https://gnupg.org/) enabled
 - [Homebrew](https://brew.sh/) with cask and mas
-- [Mackup](https://github.com/lra/mackup) to backup application settings
 - [Neovim](https://neovim.io/)
 - [Node with NVM](https://github.com/nvm-sh/nvm) manager
 - [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)

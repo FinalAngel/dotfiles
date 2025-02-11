@@ -6,7 +6,7 @@ info "Setup \033[0;37m[macOS]\033[0m"
 source "$DIR/macos/defaults"
 source "$DIR/macos/dock"
 
-# create general code directory
+# create general code directory
 if [ ! -d $CODE_DIR ]; then
   mkdir -p $CODE_DIR
   success "Code directory created"
@@ -18,15 +18,6 @@ fi
 require_sudo
 sudo fdesetup enable
 success "FileVault successfully enabled"
-
-# restore app preferences
-if [ ! -d "$HOME/.mackup" ]; then
-  # copy custom apps as symlinks
-  ln -Fs "$DIR/macos/.mackup" "$HOME/.mackup"
-  # restore files
-  mackup restore -f
-  success "App preferences restored"
-fi
 
 # symlink hosts file
 require_sudo

@@ -40,3 +40,6 @@ eval "$(starship init zsh)"
 
 # initialise direnv
 eval "$(direnv hook zsh)"
+
+# initialise fzf
+eval "$(fzf --zsh)"

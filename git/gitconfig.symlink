@@ -114,7 +114,7 @@
 	gpgsign = true
 
 [gpg]
-	program = /opt/homebrew/bin/gpg
+	program = gpg
 
 [diff]
     # [i]ndex, [w]ork tree, [c]ommit, [o]bject instead of a/b
@@ -165,3 +165,22 @@
 	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
 [mergetool]
 	prompt = false
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[user]
+	name = Angelo Dini
+	email = angelo.dini@divio.ch
+[safe]
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard

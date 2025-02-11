@@ -35,7 +35,8 @@ alias lib="cd $HOME/Library"
 alias ws="cd $HOME/Sites"
 
 # development
-alias dc="docker-compose"
+alias dc="docker compose"
+alias dcr="docker compose run --rm web"
 alias dcrun="dc run --rm"
 alias dclog="dc logs -f"
 alias dclint="docker run --env-file=.lint -it -v $(pwd):/app divio/lint /bin/lint"

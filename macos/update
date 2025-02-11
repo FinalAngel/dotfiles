@@ -12,9 +12,3 @@ success "Updated software, this might need a reboot"
 require_sudo
 sudo gem update --system > /dev/null 2>&1
 success "Updated gems"
-
-# backup app preferences
-if [ -d "$HOME/.mackup" ]; then
-  mackup backup -f > /dev/null 2>&1
-  success "App preferences backed-up"
-fi
