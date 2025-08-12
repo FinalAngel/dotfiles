@@ -1,0 +1,12 @@
+{
+  "instructions": [
+    "Always use enhanced terminal patterns for run_in_terminal commands",
+    "Detect shell environment and apply appropriate output capture method",
+    "Use file redirection + content display + echo for maximum reliability"
+  ],
+  "terminal": {
+    "defaultPattern": "enhanced",
+    "captureMode": "complete",
+    "shellDetection": true
+  }
+}
