@@ -11,3 +11,6 @@ brew upgrade > /dev/null 2>&1
 success "Updated formulae"
 brew cleanup > /dev/null 2>&1
 success "Cleaned formulae"
+brew bundle --file="$DIR/homebrew/Brewfile"
+brew bundle --file="$DIR/homebrew/Caskfile"
+success "Installed brews"

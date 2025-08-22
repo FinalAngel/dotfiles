@@ -59,7 +59,6 @@ The following package flavours are installed:
 - [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
 - [Python with pyenv](https://virtualenv.pypa.io/en/latest/) and virtualenv
 - [Starship](https://starship.rs/) 🚀
-- [Tmux](https://github.com/tmux/tmux)
 - [VSCode](https://code.visualstudio.com/) and plugins
 
 ## Contributions

@@ -24,15 +24,10 @@ if [ ! -f "$SSH_DIR/id_rsa.pub" ]; then
   read -e _
 
   # register key
-  if is_mac; then
-    # create macOS specific configuration
-    touch ~/.ssh/config
-    echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown AddKeysToAgent,UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_rsa" >> $SSH_DIR/config
+  touch ~/.ssh/config
+  echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown AddKeysToAgent,UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_rsa" >> $SSH_DIR/config
 
-    ssh-add -K $SSH_DIR/id_rsa > /dev/null
-  else
-    ssh-add $SSH_DIR/id_rsa > /dev/null
-  fi
+  ssh-add -K $SSH_DIR/id_rsa > /dev/null
 
   success "SSH key successfully generated in $SSH_DIR"
 else
@@ -41,11 +36,7 @@ fi
 
 # setup gitconfig
 if ! [ -f "$DIR/git/gitconfig.local.symlink" ]; then
-  git_credential="cache"
-
-  if is_mac; then
-    git_credential="osxkeychain"
-  fi
+  git_credential="osxkeychain"
 
   # need git information
   user "Enter your git author name:"

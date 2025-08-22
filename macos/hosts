@@ -15,7 +15,17 @@
 # End of section
 
 # Divio Cloud
-127.0.0.1 control.local.aldryn.net
-127.0.0.1 new.local.aldryn.net
-127.0.0.1 iam.local.aldryn.net
-127.0.0.1 api.local.aldryn.net
+127.0.0.1       www.devguard.local
+127.0.0.1       storybook.devguard.local
+127.0.0.1       api.devguard.local
+127.0.0.1       prototype.devguard.local
+127.0.0.1       email.devguard.local
+127.0.0.1       devguard.local
+127.0.0.1       app.devguard.local
+127.0.0.1       db.devguard.local
+127.0.0.1       docs.devguard.local
+127.0.0.1       db-auth.devguard.local
+127.0.0.1       db-app.devguard.local
+127.0.0.1       auth.devguard.local
+127.0.0.1       db-frameworks.devguard.local
+127.0.0.1       frameworks.devguard.local

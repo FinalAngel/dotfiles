@@ -5,7 +5,6 @@ info "Setup \033[0;37m[node]\033[0m"
 
 if [ ! -d "$NVM_DIR" ];then
   # install from repo rather than
-  # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
   git clone https://github.com/creationix/nvm.git "$NVM_DIR"
   source "$NVM_DIR/nvm.sh"
 
@@ -41,10 +40,8 @@ nvm_install () {
 }
 
 # install needed npm versions
-nvm_install 12
-nvm_install 16
-nvm_install 18
-nvm_install 21
+nvm_install 22
+nvm_install 24
 
 # run updates
 source "$DIR/node/update"

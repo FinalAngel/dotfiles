@@ -6,15 +6,7 @@ info "Setup \033[0;37m[fonts]\033[0m"
 # setup variables
 FONTS_DIR="$DIR/fonts"
 FONTS_FILE="$FONTS_DIR/fonts.txt"
-
-if is_mac; then
-  system_fonts_dir="$HOME/Library/Fonts"
-fi
-
-if is_linux; then
-  system_fonts_dir="$HOME/.local/share/fonts"
-  mkdir -p $system_fonts_dir
-fi
+system_fonts_dir="$HOME/Library/Fonts"
 
 # specificly copy fonts files defined in FONTS_FILE
 while read font; do

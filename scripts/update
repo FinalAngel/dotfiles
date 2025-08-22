@@ -14,7 +14,6 @@ success "Updated repository"
 source "$DIR/system/update"
 source "$DIR/zsh/update"
 source "$DIR/vim/update"
-source "$DIR/tmux/update"
 source "$DIR/homebrew/update"
 source "$DIR/git/update"
 source "$DIR/node/update"
@@ -23,8 +22,7 @@ source "$DIR/vscode/update"
 source "$DIR/fonts/update"
 
 # system specific installs
-if is_mac; then source "$DIR/macos/update"; fi
-if is_linux; then source "$DIR/linux/update"; fi
+source "$DIR/macos/update"
 
 info "👉 Updates finished"
 echo ""

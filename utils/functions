@@ -88,14 +88,6 @@ function is_executable() {
   type "$1" > /dev/null 2>&1
 }
 
-function is_mac() {
-  [[ "$OSTYPE" == "darwin"* ]]
-}
-
-function is_linux() {
-  [[ "$OSTYPE" == "linux-gnu"* ]]
-}
-
 function require_sudo() {
   user "Require admin privileges, you may need to enter your password..."
   sudo -v
