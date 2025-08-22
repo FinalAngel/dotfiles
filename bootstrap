@@ -36,5 +36,5 @@ else
   eval "$CMD"
   success "Repository successfully setup"
   # now load the installer
-  source "$TARGET/scripts/install"
+  # source "$TARGET/scripts/install"
 fi
