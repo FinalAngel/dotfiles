@@ -18,6 +18,7 @@ brew "bash" # latest Bash version
 brew "glances"
 brew "htop"
 brew "iperf"
+brew "mkcert"
 brew "neovim" # instead of vim
 brew "starship"
 brew "zsh"
