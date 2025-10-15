@@ -29,6 +29,7 @@ cask "tower"
 cask "visual-studio-code"
 cask "vlc"
 cask "whatsapp"
+cask "modern-csv"
 
 # efficiency
 cask "appcleaner"

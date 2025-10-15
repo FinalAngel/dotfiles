@@ -43,3 +43,4 @@ eval "$(direnv hook zsh)"
 
 # initialise fzf
 eval "$(fzf --zsh)"
+export PATH="$HOME/.local/bin:$PATH"

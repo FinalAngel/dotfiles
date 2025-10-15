@@ -40,6 +40,7 @@ alias dcr="docker compose run --rm web"
 alias dcrun="dc run --rm"
 alias dclog="dc logs -f"
 alias dclint="docker run --env-file=.lint -it -v $(pwd):/app divio/lint /bin/lint"
+alias code="zed"
 
 # helper
 alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info|\.tox|\.coverage$)' | xargs rm -rf"
