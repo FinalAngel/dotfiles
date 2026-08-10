@@ -255,8 +255,6 @@ set ruler
         nnoremap K <nop>
         nnoremap K i<CR><ESC>
 
-        set pastetoggle=<F10>
-
         " html escape/unescape
         " via: http://vim.wikia.com/wiki/HTML_entities
         function! HtmlEscape()

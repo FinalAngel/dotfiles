@@ -13,6 +13,7 @@ brew "findutils"
 brew "gh"
 brew "git"
 brew "git-delta" # syntax-highlighted diff pager
+brew "gitleaks" # secrets scanner, used before publishing this repo
 brew "gnupg"
 brew "jq"
 brew "pinentry-mac"
@@ -39,11 +40,13 @@ brew "fzf"
 # development
 brew "direnv"
 brew "fnm" # fast node version manager
+brew "gcc"
 brew "glab"
 brew "httpie"
 brew "just"
 brew "maven"
 brew "nginx"
+brew "node" # hosts legacy global npm CLIs; day-to-day node comes from fnm
 brew "pnpm"
 brew "python"
 brew "pyenv"
@@ -117,7 +120,7 @@ cask "appcleaner"
 cask "dash"
 cask "docker-desktop"
 cask "dockutil" # used by macos/dock
-cask "logi-options-plus"
+cask "logi-options+"
 cask "meta"
 cask "ngrok"
 cask "rectangle"

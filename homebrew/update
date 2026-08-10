@@ -5,13 +5,14 @@ info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-brew update -q > /dev/null 2>&1
+# individual failures are reported but never abort the whole update chain
+brew update -q > /dev/null 2>&1 || info "Homebrew update failed, continuing"
 success "Updated homebrew"
-brew upgrade > /dev/null 2>&1
+brew upgrade > /dev/null 2>&1 || info "Some formulae failed to upgrade, run 'brew upgrade' to see why"
 success "Updated formulae"
-brew cleanup > /dev/null 2>&1
+brew cleanup > /dev/null 2>&1 || info "Cleanup incomplete, run 'brew cleanup' to see why"
 success "Cleaned formulae"
-brew bundle --file="$DIR/homebrew/Brewfile"
+brew bundle --file="$DIR/homebrew/Brewfile" || info "Some bundle entries failed, run 'brew bundle' to see why"
 success "Installed brews"
 
 # report drift: anything installed that is not declared in the Brewfile
