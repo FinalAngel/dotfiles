@@ -3,6 +3,9 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[macOS]\033[0m"
 
+# store the current Dock layout in the repo so it syncs across laptops
+source "$DIR/macos/dock-dump"
+
 # update software
 require_sudo
 softwareupdate --install --all --force

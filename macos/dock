@@ -1,78 +1,37 @@
 #!/usr/bin/env bash
 source "$DIR/utils/index"
 
-dockutil --no-restart --remove all
+# applies the Dock layout stored in macos/Dockfile
+# (regenerate the file from the current Dock with macos/dock-dump)
+DOCKFILE="$DIR/macos/Dockfile"
 
-# global
-dockutil --no-restart --add "/Applications/System Settings.app"
-dockutil --no-restart --add "/System/Applications/App Store.app"
-dockutil --no-restart --add "/System/Applications/Utilities/Activity Monitor.app"
-dockutil --no-restart --add "/Applications/Warp.app"
+if [ ! -f "$DOCKFILE" ]; then
+  info "No Dockfile found, skipping dock setup"
+else
+  dockutil --no-restart --remove all > /dev/null 2>&1
 
-dockutil --no-restart --add '' --type spacer --section apps --after iTerm
+  while read -r item; do
+    case "$item" in
+      ''|'#'*) continue ;;
+      spacer)
+        dockutil --no-restart --add '' --type spacer --section apps > /dev/null
+        ;;
+      folder:*)
+        target="${item#folder:}"
+        target="${target/#\~/$HOME}"
+        dockutil --no-restart --add "$target" --view grid --display folder > /dev/null
+        ;;
+      *)
+        app="${item/#\~/$HOME}"
+        if [ -e "$app" ]; then
+          dockutil --no-restart --add "$app" > /dev/null
+        else
+          info "Dock item not installed, skipped: $item"
+        fi
+        ;;
+    esac
+  done < "$DOCKFILE"
 
-# production
-dockutil --no-restart --add "/Applications/Airmail.app"
-dockutil --no-restart --add "/Applications/Calendar.app"
-dockutil --no-restart --add "/Applications/2Do.app"
-dockutil --no-restart --add "/Applications/Notes.app"
-dockutil --no-restart --add "/Applications/Safari.app"
-dockutil --no-restart --add "/Applications/Firefox.app"
-dockutil --no-restart --add "/Applications/Google Chrome.app"
-
-dockutil --no-restart --add '' --type spacer --section apps --after Books
-
-# design
-dockutil --no-restart --add "/Applications/Affinity Photo 2.app"
-dockutil --no-restart --add "/Applications/Affinity Designer 2.app"
-dockutil --no-restart --add "/Applications/Affinity Publisher 2.app"
-dockutil --no-restart --add "/Applications/Pages.app"
-dockutil --no-restart --add "/Applications/Numbers.app"
-dockutil --no-restart --add "/Applications/Keynote.app"
-
-dockutil --no-restart --add '' --type spacer --section apps --after GoodNotes
-
-# development
-dockutil --no-restart --add "/Applications/Visual Studio Code.app"
-dockutil --no-restart --add "/Applications/Tower.app"
-dockutil --no-restart --add "/Applications/Dash.app"
-dockutil --no-restart --add "/Applications/Yaak.app"
-dockutil --no-restart --add "/Applications/Kaleidoscope.app"
-dockutil --no-restart --add "/Applications/Docker.app"
-dockutil --no-restart --add "/Applications/Skitch.app"
-
-dockutil --no-restart --add '' --type spacer --section apps --after Divio
-
-# messaging
-dockutil --no-restart --add "/Applications/Slack.app"
-dockutil --no-restart --add "/System/Applications/Messages.app"
-dockutil --no-restart --add "/Applications/WhatsApp.app"
-dockutil --no-restart --add "/Applications/Telegram.app"
-dockutil --no-restart --add "/Applications/Discord.app"
-
-dockutil --no-restart --add '' --type spacer --section apps --after WhatsApp
-
-# remote
-dockutil --no-restart --add "/Applications/VLC.app"
-dockutil --no-restart --add "/Applications/VMware Remote Console.app"
-dockutil --no-restart --add "/Applications/Microsoft Remote Desktop.app"
-
-dockutil --no-restart --add '' --type spacer --section apps --after Safari
-
-# stuff™
-dockutil --no-restart --add "/Applications/Plex.app"
-dockutil --no-restart --add "/Applications/Notion.app"
-dockutil --no-restart --add "/Applications/Anytype.app"
-dockutil --no-restart --add "/Applications/GoodNotes.app"
-dockutil --no-restart --add "/System/Applications/Books.app"
-
-dockutil --no-restart --add '' --type spacer --section apps --after VLC
-
-# space for opened apps
-
-dockutil --no-restart --add '' --type spacer --section apps
-dockutil --no-restart --add '~/Downloads' --view grid --display folder
-
-killall Dock
-
-success "Dock successfully configured"
+  killall Dock
+  success "Dock successfully configured"
+fi
