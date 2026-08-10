@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[zed]\033[0m"
+
+ZED_CONFIG_DIR="$HOME/.config/zed"
+mkdir -p "$ZED_CONFIG_DIR"
+
+for file in settings.json keymap.json; do
+  src="$DIR/zed/$file"
+  dst="$ZED_CONFIG_DIR/$file"
+
+  # keep a backup if a local, non-linked config exists
+  if [ -f "$dst" ] && [ ! -L "$dst" ]; then
+    mv "$dst" "$dst.backup"
+    info "Existing $file moved to $file.backup"
+  fi
+
+  ln -Fs "$src" "$dst"
+  success "Zed $file linked"
+done

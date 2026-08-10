@@ -3,4 +3,7 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[python]\033[0m"
 
-success "Nothing to update"
+if is_executable "uv"; then
+  uv tool upgrade --all > /dev/null 2>&1 || true
+  success "Updated python tools"
+fi

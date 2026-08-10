@@ -7,27 +7,27 @@ if ! is_executable "git"; then
   fail_hard "Git is not installed, please install git first!"
 fi
 
-# setup id_rsa key
-if [ ! -f "$SSH_DIR/id_rsa.pub" ]; then
+# setup ssh key
+if [ ! -f "$SSH_DIR/id_ed25519.pub" ] && [ ! -f "$SSH_DIR/id_rsa.pub" ]; then
   user "Enter your email for the SSH key:"
-  read -e rsa_email
+  read -e ssh_email
 
   # generate the key
-  ssh-keygen -t rsa -f "$SSH_DIR/id_rsa" -b 4096 -C $rsa_email -N "" -q
+  ssh-keygen -t ed25519 -f "$SSH_DIR/id_ed25519" -C $ssh_email -N "" -q
 
   # starting the ssh-agent
   eval "$(ssh-agent -s)" > /dev/null
 
   # ask to register key
-  cat "$SSH_DIR/id_rsa.pub"
-  user "Copy the RSA public key to github/gitlab! Enter to continue."
+  cat "$SSH_DIR/id_ed25519.pub"
+  user "Copy the SSH public key to github/gitlab! Enter to continue."
   read -e _
 
   # register key
   touch ~/.ssh/config
-  echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown AddKeysToAgent,UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_rsa" >> $SSH_DIR/config
+  echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown AddKeysToAgent,UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_ed25519" >> $SSH_DIR/config
 
-  ssh-add -K $SSH_DIR/id_rsa > /dev/null
+  ssh-add --apple-use-keychain $SSH_DIR/id_ed25519 > /dev/null
 
   success "SSH key successfully generated in $SSH_DIR"
 else

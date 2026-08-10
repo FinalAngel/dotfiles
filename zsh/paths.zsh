@@ -6,7 +6,10 @@ DOTFILES_ROOT="$HOME/.dotfiles"
 typeset -U config_files
 config_files=($DOTFILES_ROOT/**/paths.zsh)
 
-# load all paths.zsh files expect for this one
-for file in ${config_files:#*/zsh/paths.zsh}; do
+# system/paths.zsh rebuilds $PATH from scratch, so it must load first
+source "$DOTFILES_ROOT/system/paths.zsh"
+
+# load all paths.zsh files except for this one and system
+for file in ${${config_files:#*/zsh/paths.zsh}:#*/system/paths.zsh}; do
   source $file
 done

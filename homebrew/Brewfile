@@ -1,16 +1,17 @@
+cask_args appdir: "/Applications"
+
 # core binaries
+brew "ack"
 brew "coreutils" # those that come with macOS are outdated
 brew "chrome-cli"
 brew "findutils"
 brew "gh"
 brew "git"
 brew "gnupg"
-brew "hub"
+brew "jq"
 brew "pinentry-mac"
-brew "ruby"
-brew "thefuck"
-brew "trash" # manage the Trash bin
 brew "tree" # list directories in a tree structure
+brew "watch"
 brew "wget"
 
 # terminal
@@ -21,6 +22,8 @@ brew "iperf"
 brew "mkcert"
 brew "neovim" # instead of vim
 brew "starship"
+brew "tmux"
+brew "tmuxinator"
 brew "zsh"
 brew "zsh-syntax-highlighting"
 brew "zsh-autosuggestions"
@@ -28,12 +31,106 @@ brew "fzf"
 
 # development
 brew "direnv"
-brew "enchant"
+brew "fnm" # fast node version manager
 brew "glab"
-brew "dockutil"
-brew "node"
+brew "httpie"
+brew "just"
+brew "maven"
 brew "nginx"
-brew "postgresql"
+brew "pnpm"
 brew "python"
 brew "pyenv"
 brew "pyenv-virtualenv"
+brew "socat"
+brew "uv" # python package & tool manager
+
+# media & tools
+brew "bchunk" # BIN/CUE image converter
+brew "clamav"
+brew "ffmpeg"
+brew "gemini-cli"
+brew "httrack" # website mirroring
+brew "whisper-cpp" # local speech-to-text
+
+# core applications
+cask "1password"
+cask "1password-cli"
+cask "affinity" # unified Designer/Photo/Publisher app
+cask "balenaetcher"
+cask "brave-browser"
+cask "claude"
+cask "cyberduck"
+cask "discord"
+cask "downie"
+cask "firefox"
+cask "gifox"
+cask "google-chrome"
+cask "gpg-suite"
+cask "grammarly-desktop"
+cask "iterm2"
+cask "kaleidoscope"
+cask "macupdater"
+cask "modern-csv"
+cask "notion"
+cask "plex"
+cask "plexamp"
+cask "slack"
+cask "sonos"
+cask "telegram"
+cask "the-unarchiver"
+cask "tower"
+cask "vlc"
+cask "yaak"
+cask "zed"
+cask "zoom"
+
+# development apps
+cask "arduino-ide"
+cask "godot"
+
+# media & creative
+cask "anki"
+cask "calibre"
+cask "guitar-pro"
+cask "handbrake-app"
+cask "imageoptim"
+cask "screen-studio"
+cask "xld"
+
+# hardware & connectivity
+cask "elgato-camera-hub"
+cask "elgato-control-center"
+cask "elgato-stream-deck"
+cask "elgato-wave-link"
+cask "tunnelbear"
+cask "windows-app" # former Microsoft Remote Desktop
+
+# efficiency
+cask "appcleaner"
+cask "dash"
+cask "docker-desktop"
+cask "dockutil" # used by macos/dock
+cask "logi-options-plus"
+cask "meta"
+cask "ngrok"
+cask "rectangle"
+cask "sony-ps-remote-play"
+cask "steam"
+
+# quicklook
+cask "syntax-highlight" # code/markdown/json/csv previews
+
+# app store
+brew "mas"
+mas "2Do", id: 477670270
+mas "Be Focused - Focus Timer", id: 973134470
+mas "GoodNotes 6", id: 1444383602
+mas "Harvest", id: 506189836
+mas "In Your Face", id: 1476964367
+mas "Keynote", id: 409183694
+mas "Numbers", id: 409203825
+mas "Pages", id: 409201541
+mas "Skitch", id: 425955336
+mas "Unclutter", id: 577085396
+mas "VMware Remote Console", id: 1230249825
+mas "WhatsApp", id: 310633997

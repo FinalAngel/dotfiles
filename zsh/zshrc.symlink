@@ -16,7 +16,7 @@ fi
 # double check that it is safe to load zsh initialisation
 if [ -d "$HOME/.oh-my-zsh" ]; then
   # define plugins first
-  plugins=(brew docker git git-extras npm python vscode)
+  plugins=(brew docker git git-extras npm python)
   # if yes load standard initialisations script
   source $ZSH/oh-my-zsh.sh
   # load additional plugins
@@ -32,27 +32,28 @@ unsetopt prompt_cr prompt_sp
 # fixes slow copy & paste
 zstyle ':bracketed-paste-magic' active-widgets '.self-*'
 
-# install `fuck` command
-eval $(thefuck --alias)
-
 # initialise theme, needs to be at the end
 eval "$(starship init zsh)"
 
 # initialise direnv
 eval "$(direnv hook zsh)"
 
+# initialise fnm (respects .nvmrc / .node-version on cd)
+eval "$(fnm env --use-on-cd --shell zsh)"
+
 # initialise fzf
 eval "$(fzf --zsh)"
+
+# local user binaries
 export PATH="$HOME/.local/bin:$PATH"
 
-# bun completions
-[ -s "/Users/finalangel/.bun/_bun" ] && source "/Users/finalangel/.bun/_bun"
+# bun (if installed)
+if [ -d "$HOME/.bun" ]; then
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+  [ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
+fi
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/finalangel/.lmstudio/bin"
-# End of LM Studio CLI section
+# lm studio (if installed)
+[ -d "$HOME/.lmstudio/bin" ] && export PATH="$PATH:$HOME/.lmstudio/bin"
 

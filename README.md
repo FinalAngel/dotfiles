@@ -55,7 +55,7 @@ The following package flavours are installed:
 - [Git with GPG signing](https://gnupg.org/) enabled
 - [Homebrew](https://brew.sh/) with cask and mas
 - [Neovim](https://neovim.io/)
-- [Node with NVM](https://github.com/nvm-sh/nvm) manager
+- [Node with fnm](https://github.com/Schniz/fnm) manager
 - [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
 - [Python with pyenv](https://virtualenv.pypa.io/en/latest/) and virtualenv
 - [Starship](https://starship.rs/) 🚀

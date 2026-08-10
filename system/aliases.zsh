@@ -19,7 +19,7 @@ alias cd.='cd $(readlink -f .)' # go to real dir (i.e. if current dir is linked)
 alias c="clear"
 alias q="exit"
 alias l="ls -lF ${colorflag}"
-alias ll="/usr/local/opt/coreutils/libexec/gnubin/ls -AhlFo --color --group-directories-first"
+alias ll='${HOMEBREW_PREFIX:-/opt/homebrew}/opt/coreutils/libexec/gnubin/ls -AhlFo --color --group-directories-first'
 alias la="ls -lAF ${colorflag}"
 alias ls="command ls ${colorflag}"
 alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
@@ -44,15 +44,14 @@ alias code="zed"
 
 # helper
 alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info|\.tox|\.coverage$)' | xargs rm -rf"
-alias copyssh="pbcopy < $HOME/.ssh/id_rsa.pub"
+copyssh() { pbcopy < "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || pbcopy < "$HOME/.ssh/id_rsa.pub" }
 alias listgpg="gpg --list-secret-keys --keyid-format LONG"
-alias copygpg="pbcopy < gpg --armor --export $1"
+copygpg() { gpg --armor --export "$1" | pbcopy }
 alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
 alias ip="ipconfig getifaddr en0"
 alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 alias route="netstat -rn"
-alias urlencode="python -c 'import sys, urllib as ul; print ul.quote_plus(sys.argv[1]);'"
-alias update="sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup"
+alias urlencode="python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))'"
 alias week="date +%V"
 alias 8000="kill -9 $(lsof -i TCP:8000 | grep LISTEN | awk '{print $2}')"
 

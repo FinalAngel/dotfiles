@@ -3,8 +3,13 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[node]\033[0m"
 
-npm update -g > /dev/null
-success "Updated npm"
+if is_executable "fnm"; then
+  eval "$(fnm env)"
+  fnm use default > /dev/null 2>&1
 
-npm install npm -g > /dev/null
-success "Updated global npm packages"
+  npm install npm -g > /dev/null
+  success "Updated npm"
+
+  npm update -g > /dev/null
+  success "Updated global npm packages"
+fi

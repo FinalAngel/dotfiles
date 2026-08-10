@@ -18,7 +18,7 @@ source "$DIR/homebrew/update"
 source "$DIR/git/update"
 source "$DIR/node/update"
 source "$DIR/python/update"
-source "$DIR/vscode/update"
+source "$DIR/zed/update"
 source "$DIR/fonts/update"
 
 # system specific installs

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 declare SSH_DIR="$HOME/.ssh"
 declare APPLICATION_DIR="/Applications"
-declare NVM_DIR="$HOME/.nvm"
 declare CODE_DIR="$HOME/Sites"
 
 # settings

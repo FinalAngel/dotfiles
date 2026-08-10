@@ -13,7 +13,7 @@ source "$DIR/homebrew/install"
 source "$DIR/git/install"
 source "$DIR/node/install"
 source "$DIR/python/install"
-source "$DIR/vscode/install"
+source "$DIR/zed/install"
 source "$DIR/fonts/install"
 
 # system specific installs

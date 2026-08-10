@@ -3,18 +3,12 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[python]\033[0m"
 
-if test $(which python3); then
-  export PIP_REQUIRE_VIRTUALENV=false
-  pip3 install --upgrade setuptools > /dev/null 2>&1
-  success "Setuptools successfully upgraded"
-  pip3 install --upgrade pip > /dev/null 2>&1
-  success "Pip successfully upgraded "
-  pip3 install twine > /dev/null 2>&1
-  success "Twine successfully installed"
-  pip3 install black > /dev/null 2>&1
+if is_executable "uv"; then
+  # install global python tooling in isolated environments
+  uv tool install black > /dev/null 2>&1 || true
   success "Black successfully installed"
-  pip3 install pipenv > /dev/null 2>&1
-  success "Pipenv successfully installed"
-  # docutils, rstcheck
-  export PIP_REQUIRE_VIRTUALENV=true
+  uv tool install twine > /dev/null 2>&1 || true
+  success "Twine successfully installed"
+else
+  fail_hard "uv is not installed, run the homebrew setup first!"
 fi

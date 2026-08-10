@@ -13,13 +13,9 @@ is_executable getconf && PATH=$($(command -v getconf) PATH)
 prepend_path "/bin"
 prepend_path "/usr/bin"
 prepend_path "/usr/local/bin"
-prepend_path "/usr/local/opt/ruby/bin"
-prepend_path "/opt/homebrew/opt/ruby/bin"
-prepend_path "/usr/local/opt/curl/bin"
 prepend_path "/sbin"
 prepend_path "/usr/sbin"
 prepend_path "/usr/local/sbin"
-prepend_path "/usr/local/texlive/2020/bin/x86_64-darwin"
 prepend_path "$HOME/.dotfiles/bin"
 
 # homebrew

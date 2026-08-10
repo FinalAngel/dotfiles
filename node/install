@@ -3,45 +3,42 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[node]\033[0m"
 
-if [ ! -d "$NVM_DIR" ];then
-  # install from repo rather than
-  git clone https://github.com/creationix/nvm.git "$NVM_DIR"
-  source "$NVM_DIR/nvm.sh"
-
-  success "NVM successfully installed"
-else
-  success "NVM already setup"
+if ! is_executable "fnm"; then
+  fail_hard "fnm is not installed, run the homebrew setup first!"
 fi
 
-npm_install () {
-  if test ! $(which $1); then
-    if test $(which npm); then
-      npm install $2 -g --loglevel=silent --force
-      success "Installed npm package $2"
-    fi
-  fi
-}
+# make fnm available within this script
+eval "$(fnm env)"
 
-# install npm packages globally
-npm_install "npm-check-updates" "npm-check-updates"
-npm_install "typescript" "typescript"
-
-nvm_install () {
-  # make sure nvm command is available
-  source "$NVM_DIR/nvm.sh"
-
-  # install declared versions
-  if nvm list | grep -q "$1"; then
+fnm_install () {
+  if fnm list | grep -q "v$1\."; then
     success "Node $1 already installed"
   else
-    nvm install $1
+    fnm install "$1" > /dev/null 2>&1
     success "Installed Node $1"
   fi
 }
 
-# install needed npm versions
-nvm_install 22
-nvm_install 24
+# install declared versions
+fnm_install 22
+fnm_install 24
+
+# set and use the default version
+fnm default 22
+fnm use default
+
+npm_install () {
+  if npm list -g "$1" > /dev/null 2>&1; then
+    success "Npm package $1 already installed"
+  else
+    npm install "$1" -g --loglevel=silent
+    success "Installed npm package $1"
+  fi
+}
+
+# install npm packages globally
+npm_install "npm-check-updates"
+npm_install "typescript"
 
 # run updates
 source "$DIR/node/update"

@@ -1,0 +1,77 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  // "soft_wrap": "editor_width",
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "agent": {
+    "dock": "right",
+    "default_profile": "write",
+    "default_model": {
+      "provider": "anthropic",
+      "model": "claude-sonnet-4-5-latest"
+    },
+    "always_allow_tool_actions": true,
+    "default_width": 240
+  },
+  "buffer_font_family": "Fira Code",
+  "buffer_font_size": 15.0,
+  "ui_font_family": ".SystemUIFont",
+  "ui_font_size": 14.0,
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  },
+  "base_keymap": "VSCode",
+  "theme": {
+    "mode": "dark",
+    "light": "One Light",
+    "dark": "One Dark"
+  },
+  "terminal": {
+    "font_size": 12.0,
+    "env": {
+      "GIT_EDITOR": "zed --wait"
+    }
+  },
+  "gutter": {
+    "line_numbers": true
+  },
+  "project_panel": {
+    "dock": "left",
+    "indent_size": 16
+  },
+  "search": {
+    "button": false
+  },
+  "outline_panel": {
+    "dock": "left",
+    "default_width": 240
+  },
+  "git_panel": {
+    "dock": "left",
+    "default_width": 240
+  },
+  "notification_panel": {
+    "default_width": 240
+  },
+  "languages": {
+    "CSS": {
+      "language_servers": ["tailwindcss-language-server"]
+    }
+  },
+  "context_servers": {
+    "next-devtools": {
+      "source": "custom",
+      "command": "npx",
+      "args": ["-y", "next-devtools-mcp@latest"]
+    }
+  }
+}
