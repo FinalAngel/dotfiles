@@ -28,6 +28,15 @@ PATH=$(echo -n $PATH | awk -v RS=: '{ if (!arr[$0]++) {printf("%s%s",!ln++?"":":
 # export the path
 export PATH
 
-# get pyenv to work, needs to be declared here
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+# get pyenv to work, needs to be declared here.
+# the init output is cached — spawning pyenv twice plus its startup rehash
+# costs ~300ms; the cache regenerates when pyenv is updated and the rehash
+# happens in python/update instead of on every shell start
+if is_executable pyenv; then
+  _pyenv_init_cache="$HOME/.cache/pyenv-init.zsh"
+  if [[ ! -s "$_pyenv_init_cache" || "$(command -v pyenv)" -nt "$_pyenv_init_cache" ]]; then
+    mkdir -p "$HOME/.cache"
+    { pyenv init -; pyenv virtualenv-init -; } | grep -v "command pyenv rehash" > "$_pyenv_init_cache"
+  fi
+  source "$_pyenv_init_cache"
+fi

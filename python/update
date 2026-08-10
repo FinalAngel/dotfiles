@@ -7,3 +7,10 @@ if is_executable "uv"; then
   uv tool upgrade --all > /dev/null 2>&1 || true
   success "Updated python tools"
 fi
+
+# shell startup sources a cached pyenv init without rehashing, so do it here
+if is_executable "pyenv"; then
+  pyenv rehash > /dev/null 2>&1 || true
+  rm -f "$HOME/.cache/pyenv-init.zsh"
+  success "Rehashed pyenv shims"
+fi
