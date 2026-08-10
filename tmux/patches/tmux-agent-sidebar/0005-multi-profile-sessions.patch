@@ -1,0 +1,163 @@
+From 703c5de8a8556d1d515eed72c94d9b1d55eefe22 Mon Sep 17 00:00:00 2001
+From: local <p@local>
+Date: Mon, 27 Jul 2026 12:46:08 +0200
+Subject: [PATCH] fix: find sessions in every ~/.claude*/ profile and stop
+ stray keys cycling a hidden filter
+
+---
+ src/app/input.rs | 12 +++++--
+ src/session.rs   | 92 +++++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 84 insertions(+), 20 deletions(-)
+
+diff --git a/src/app/input.rs b/src/app/input.rs
+index 27a1532..40ee254 100644
+--- a/src/app/input.rs
++++ b/src/app/input.rs
+@@ -119,14 +119,14 @@ pub(super) fn handle_key_event(
+         KeyCode::Char('k') | KeyCode::Up => pane_nav_up(state),
+         KeyCode::Char('p') if ctrl => pane_nav_up(state),
+         KeyCode::Char('h') | KeyCode::Left => {
+-            if state.focus_state.focus == Focus::Filter {
++            if state.focus_state.focus == Focus::Filter && state.header_enabled {
+                 state.global.status_filter = state.global.status_filter.prev();
+                 state.global.save_filter();
+                 state.rebuild_row_targets();
+             }
+         }
+         KeyCode::Char('l') | KeyCode::Right => {
+-            if state.focus_state.focus == Focus::Filter {
++            if state.focus_state.focus == Focus::Filter && state.header_enabled {
+                 state.global.status_filter = state.global.status_filter.next();
+                 state.global.save_filter();
+                 state.rebuild_row_targets();
+@@ -152,7 +152,13 @@ pub(super) fn handle_key_event(
+                 state.activate_selected_pane();
+             }
+         }
+-        KeyCode::Tab => {
++        // Unlike h/l this has no focus guard, so any stray Tab reaching the
++        // sidebar cycles the filter — and the change is persisted globally.
++        // With the header hidden there is no filter bar to show what happened
++        // or to click back, and landing on `error` empties the list with no
++        // visible cause, so filter cycling is disabled in that mode. Set
++        // `@sidebar_filter` explicitly if you want a non-default filter there.
++        KeyCode::Tab if state.header_enabled => {
+             state.global.status_filter = state.global.status_filter.next();
+             state.global.save_filter();
+             state.rebuild_row_targets();
+diff --git a/src/session.rs b/src/session.rs
+index 40e4340..8db0c16 100644
+--- a/src/session.rs
++++ b/src/session.rs
+@@ -1,29 +1,58 @@
+ use std::collections::HashMap;
+ use std::path::PathBuf;
+ 
+-/// Return the path to Claude Code's sessions directory.
+-fn sessions_dir() -> Option<PathBuf> {
+-    let home = std::env::var("HOME").ok()?;
+-    let dir = PathBuf::from(home).join(".claude").join("sessions");
+-    if dir.is_dir() { Some(dir) } else { None }
++/// Return every Claude Code sessions directory under `$HOME`.
++///
++/// Claude Code puts its state wherever `CLAUDE_CONFIG_DIR` points, so a user
++/// running a second profile (`CLAUDE_CONFIG_DIR=~/.claude-divio claude`) keeps
++/// sessions in `~/.claude-divio/sessions` instead. The sidebar is a separate
++/// long-lived process and never sees that env var, so instead of assuming
++/// `~/.claude` it collects every `~/.claude*/sessions` directory. Non-directory
++/// entries like `~/.claude.json` are skipped.
++fn sessions_dirs() -> Vec<PathBuf> {
++    let Ok(home) = std::env::var("HOME") else {
++        return Vec::new();
++    };
++    sessions_dirs_in(std::path::Path::new(&home))
+ }
+ 
+-/// Scan `~/.claude/sessions/*.json` for session names.
+-pub fn scan_session_names() -> HashMap<String, String> {
+-    let mut map = HashMap::new();
+-    let Some(dir) = sessions_dir() else {
+-        return map;
+-    };
+-    let Ok(entries) = std::fs::read_dir(&dir) else {
+-        return map;
++fn sessions_dirs_in(home: &std::path::Path) -> Vec<PathBuf> {
++    let mut dirs = Vec::new();
++    let Ok(entries) = std::fs::read_dir(home) else {
++        return dirs;
+     };
+     for entry in entries.flatten() {
+-        let path = entry.path();
+-        if path.extension().and_then(|e| e.to_str()) != Some("json") {
++        let name = entry.file_name();
++        let Some(name) = name.to_str() else { continue };
++        if !name.starts_with(".claude") {
+             continue;
+         }
+-        if let Some((session_id, name)) = parse_session_file(&path) {
+-            map.insert(session_id, name);
++        let candidate = entry.path().join("sessions");
++        if candidate.is_dir() {
++            dirs.push(candidate);
++        }
++    }
++    // Stable order so a session id present in two profiles resolves the same
++    // way on every scan rather than flapping with readdir order.
++    dirs.sort();
++    dirs
++}
++
++/// Scan `~/.claude*/sessions/*.json` for session names.
++pub fn scan_session_names() -> HashMap<String, String> {
++    let mut map = HashMap::new();
++    for dir in sessions_dirs() {
++        let Ok(entries) = std::fs::read_dir(&dir) else {
++            continue;
++        };
++        for entry in entries.flatten() {
++            let path = entry.path();
++            if path.extension().and_then(|e| e.to_str()) != Some("json") {
++                continue;
++            }
++            if let Some((session_id, name)) = parse_session_file(&path) {
++                map.insert(session_id, name);
++            }
+         }
+     }
+     map
+@@ -114,6 +143,35 @@ mod tests {
+         let _ = fs::remove_dir_all(&dir);
+     }
+ 
++    #[test]
++    fn sessions_dirs_finds_alternate_config_profiles() {
++        // Simulate ~/.claude, ~/.claude-divio (a CLAUDE_CONFIG_DIR profile),
++        // ~/.claude.json (a file, must be skipped) and ~/.claude-empty
++        // (no sessions/ subdir, must be skipped).
++        let home = std::env::temp_dir().join("sessions_dirs_test_home");
++        let _ = fs::remove_dir_all(&home);
++        fs::create_dir_all(home.join(".claude/sessions")).unwrap();
++        fs::create_dir_all(home.join(".claude-divio/sessions")).unwrap();
++        fs::create_dir_all(home.join(".claude-empty")).unwrap();
++        fs::create_dir_all(home.join(".other/sessions")).unwrap();
++        fs::write(home.join(".claude.json"), "{}").unwrap();
++
++        // Takes the home dir as an argument rather than mutating $HOME, which
++        // would race the rest of the suite running in parallel.
++        let dirs = sessions_dirs_in(&home);
++
++        // PathBuf sorts component-wise, so ".claude" precedes ".claude-divio".
++        assert_eq!(
++            dirs,
++            vec![
++                home.join(".claude/sessions"),
++                home.join(".claude-divio/sessions"),
++            ],
++            "should find every .claude*/sessions dir and skip files and non-.claude dirs"
++        );
++        let _ = fs::remove_dir_all(&home);
++    }
++
+     #[test]
+     fn parse_session_file_nonexistent() {
+         let path = std::env::temp_dir().join("session_test_nonexistent/99999.json");

@@ -56,6 +56,22 @@
     # remove all commits
     unstage = reset HEAD --
 
+    # show TODO/FIXME lines added on this branch compared to the default branch
+    todo = "!sh -c ' \
+        [ $GIT_PREFIX ] && cd $GIT_PREFIX; \
+        base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/master); \
+        git status --short --branch $*; \
+        git --no-pager diff -U0 $base | \
+        grep -E \"^\\+.*(TODO|FIXME)\" | \
+        sed \"s/^+//\" | \
+        git --no-pager grep -nFf - 2> /dev/null' -"
+
+    # start a new local repository and perform initial commit
+    this = !git init && git add . && git commit -m \"Initial commit.\"
+
+    # remove deleted files from the index
+    r = !git ls-files -z --deleted | xargs -0 git rm
+
 [apply]
     # detect whitespace errors when applying a patch
     whitespace = fix
@@ -145,13 +161,13 @@
 	  followTags = true
 
 # URL shorthands
-[url "git://github.com/"]
+[url "git@github.com:"]
 	insteadOf = "github:"
 
 [url "git@gitlab.com:"]
     insteadOf = gitlab:
 
-[url "git://gist.github.com/"]
+[url "git@gist.github.com:"]
 	insteadOf = "gist:"
 
 [url "git@git.divio.com:"]
@@ -175,12 +191,26 @@
 	email = angelo.dini@divio.ch
 [safe]
 	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+
+# use delta as the diff pager
+[core]
+	pager = delta
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+
+# let the gh CLI handle HTTPS GitHub credentials
+[credential "https://github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
+[tag]
+	# sort tags as version numbers
+	sort = version:refname

@@ -1,0 +1,330 @@
+From f92aa52b751a502c755f0f0c2b199e976bad73bc Mon Sep 17 00:00:00 2001
+From: local <p@local>
+Date: Sun, 26 Jul 2026 18:11:10 +0200
+Subject: [PATCH 3/3] feat: add @sidebar_notification_sound for desktop
+ notification sounds
+
+---
+ src/cli/hook/handlers/attention.rs |  8 ++++
+ src/cli/hook/handlers/run.rs       |  4 ++
+ src/cli/hook/handlers/session.rs   |  2 +
+ src/cli/hook/handlers/subagent.rs  |  1 +
+ src/desktop_notification.rs        | 73 +++++++++++++++++++++++++++---
+ src/tmux.rs                        |  2 +-
+ src/tmux/options.rs                |  4 ++
+ 7 files changed, 87 insertions(+), 7 deletions(-)
+
+diff --git a/src/cli/hook/handlers/attention.rs b/src/cli/hook/handlers/attention.rs
+index 6c94786..7fe65b5 100644
+--- a/src/cli/hook/handlers/attention.rs
++++ b/src/cli/hook/handlers/attention.rs
+@@ -130,6 +130,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_notification(
+             pane,
+@@ -163,6 +164,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_notification(
+             pane,
+@@ -200,6 +202,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_notification(
+             pane,
+@@ -229,6 +232,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_notification(
+             pane,
+@@ -261,6 +265,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_notification(
+             pane,
+@@ -289,6 +294,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_notification(
+             pane,
+@@ -324,6 +330,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_notification(pane, &ctx, "", /* meta_only */ false, &notifications);
+ 
+@@ -347,6 +354,7 @@ mod tests {
+         let notifications = desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         };
+         on_permission_denied(pane, &ctx, &notifications);
+         assert_eq!(
+diff --git a/src/cli/hook/handlers/run.rs b/src/cli/hook/handlers/run.rs
+index 7abf572..75d36b4 100644
+--- a/src/cli/hook/handlers/run.rs
++++ b/src/cli/hook/handlers/run.rs
+@@ -245,6 +245,7 @@ mod tests {
+             &desktop_notification::DesktopNotificationSettings {
+                 enabled: false,
+                 events: Default::default(),
++                sound: None,
+             },
+         );
+ 
+@@ -280,6 +281,7 @@ mod tests {
+             &desktop_notification::DesktopNotificationSettings {
+                 enabled: false,
+                 events: Default::default(),
++                sound: None,
+             },
+         );
+ 
+@@ -315,6 +317,7 @@ mod tests {
+             &desktop_notification::DesktopNotificationSettings {
+                 enabled: false,
+                 events: Default::default(),
++                sound: None,
+             },
+         );
+ 
+@@ -346,6 +349,7 @@ mod tests {
+             &desktop_notification::DesktopNotificationSettings {
+                 enabled: false,
+                 events: Default::default(),
++                sound: None,
+             },
+         );
+         assert_eq!(exit, 0);
+diff --git a/src/cli/hook/handlers/session.rs b/src/cli/hook/handlers/session.rs
+index 319b542..fd48a21 100644
+--- a/src/cli/hook/handlers/session.rs
++++ b/src/cli/hook/handlers/session.rs
+@@ -104,6 +104,7 @@ mod tests {
+         desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         }
+     }
+ 
+@@ -293,6 +294,7 @@ mod tests {
+             events: [desktop_notification::DesktopNotificationEvent::Stop]
+                 .into_iter()
+                 .collect(),
++            sound: None,
+         }
+     }
+ 
+diff --git a/src/cli/hook/handlers/subagent.rs b/src/cli/hook/handlers/subagent.rs
+index 27c17fc..e134fd8 100644
+--- a/src/cli/hook/handlers/subagent.rs
++++ b/src/cli/hook/handlers/subagent.rs
+@@ -56,6 +56,7 @@ mod tests {
+         desktop_notification::DesktopNotificationSettings {
+             enabled: false,
+             events: Default::default(),
++            sound: None,
+         }
+     }
+ 
+diff --git a/src/desktop_notification.rs b/src/desktop_notification.rs
+index a40d2a3..879ce2d 100644
+--- a/src/desktop_notification.rs
++++ b/src/desktop_notification.rs
+@@ -69,6 +69,10 @@ impl DesktopNotificationEvent {
+ pub struct DesktopNotificationSettings {
+     pub enabled: bool,
+     pub events: HashSet<DesktopNotificationEvent>,
++    /// Sound to play alongside the banner, or `None` for silent (the default).
++    /// macOS: a name from `/System/Library/Sounds`. Linux: a freedesktop sound
++    /// name passed to `notify-send` as a hint.
++    pub sound: Option<String>,
+ }
+ 
+ impl Default for DesktopNotificationSettings {
+@@ -76,6 +80,7 @@ impl Default for DesktopNotificationSettings {
+         Self {
+             enabled: true,
+             events: DesktopNotificationEvent::DEFAULT.iter().copied().collect(),
++            sound: None,
+         }
+     }
+ }
+@@ -94,8 +99,16 @@ impl DesktopNotificationSettings {
+         let events = opts
+             .get(tmux::SIDEBAR_NOTIFICATIONS_EVENTS)
+             .map_or_else(|| Self::default().events, |raw| parse_events(raw));
++        let sound = parse_sound(
++            opts.get(tmux::SIDEBAR_NOTIFICATION_SOUND)
++                .map(String::as_str),
++        );
+ 
+-        Self { enabled, events }
++        Self {
++            enabled,
++            events,
++            sound,
++        }
+     }
+ 
+     pub fn from_tmux() -> Self {
+@@ -107,6 +120,17 @@ impl DesktopNotificationSettings {
+     }
+ }
+ 
++/// `None` (silent) when unset, empty, or an explicit `off`/`none`. Anything
++/// else is taken as a sound name verbatim; an unknown name simply produces a
++/// silent notification rather than an error, so typos degrade gracefully.
++fn parse_sound(raw: Option<&str>) -> Option<String> {
++    let value = raw?.trim();
++    if value.is_empty() || value.eq_ignore_ascii_case("off") || value.eq_ignore_ascii_case("none") {
++        return None;
++    }
++    Some(value.to_string())
++}
++
+ fn parse_events(raw: &str) -> HashSet<DesktopNotificationEvent> {
+     let trimmed = raw.trim();
+     if trimmed.is_empty() {
+@@ -182,7 +206,7 @@ pub fn notify_if_allowed(
+         return false;
+     }
+ 
+-    match send_desktop_notification(title, body) {
++    match send_desktop_notification(title, body, settings.sound.as_deref()) {
+         Ok(()) => {
+             tmux::set_pane_option(pane_id, key, &encode_stamp(now, &normalized_fingerprint));
+             true
+@@ -232,14 +256,17 @@ fn normalize_fingerprint(value: &str) -> String {
+     value.replace(['|', '\n', '\r'], " ")
+ }
+ 
+-fn send_desktop_notification(title: &str, body: &str) -> Result<(), String> {
++fn send_desktop_notification(title: &str, body: &str, sound: Option<&str>) -> Result<(), String> {
+     #[cfg(target_os = "macos")]
+     {
+-        let script = format!(
++        let mut script = format!(
+             "display notification \"{}\" with title \"{}\"",
+             escape_applescript(body),
+             escape_applescript(title)
+         );
++        if let Some(sound) = sound {
++            script.push_str(&format!(" sound name \"{}\"", escape_applescript(sound)));
++        }
+         let mut command = Command::new("osascript");
+         command
+             .args(["-e", &script])
+@@ -260,18 +287,21 @@ fn send_desktop_notification(title: &str, body: &str) -> Result<(), String> {
+             ])
+             .stdout(Stdio::null())
+             .stderr(Stdio::null());
++        if let Some(sound) = sound {
++            command.arg(format!("--hint=string:sound-name:{sound}"));
++        }
+         run_notification_command(&mut command, "notify-send", DESKTOP_NOTIFICATION_TIMEOUT)
+     }
+ 
+     #[cfg(target_os = "windows")]
+     {
+-        let _ = (title, body);
++        let _ = (title, body, sound);
+         Err("desktop notifications are not supported on Windows yet".into())
+     }
+ 
+     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+     {
+-        let _ = (title, body);
++        let _ = (title, body, sound);
+         Err("desktop notifications are not supported on this platform".into())
+     }
+ }
+@@ -427,6 +457,37 @@ mod tests {
+         );
+     }
+ 
++    #[test]
++    fn sound_is_none_by_default_and_for_off_values() {
++        assert_eq!(parse_sound(None), None);
++        assert_eq!(parse_sound(Some("")), None);
++        assert_eq!(parse_sound(Some("   ")), None);
++        assert_eq!(parse_sound(Some("off")), None);
++        assert_eq!(parse_sound(Some("OFF")), None);
++        assert_eq!(parse_sound(Some("none")), None);
++    }
++
++    #[test]
++    fn sound_name_is_taken_verbatim_and_trimmed() {
++        assert_eq!(parse_sound(Some("Glass")), Some("Glass".to_string()));
++        assert_eq!(
++            parse_sound(Some("  Submarine  ")),
++            Some("Submarine".to_string())
++        );
++    }
++
++    #[test]
++    fn settings_read_sound_from_tmux_option() {
++        let mut opts = HashMap::new();
++        opts.insert(tmux::SIDEBAR_NOTIFICATION_SOUND.into(), "Glass".into());
++        let settings = DesktopNotificationSettings::from_tmux_options_with_backend(&opts, true);
++        assert_eq!(settings.sound.as_deref(), Some("Glass"));
++
++        let silent =
++            DesktopNotificationSettings::from_tmux_options_with_backend(&HashMap::new(), true);
++        assert_eq!(silent.sound, None, "silent unless explicitly configured");
++    }
++
+     #[test]
+     fn events_default_to_default_set_when_unset() {
+         let opts = HashMap::new();
+diff --git a/src/tmux.rs b/src/tmux.rs
+index f16c966..ada3225 100644
+--- a/src/tmux.rs
++++ b/src/tmux.rs
+@@ -26,7 +26,7 @@ pub use options::{
+     SIDEBAR_COLOR_TEXT_INACTIVE, SIDEBAR_COLOR_TEXT_MUTED, SIDEBAR_COLOR_WAIT_REASON,
+     SIDEBAR_COLOR_WAITING, SIDEBAR_CURSOR, SIDEBAR_FILTER, SIDEBAR_HEADER, SIDEBAR_ICON_ALL,
+     SIDEBAR_ICON_BACKGROUND, SIDEBAR_ICON_ERROR, SIDEBAR_ICON_IDLE, SIDEBAR_ICON_RUNNING,
+-    SIDEBAR_ICON_UNKNOWN, SIDEBAR_ICON_WAITING, SIDEBAR_NOTIFICATIONS,
++    SIDEBAR_ICON_UNKNOWN, SIDEBAR_ICON_WAITING, SIDEBAR_NOTIFICATION_SOUND, SIDEBAR_NOTIFICATIONS,
+     SIDEBAR_NOTIFICATIONS_EVENTS, SIDEBAR_PET, SIDEBAR_PID, SIDEBAR_POSITION, SIDEBAR_REPO_FILTER,
+     SIDEBAR_WIDTH, get_all_global_options, get_option, get_pane_option_value, set_pane_option,
+     unset_pane_option,
+diff --git a/src/tmux/options.rs b/src/tmux/options.rs
+index d126c5a..42659e5 100644
+--- a/src/tmux/options.rs
++++ b/src/tmux/options.rs
+@@ -94,6 +94,10 @@ pub const SIDEBAR_BOTTOM_HEIGHT: &str = "@sidebar_bottom_height";
+ pub const SIDEBAR_HEADER: &str = "@sidebar_header";
+ pub const SIDEBAR_PET: &str = "@sidebar_pet";
+ pub const SIDEBAR_NOTIFICATIONS: &str = "@sidebar_notifications";
++/// Sound played with each desktop notification. On macOS this is a name from
++/// `/System/Library/Sounds` (e.g. `Glass`); on Linux it is a freedesktop sound
++/// name passed as a hint. Unset or `off` keeps notifications silent.
++pub const SIDEBAR_NOTIFICATION_SOUND: &str = "@sidebar_notification_sound";
+ pub const SIDEBAR_NOTIFICATIONS_EVENTS: &str = "@sidebar_notifications_events";
+ 
+ pub const SIDEBAR_COLOR_ACCENT: &str = "@sidebar_color_accent";

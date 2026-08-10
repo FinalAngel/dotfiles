@@ -14,6 +14,9 @@ source "$DIR/git/install"
 source "$DIR/node/install"
 source "$DIR/python/install"
 source "$DIR/zed/install"
+source "$DIR/tmux/install"
+source "$DIR/iterm2/install"
+source "$DIR/claude/install"
 source "$DIR/fonts/install"
 
 # system specific installs

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[claude]\033[0m"
+
+MACKUP_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Mackup"
+mkdir -p "$MACKUP_DIR"
+
+# keep Claude Code state in iCloud, symlinked into place so both
+# machines share settings, memory, skills and hooks
+link_icloud_dir () {
+  local name="$1"
+  local src="$MACKUP_DIR/$name"
+  local dst="$HOME/$name"
+
+  # first machine: move the local directory into iCloud
+  if [ ! -d "$src" ] && [ -d "$dst" ] && [ ! -L "$dst" ]; then
+    mv "$dst" "$src"
+  fi
+
+  if [ -L "$dst" ]; then
+    success "Claude $name already linked"
+  elif [ -d "$src" ]; then
+    # keep a backup if a local, non-linked directory exists
+    if [ -d "$dst" ]; then
+      mv "$dst" "$dst.backup"
+      info "Existing $name moved to $name.backup"
+    fi
+    ln -s "$src" "$dst"
+    success "Claude $name linked to iCloud"
+  fi
+}
+
+link_icloud_dir ".claude"
+link_icloud_dir ".claude-devguard"
+
+# ~/.claude.json is rewritten atomically (write + rename), which would
+# replace a symlink with a plain file — so it is copied instead:
+# restored here when missing, backed up on every update
+if [ ! -f "$HOME/.claude.json" ] && [ -f "$MACKUP_DIR/.claude.json.backup" ]; then
+  cp "$MACKUP_DIR/.claude.json.backup" "$HOME/.claude.json"
+  success "Restored .claude.json from iCloud"
+fi
+
+# run updates
+source "$DIR/claude/update"

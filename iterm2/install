@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[iterm2]\033[0m"
+
+# seed the repo with the current preferences on first run
+if [ ! -f "$DIR/iterm2/com.googlecode.iterm2.plist" ] && [ -f "$HOME/Library/Preferences/com.googlecode.iterm2.plist" ]; then
+  cp "$HOME/Library/Preferences/com.googlecode.iterm2.plist" "$DIR/iterm2/"
+  success "Seeded iTerm2 preferences from this machine"
+fi
+
+# load (and save) preferences from the dotfiles repo;
+# iTerm2 asks once on quit how to handle saving — choose "Save"
+defaults write com.googlecode.iterm2 PrefsCustomFolder -string "$DIR/iterm2"
+defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true
+
+success "iTerm2 preferences folder configured"

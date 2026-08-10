@@ -1,0 +1,67 @@
+diff --git a/src/state/global.rs b/src/state/global.rs
+index d8a456b..f897e81 100644
+--- a/src/state/global.rs
++++ b/src/state/global.rs
+@@ -124,8 +124,21 @@ impl GlobalState {
+ 
+     /// Apply all global options from tmux (filter, cursor, repo filter).
+     pub fn apply_all(&mut self, opts: &HashMap<String, String>) {
++        // `@sidebar_filter` is only honoured while the filter bar is rendered.
++        // With `@sidebar_header off` there is nothing to show which filter is
++        // active and nothing to click to change it, so a stored non-`all` value
++        // is unrecoverable by eye: it empties the sidebar with no visible cause,
++        // and — because the value persists globally — every sidebar started
++        // afterwards comes up empty too. Keyboard and mouse cycling are already
++        // disabled in that mode; this stops a value stored *before* then from
++        // outliving it.
++        let header_enabled = crate::ui::header_enabled_from_options(opts);
+         if let Some(filter_str) = opts.get(tmux::SIDEBAR_FILTER) {
+-            let tmux_filter = StatusFilter::from_label(filter_str);
++            let tmux_filter = if header_enabled {
++                StatusFilter::from_label(filter_str)
++            } else {
++                StatusFilter::All
++            };
+             if tmux_filter != self.last_saved_filter {
+                 self.status_filter = tmux_filter;
+                 self.last_saved_filter = tmux_filter;
+diff --git a/tests/state_tests.rs b/tests/state_tests.rs
+index 2d9122b..dd71662 100644
+--- a/tests/state_tests.rs
++++ b/tests/state_tests.rs
+@@ -593,6 +593,35 @@ fn full_sync_applies_filter_from_tmux() {
+     assert_eq!(g.status_filter, StatusFilter::Waiting);
+ }
+ 
++#[test]
++fn full_sync_ignores_stored_filter_when_header_hidden() {
++    let mut g = make_global();
++
++    // `@sidebar_header off` hides the filter bar, so a stored filter can
++    // neither be seen nor clicked back — honouring it would silently empty
++    // the sidebar, and keep doing so for every sidebar started afterwards.
++    let opts = make_opts(&[
++        (tmux::SIDEBAR_FILTER, "error"),
++        (tmux::SIDEBAR_HEADER, "off"),
++    ]);
++    g.apply_all(&opts);
++
++    assert_eq!(g.status_filter, StatusFilter::All);
++}
++
++#[test]
++fn full_sync_applies_stored_filter_when_header_visible() {
++    let mut g = make_global();
++
++    let opts = make_opts(&[
++        (tmux::SIDEBAR_FILTER, "error"),
++        (tmux::SIDEBAR_HEADER, "on"),
++    ]);
++    g.apply_all(&opts);
++
++    assert_eq!(g.status_filter, StatusFilter::Error);
++}
++
+ #[test]
+ fn full_sync_applies_cursor_from_tmux() {
+     let mut g = make_global();

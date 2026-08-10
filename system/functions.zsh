@@ -81,9 +81,45 @@ function dataurl() {
 function server() {
   local port="${1:-8000}";
   sleep 1 && open "http://localhost:${port}/" &
-  # Set the default Content-Type to `text/plain` instead of `application/octet-stream`
-  # And serve everything as UTF-8 (although not technically correct, this doesn’t break anything for binary files)
-  python -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "$port";
+  python3 -m http.server "$port";
+}
+
+# one command to unpack any archive format
+function extract() {
+  if [[ -f $1 ]]; then
+    case $1 in
+      *.tar.bz2) tar xvjf $1;;
+      *.tar.gz) tar xvzf $1;;
+      *.tar.xz) tar xvJf $1;;
+      *.tar.lzma) tar --lzma xvf $1;;
+      *.bz2) bunzip2 $1;;
+      *.rar) unrar $1;;
+      *.gz) gunzip $1;;
+      *.tar) tar xvf $1;;
+      *.tbz2) tar xvjf $1;;
+      *.tgz) tar xvzf $1;;
+      *.zip) unzip $1;;
+      *.Z) uncompress $1;;
+      *.7z) 7z x $1;;
+      *.dmg) hdiutil mount $1;;
+      *) echo "'$1' cannot be extracted via extract()";;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+# desktop notification, e.g. `long-task; notify "done"`
+function notify() {
+  local message="${1:-It is finished, whatever it is}";
+  terminal-notifier -sound default -message "${message}";
+}
+
+# deploy a divio app and get notified about the outcome
+function deploy() {
+  local server="${1:-test}";
+  local folder="$(basename "$(pwd)")";
+  divio app deploy ${server} && notify "deployed ${folder}" || notify "failed to deploy ${folder}";
 }
 
 # normalize `open` across Linux, macOS, and Windows.

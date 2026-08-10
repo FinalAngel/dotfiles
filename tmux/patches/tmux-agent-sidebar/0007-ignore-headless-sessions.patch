@@ -1,0 +1,85 @@
+diff --git a/src/cli/hook.rs b/src/cli/hook.rs
+index 4768189..78538ce 100644
+--- a/src/cli/hook.rs
++++ b/src/cli/hook.rs
+@@ -10,6 +10,36 @@ mod notifications;
+ use context::sync_pane_location;
+ use notifications::notification_settings;
+ 
++// ─── headless sessions ──────────────────────────────────────────────────────
++
++/// Claude Code exports its entrypoint to every subprocess it spawns, hooks
++/// included: `cli` for the interactive TUI, `sdk-*` for headless runs
++/// (`claude -p`, the Agent SDK).
++const ENTRYPOINT_VAR: &str = "CLAUDE_CODE_ENTRYPOINT";
++
++/// Whether this hook was fired by a headless session rather than by the agent
++/// a user is watching in the pane.
++///
++/// A headless `claude -p` inherits `$TMUX_PANE` from whatever spawned it, so an
++/// interactive agent that shells out to one has its own pane options written by
++/// the child — and, when the child exits, torn down wholesale by
++/// `on_session_end`. The parent then disappears from the sidebar until its next
++/// turn boundary calls `set_agent_meta` again.
++///
++/// The entrypoint is the only signal that separates the two. Both sessions are
++/// the same binary against the same pane: `CLAUDE_CODE_SESSION_ID` is rewritten
++/// per session (so a child cannot be recognised by an inherited parent id), and
++/// `CLAUDE_CODE_CHILD_SESSION` is set for every subprocess of every session,
++/// headless or not.
++///
++/// Deliberately fails open — only an explicitly headless entrypoint is
++/// suppressed. `CLAUDE_CODE_ENTRYPOINT` is internal and undocumented, so if it
++/// is ever renamed this degrades to the clobbering behaviour above rather than
++/// silently hiding every agent from the sidebar.
++fn is_headless_entrypoint(value: &str) -> bool {
++    value.starts_with("sdk-")
++}
++
+ // ─── hook subcommand ────────────────────────────────────────────────────────
+ 
+ pub(crate) fn cmd_hook(args: &[String]) -> i32 {
+@@ -20,6 +50,10 @@ pub(crate) fn cmd_hook(args: &[String]) -> i32 {
+         return 0;
+     }
+ 
++    if is_headless_entrypoint(&std::env::var(ENTRYPOINT_VAR).unwrap_or_default()) {
++        return 0;
++    }
++
+     let Some(adapter) = resolve_adapter(agent_name) else {
+         return 0;
+     };
+@@ -180,3 +214,32 @@ fn handle_event(pane: &str, agent_name: &str, event: AgentEvent) -> i32 {
+         AgentEvent::WorktreeRemove { .. } => handlers::on_worktree_remove(pane),
+     }
+ }
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn headless_entrypoints_are_suppressed() {
++        // `sdk-cli` is what `claude -p` reports to its hooks.
++        assert!(is_headless_entrypoint("sdk-cli"));
++        assert!(is_headless_entrypoint("sdk-ts"));
++        assert!(is_headless_entrypoint("sdk-py"));
++    }
++
++    #[test]
++    fn interactive_entrypoint_is_not_suppressed() {
++        // `cli` is what the interactive TUI reports to its hooks — the pane the
++        // sidebar exists to show.
++        assert!(!is_headless_entrypoint("cli"));
++    }
++
++    #[test]
++    fn unknown_or_missing_entrypoint_fails_open() {
++        // Unset variable, a non-Claude agent, or a future rename of the value
++        // must all behave as they do today rather than hiding the pane.
++        assert!(!is_headless_entrypoint(""));
++        assert!(!is_headless_entrypoint("vscode"));
++        assert!(!is_headless_entrypoint("headless-cli"));
++    }
++}

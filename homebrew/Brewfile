@@ -1,12 +1,18 @@
 cask_args appdir: "/Applications"
+tap "cormacrelf/tap" # dark-notify
+tap "stripe/stripe-cli"
 
 # core binaries
 brew "ack"
+brew "bat" # cat with syntax highlighting
 brew "coreutils" # those that come with macOS are outdated
 brew "chrome-cli"
+brew "eza" # modern ls
+brew "fd" # modern find
 brew "findutils"
 brew "gh"
 brew "git"
+brew "git-delta" # syntax-highlighted diff pager
 brew "gnupg"
 brew "jq"
 brew "pinentry-mac"
@@ -16,6 +22,7 @@ brew "wget"
 
 # terminal
 brew "bash" # latest Bash version
+brew "cormacrelf/tap/dark-notify" # watch macOS appearance changes
 brew "glances"
 brew "htop"
 brew "iperf"
@@ -41,14 +48,16 @@ brew "pnpm"
 brew "python"
 brew "pyenv"
 brew "pyenv-virtualenv"
+brew "rust" # to build the patched tmux-agent-sidebar
 brew "socat"
+brew "stripe/stripe-cli/stripe"
+brew "terminal-notifier" # used by notify()
 brew "uv" # python package & tool manager
 
 # media & tools
 brew "bchunk" # BIN/CUE image converter
 brew "clamav"
 brew "ffmpeg"
-brew "gemini-cli"
 brew "httrack" # website mirroring
 brew "whisper-cpp" # local speech-to-text
 
@@ -69,7 +78,6 @@ cask "gpg-suite"
 cask "grammarly-desktop"
 cask "iterm2"
 cask "kaleidoscope"
-cask "macupdater"
 cask "modern-csv"
 cask "notion"
 cask "plex"
@@ -85,17 +93,16 @@ cask "zed"
 cask "zoom"
 
 # development apps
+cask "antigravity-cli" # replaces the deprecated gemini-cli formula
 cask "arduino-ide"
 cask "godot"
 
 # media & creative
 cask "anki"
 cask "calibre"
-cask "guitar-pro"
 cask "handbrake-app"
 cask "imageoptim"
 cask "screen-studio"
-cask "xld"
 
 # hardware & connectivity
 cask "elgato-camera-hub"

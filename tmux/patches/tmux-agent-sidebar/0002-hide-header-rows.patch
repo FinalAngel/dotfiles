@@ -1,0 +1,315 @@
+From 4353dfeaafe7a2e2eec6428fcb6b544bc0f33dc2 Mon Sep 17 00:00:00 2001
+From: local <p@local>
+Date: Sun, 26 Jul 2026 18:11:10 +0200
+Subject: [PATCH 2/3] feat: add @sidebar_header to hide the status filter and
+ repo/notices rows
+
+---
+ src/app/setup.rs     |  2 +-
+ src/state.rs         |  6 +++++
+ src/state/layout.rs  | 26 +++++++++++++-------
+ src/tmux.rs          |  2 +-
+ src/tmux/options.rs  |  3 +++
+ src/ui/mod.rs        | 16 +++++++++++++
+ src/ui/panes.rs      | 56 +++++++++++++++++++++++++++++++++++++-------
+ tests/state_tests.rs | 32 +++++++++++++++++++++++++
+ 8 files changed, 125 insertions(+), 18 deletions(-)
+
+diff --git a/src/app/setup.rs b/src/app/setup.rs
+index 85ef184..9a75e17 100644
+--- a/src/app/setup.rs
++++ b/src/app/setup.rs
+@@ -16,6 +16,7 @@ pub(super) fn init_state(tmux_pane: String) -> AppState {
+     state.icons = ui::icons::StatusIcons::from_tmux();
+     state.bottom_panel_height = ui::bottom_panel_height_from_tmux();
+     state.pet_enabled = ui::pet_enabled_from_tmux();
++    state.header_enabled = ui::header_enabled_from_tmux();
+     state.global.load_from_tmux();
+     state.refresh();
+ 
+@@ -40,7 +41,6 @@ pub(super) fn init_state(tmux_pane: String) -> AppState {
+     // `/rename`-assigned labels show up without waiting for the first
+     // background scan tick.
+     state.sessions.names = session::scan_session_names();
+-    state.sessions.dirty = true;
+     state.refresh();
+ 
+     state
+diff --git a/src/state.rs b/src/state.rs
+index d8055d7..606efb0 100644
+--- a/src/state.rs
++++ b/src/state.rs
+@@ -134,6 +134,11 @@ pub struct AppState {
+     /// Whether the pet animation is drawn and ticked. Loaded once at startup
+     /// from the `@sidebar_pet` tmux option. Defaults to `false`.
+     pub pet_enabled: bool,
++    /// Whether the two header rows (status filter bar + repo/notices row) are
++    /// rendered. Loaded once at startup from `@sidebar_header`. Defaults to
++    /// `true`. When `false` the agent list starts at row 0, so mouse-click
++    /// routing must skip the header rows too (see `header_rows`).
++    pub header_enabled: bool,
+ }
+ 
+ impl AppState {
+@@ -181,6 +186,7 @@ impl AppState {
+             bottom_panel_height: crate::ui::BOTTOM_PANEL_HEIGHT,
+             sessions: SessionNamesState::new(),
+             pet_enabled: false,
++            header_enabled: true,
+         };
+         crate::state::pet::reseed_pet_idle_motion(&mut state);
+         state
+diff --git a/src/state/layout.rs b/src/state/layout.rs
+index fa7716a..f3f8aa4 100644
+--- a/src/state/layout.rs
++++ b/src/state/layout.rs
+@@ -68,6 +68,13 @@ pub(super) fn point_in_rect(row: u16, col: u16, rect: ratatui::layout::Rect) ->
+ }
+ 
+ impl AppState {
++    /// Screen rows the sidebar header occupies above the agent list: the
++    /// status filter bar and the repo/notices row, or none when
++    /// `@sidebar_header` is off. Used to map a click row to a list line.
++    pub fn header_rows(&self) -> usize {
++        if self.header_enabled { 2 } else { 0 }
++    }
++
+     pub fn rebuild_row_targets(&mut self) {
+         // Reset stale repo filter if the repo no longer exists, and
+         // persist the reset back to tmux so fresh sidebar instances do
+@@ -235,13 +242,15 @@ impl AppState {
+             return;
+         }
+ 
+-        if row == 0 {
+-            self.handle_filter_click(col);
+-            return;
+-        }
+-        if row == 1 {
+-            self.handle_secondary_header_click(col);
+-            return;
++        if self.header_enabled {
++            if row == 0 {
++                self.handle_filter_click(col);
++                return;
++            }
++            if row == 1 {
++                self.handle_secondary_header_click(col);
++                return;
++            }
+         }
+ 
+         // Check the `+` spawn buttons before the pane-row fallback so a
+@@ -269,7 +278,8 @@ impl AppState {
+             return;
+         }
+ 
+-        let line_index = (row as usize - 2) + self.scrolls.panes.offset;
++        let line_index =
++            (row as usize).saturating_sub(self.header_rows()) + self.scrolls.panes.offset;
+         if let Some(Some(agent_row)) = self.layout.line_to_row.get(line_index) {
+             self.global.selected_pane_row = *agent_row;
+             self.global.queue_cursor_save();
+diff --git a/src/tmux.rs b/src/tmux.rs
+index 28f0040..f16c966 100644
+--- a/src/tmux.rs
++++ b/src/tmux.rs
+@@ -24,7 +24,7 @@ pub use options::{
+     SIDEBAR_COLOR_SECTION_TITLE, SIDEBAR_COLOR_SELECTION, SIDEBAR_COLOR_SESSION,
+     SIDEBAR_COLOR_SUBAGENT, SIDEBAR_COLOR_TASK_PROGRESS, SIDEBAR_COLOR_TEXT_ACTIVE,
+     SIDEBAR_COLOR_TEXT_INACTIVE, SIDEBAR_COLOR_TEXT_MUTED, SIDEBAR_COLOR_WAIT_REASON,
+-    SIDEBAR_COLOR_WAITING, SIDEBAR_CURSOR, SIDEBAR_FILTER, SIDEBAR_ICON_ALL,
++    SIDEBAR_COLOR_WAITING, SIDEBAR_CURSOR, SIDEBAR_FILTER, SIDEBAR_HEADER, SIDEBAR_ICON_ALL,
+     SIDEBAR_ICON_BACKGROUND, SIDEBAR_ICON_ERROR, SIDEBAR_ICON_IDLE, SIDEBAR_ICON_RUNNING,
+     SIDEBAR_ICON_UNKNOWN, SIDEBAR_ICON_WAITING, SIDEBAR_NOTIFICATIONS,
+     SIDEBAR_NOTIFICATIONS_EVENTS, SIDEBAR_PET, SIDEBAR_PID, SIDEBAR_POSITION, SIDEBAR_REPO_FILTER,
+diff --git a/src/tmux/options.rs b/src/tmux/options.rs
+index 617fb29..d126c5a 100644
+--- a/src/tmux/options.rs
++++ b/src/tmux/options.rs
+@@ -89,6 +89,9 @@ pub const SIDEBAR_FILTER: &str = "@sidebar_filter";
+ pub const SIDEBAR_CURSOR: &str = "@sidebar_cursor";
+ pub const SIDEBAR_REPO_FILTER: &str = "@sidebar_repo_filter";
+ pub const SIDEBAR_BOTTOM_HEIGHT: &str = "@sidebar_bottom_height";
++/// When `off`, the two header rows (status filter bar + repo/notices row)
++/// are not rendered and the agent list starts at the top of the sidebar.
++pub const SIDEBAR_HEADER: &str = "@sidebar_header";
+ pub const SIDEBAR_PET: &str = "@sidebar_pet";
+ pub const SIDEBAR_NOTIFICATIONS: &str = "@sidebar_notifications";
+ pub const SIDEBAR_NOTIFICATIONS_EVENTS: &str = "@sidebar_notifications_events";
+diff --git a/src/ui/mod.rs b/src/ui/mod.rs
+index 8803f0e..a67ed7b 100644
+--- a/src/ui/mod.rs
++++ b/src/ui/mod.rs
+@@ -51,6 +51,22 @@ pub fn pet_enabled_from_tmux() -> bool {
+     pet_enabled_from_options(&opts)
+ }
+ 
++/// Read `@sidebar_header` from tmux global options, defaulting to `true` (on).
++/// Accepts `on`/`off`, `true`/`false`, `1`/`0` (case-insensitive). When off,
++/// the status filter bar and the repo/notices row are not rendered and the
++/// agent list occupies the full sidebar height.
++pub fn header_enabled_from_options(opts: &HashMap<String, String>) -> bool {
++    opts.get(tmux::SIDEBAR_HEADER)
++        .map(|s| s.trim().to_ascii_lowercase())
++        .map(|s| !matches!(s.as_str(), "off" | "false" | "0" | "no"))
++        .unwrap_or(true)
++}
++
++pub fn header_enabled_from_tmux() -> bool {
++    let opts = crate::tmux::get_all_global_options();
++    header_enabled_from_options(&opts)
++}
++
+ // ── public entry point ──────────────────────────────────────────────
+ 
+ pub fn draw(frame: &mut Frame, state: &mut AppState) {
+diff --git a/src/ui/panes.rs b/src/ui/panes.rs
+index 61f1672..c146979 100644
+--- a/src/ui/panes.rs
++++ b/src/ui/panes.rs
+@@ -56,7 +56,24 @@ struct PaneLayout {
+ }
+ 
+ impl PaneLayout {
+-    fn compute(area: Rect) -> Self {
++    /// With `header_enabled` false the status filter bar and the repo/notices
++    /// row collapse to zero-height rects and the agent list takes the whole
++    /// area. Callers must skip rendering the header widgets in that case, and
++    /// click routing must not reserve rows 0/1 (see `AppState::header_rows`).
++    fn compute(area: Rect, header_enabled: bool) -> Self {
++        if !header_enabled {
++            let empty = Rect {
++                x: area.x,
++                y: area.y,
++                width: area.width,
++                height: 0,
++            };
++            return Self {
++                filter_area: empty,
++                secondary_area: empty,
++                list_area: area,
++            };
++        }
+         let filter_area = Rect {
+             x: area.x,
+             y: area.y,
+@@ -484,9 +501,16 @@ fn render_flash_banner_into(frame: &mut Frame, state: &mut AppState, area: Rect)
+ }
+ 
+ pub fn draw_agents(frame: &mut Frame, state: &mut AppState, area: Rect) {
+-    let layout = PaneLayout::compute(area);
+-    render_filter_bar_into(frame, state, layout.filter_area);
+-    render_secondary_header_into(frame, state, layout.secondary_area);
++    let layout = PaneLayout::compute(area, state.header_enabled);
++    if state.header_enabled {
++        render_filter_bar_into(frame, state, layout.filter_area);
++        render_secondary_header_into(frame, state, layout.secondary_area);
++    } else {
++        // The notices/repo buttons live on the hidden row; clear their click
++        // targets so a stale column from a previous frame can't be hit.
++        state.notices.button_col = None;
++        state.layout.repo_button_col = None;
++    }
+ 
+     let row_collector::CollectedRows {
+         lines,
+@@ -521,7 +545,7 @@ mod tests {
+             width: 40,
+             height: 20,
+         };
+-        let layout = PaneLayout::compute(area);
++        let layout = PaneLayout::compute(area, true);
+         assert_eq!(layout.filter_area.x, 0);
+         assert_eq!(layout.filter_area.y, 0);
+         assert_eq!(layout.filter_area.width, 40);
+@@ -533,6 +557,22 @@ mod tests {
+         assert_eq!(layout.list_area.width, 40);
+     }
+ 
++    #[test]
++    fn pane_layout_gives_whole_area_to_list_when_header_disabled() {
++        let area = Rect {
++            x: 0,
++            y: 0,
++            width: 40,
++            height: 20,
++        };
++        let layout = PaneLayout::compute(area, false);
++        assert_eq!(layout.filter_area.height, 0);
++        assert_eq!(layout.secondary_area.height, 0);
++        assert_eq!(layout.list_area.y, 0);
++        assert_eq!(layout.list_area.height, 20);
++        assert_eq!(layout.list_area.width, 40);
++    }
++
+     #[test]
+     fn pane_layout_handles_tiny_area() {
+         // Only 1 row available — filter gets it, secondary and list collapse to 0.
+@@ -542,7 +582,7 @@ mod tests {
+             width: 40,
+             height: 1,
+         };
+-        let layout = PaneLayout::compute(area);
++        let layout = PaneLayout::compute(area, true);
+         assert_eq!(layout.filter_area.height, 1);
+         assert_eq!(layout.secondary_area.height, 0);
+         assert_eq!(layout.list_area.height, 0);
+@@ -556,7 +596,7 @@ mod tests {
+             width: 40,
+             height: 0,
+         };
+-        let layout = PaneLayout::compute(area);
++        let layout = PaneLayout::compute(area, true);
+         assert_eq!(layout.filter_area.height, 0);
+         assert_eq!(layout.secondary_area.height, 0);
+         assert_eq!(layout.list_area.height, 0);
+@@ -570,7 +610,7 @@ mod tests {
+             width: 30,
+             height: 15,
+         };
+-        let layout = PaneLayout::compute(area);
++        let layout = PaneLayout::compute(area, true);
+         assert_eq!(layout.filter_area.x, 5);
+         assert_eq!(layout.filter_area.y, 10);
+         assert_eq!(layout.secondary_area.x, 5);
+diff --git a/tests/state_tests.rs b/tests/state_tests.rs
+index 79c57b8..2d9122b 100644
+--- a/tests/state_tests.rs
++++ b/tests/state_tests.rs
+@@ -1100,3 +1100,35 @@ fn handle_mouse_click_routes_spawn_remove_targets_to_open_remove_confirm() {
+         flash.0
+     );
+ }
++
++#[test]
++fn header_rows_reserved_only_when_header_enabled() {
++    let mut state = make_state(vec![]);
++    assert!(state.header_enabled, "header defaults to on");
++    assert_eq!(state.header_rows(), 2);
++    state.header_enabled = false;
++    assert_eq!(state.header_rows(), 0);
++}
++
++#[test]
++fn row_zero_click_hits_the_agent_list_when_header_disabled() {
++    // With the header hidden, row 0 is a list line rather than the status
++    // filter bar, so a click there must not toggle the status filter.
++    let pane = make_pane(AgentType::Claude, PaneStatus::Idle);
++    let mut state = make_state(vec![]);
++    state.repo_groups = vec![make_repo_group("project", vec![pane])];
++    state.header_enabled = false;
++    state.rebuild_row_targets();
++    let before = state.global.status_filter;
++
++    state.handle_mouse_click(0, 0);
++
++    assert_eq!(
++        state.global.status_filter, before,
++        "row 0 must not be routed to the filter bar when the header is hidden"
++    );
++    assert!(
++        !state.is_notices_popup_open(),
++        "row 1 routing must not fire either"
++    );
++}

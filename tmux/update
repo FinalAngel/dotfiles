@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Update \033[0;37m[tmux]\033[0m"
+
+# plugins are pinned and patched — update manually with prefix+U, then
+# remove ~/.tmux/plugins/tmux-agent-sidebar/.dotfiles-patched and rerun
+# the installer to reapply the patches
+success "Nothing to update"

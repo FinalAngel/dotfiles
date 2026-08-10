@@ -1,0 +1,76 @@
+set -g prefix C-a
+
+# allows us to use C-a a <command> to send commands to a TMUX session inside
+# another TMUX session
+bind-key a send-prefix
+
+# appearance
+set -g default-terminal "tmux-256color"
+set -ga terminal-overrides ',*256col*:Tc'
+
+# bind splits
+unbind %
+bind | split-window -h -c "#{pane_current_path}"
+bind _ split-window -v -c "#{pane_current_path}"
+
+bind-key C-\\ last-window
+
+set -g automatic-rename off
+
+# scrolling
+set -g mouse on
+
+# force a reload of the config file
+unbind r
+bind r source-file ~/.tmux.conf
+
+set-option -g base-index 1
+set-window-option -g pane-base-index 1
+
+# use vim keybindings in copy mode
+setw -g mode-keys vi
+
+# don't wait for an escape sequence after hitting
+# Esc. fixes insert mode exit lag in vim
+set-option -s escape-time 10
+
+set-option -g focus-events on
+
+set -g history-limit 50000
+
+set -g @plugin 'tmux-plugins/tpm'
+set -g @plugin 'christoomey/vim-tmux-navigator'
+set -g @plugin 'tmux-plugins/tmux-yank'
+# sidebar tracking Claude Code / Codex / OpenCode panes across sessions.
+# prefix+e toggles it in this window, prefix+E everywhere.
+set -g @plugin 'hiroppy/tmux-agent-sidebar'
+
+# Sidebar layout. Must be set before tpm runs — the plugin only seeds these
+# when unset, so a later `set` is ignored until the next server restart.
+set -g @sidebar_width 34
+set -g @sidebar_position left
+set -g @sidebar_bottom_height 0          # 0 hides the Activity/Git panel entirely
+# Hides the two top rows (status filter icons + repo/notices row).
+# NOTE: local patch, not upstream — see ~/.dotfiles/tmux/patches/tmux-agent-sidebar/
+set -g @sidebar_header off
+
+# Sound for desktop notifications. Any name from /System/Library/Sounds.
+# Unset or `off` = silent. Read fresh on every hook fire.
+# NOTE: local patch, not upstream — see ~/.dotfiles/tmux/patches/tmux-agent-sidebar/
+set -g @sidebar_notification_sound Glass
+
+# New windows follow the last explicit prefix+e / prefix+E choice instead of
+# always opening a sidebar. `on` = always (upstream default), `off` = never.
+# NOTE: `track` is a local patch — see ~/.dotfiles/tmux/patches/tmux-agent-sidebar/
+set -g @sidebar_auto_create track
+
+# Statusline and sidebar palette matched to the macOS appearance at server
+# start; tmux/darkmode.zsh re-sources these when the appearance changes.
+if-shell 'defaults read -g AppleInterfaceStyle >/dev/null 2>&1' \
+  'source-file ~/.dotfiles/tmux/tmux-statusline-dark.conf' \
+  'source-file ~/.dotfiles/tmux/tmux-statusline-light.conf'
+if-shell 'defaults read -g AppleInterfaceStyle >/dev/null 2>&1' \
+  'source-file ~/.dotfiles/tmux/tmux-sidebar-dark.conf' \
+  'source-file ~/.dotfiles/tmux/tmux-sidebar-light.conf'
+
+run '~/.tmux/plugins/tpm/tpm'

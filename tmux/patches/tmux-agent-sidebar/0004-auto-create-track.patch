@@ -1,0 +1,182 @@
+From e17ebcacd74f18c106e65bc2a5ae89ad50982c32 Mon Sep 17 00:00:00 2001
+From: local <p@local>
+Date: Mon, 27 Jul 2026 09:42:41 +0200
+Subject: [PATCH] feat: add @sidebar_auto_create track so new windows follow
+ the last explicit toggle
+
+---
+ src/cli/toggle.rs   | 83 +++++++++++++++++++++++++++++++++++++++++++++
+ src/tmux.rs         | 14 ++++----
+ src/tmux/options.rs |  7 ++++
+ 3 files changed, 97 insertions(+), 7 deletions(-)
+
+diff --git a/src/cli/toggle.rs b/src/cli/toggle.rs
+index ffdd6c5..b215f20 100644
+--- a/src/cli/toggle.rs
++++ b/src/cli/toggle.rs
+@@ -72,6 +72,14 @@ pub(crate) fn cmd_toggle(args: &[String]) -> i32 {
+             return 0;
+         }
+         let _ = tmux::run_tmux(&["kill-pane", "-t", &sidebar_pane]);
++        set_sidebar_enabled(false);
++        return 0;
++    }
++
++    // Automatic creation for a freshly opened window. With
++    // `@sidebar_auto_create track`, honour the visibility the user last
++    // chose explicitly rather than always opening a sidebar.
++    if create_only && auto_create_is_tracked() && !sidebar_globally_enabled() {
+         return 0;
+     }
+ 
+@@ -119,6 +127,12 @@ pub(crate) fn cmd_toggle(args: &[String]) -> i32 {
+         tmux::set_pane_option(&sidebar_pane, tmux::PANE_ROLE, "sidebar");
+     }
+ 
++    // Only an explicit toggle records intent; an auto-create must not, or
++    // opening a window would silently re-enable a sidebar the user turned off.
++    if !create_only {
++        set_sidebar_enabled(true);
++    }
++
+     // Restore focus
+     if !active_pane.is_empty() {
+         let _ = tmux::run_tmux(&["select-pane", "-t", &active_pane]);
+@@ -144,7 +158,12 @@ pub(crate) fn cmd_toggle_all(_args: &[String]) -> i32 {
+                 let _ = tmux::run_tmux(&["kill-pane", "-t", parts[0]]);
+             }
+         }
++        set_sidebar_enabled(false);
+     } else {
++        // Record intent *before* the create-only calls below: with
++        // `@sidebar_auto_create track` those consult this flag, so leaving it
++        // stale at `off` would make "enable everywhere" a no-op.
++        set_sidebar_enabled(true);
+         let all_windows = tmux::run_tmux(&[
+             "list-panes",
+             "-a",
+@@ -161,6 +180,35 @@ pub(crate) fn cmd_toggle_all(_args: &[String]) -> i32 {
+     0
+ }
+ 
++/// Persist the user's last explicit show/hide choice so `--create-only` can
++/// follow it. Never called from the auto-create path.
++fn set_sidebar_enabled(enabled: bool) {
++    let value = if enabled { "on" } else { "off" };
++    let _ = tmux::run_tmux(&["set", "-g", tmux::SIDEBAR_ENABLED, value]);
++}
++
++/// `@sidebar_enabled` defaults to enabled when unset, so a fresh server still
++/// opens a sidebar on the first window.
++fn sidebar_enabled_from_value(raw: Option<&str>) -> bool {
++    raw.map(|v| !v.trim().eq_ignore_ascii_case("off"))
++        .unwrap_or(true)
++}
++
++fn sidebar_globally_enabled() -> bool {
++    sidebar_enabled_from_value(tmux::get_option(tmux::SIDEBAR_ENABLED).as_deref())
++}
++
++/// True when `@sidebar_auto_create` is `track` — auto-create follows the last
++/// explicit toggle. `on` (always create) and `off` are handled in the tmux
++/// conf, which only registers the hook when the value is not `off`.
++fn auto_create_is_tracked_value(raw: Option<&str>) -> bool {
++    raw.is_some_and(|v| v.trim().eq_ignore_ascii_case("track"))
++}
++
++fn auto_create_is_tracked() -> bool {
++    auto_create_is_tracked_value(tmux::get_option(tmux::SIDEBAR_AUTO_CREATE).as_deref())
++}
++
+ fn any_sidebar_pane(output: &str) -> bool {
+     output.lines().any(|line| {
+         let parts: Vec<&str> = line.splitn(2, '|').collect();
+@@ -526,3 +574,38 @@ mod tests {
+         assert!(!should_kill_window(Some("sidebar"), Some(0), Some(1)));
+     }
+ }
++
++#[cfg(test)]
++mod auto_create_tests {
++    use super::*;
++
++    #[test]
++    fn enabled_defaults_to_true_when_option_unset() {
++        assert!(sidebar_enabled_from_value(None));
++    }
++
++    #[test]
++    fn enabled_reads_off_case_insensitively() {
++        assert!(!sidebar_enabled_from_value(Some("off")));
++        assert!(!sidebar_enabled_from_value(Some("OFF")));
++        assert!(!sidebar_enabled_from_value(Some("  off  ")));
++    }
++
++    #[test]
++    fn enabled_treats_anything_else_as_on() {
++        assert!(sidebar_enabled_from_value(Some("on")));
++        assert!(sidebar_enabled_from_value(Some("")));
++        assert!(sidebar_enabled_from_value(Some("garbage")));
++    }
++
++    #[test]
++    fn tracked_only_for_track_value() {
++        assert!(auto_create_is_tracked_value(Some("track")));
++        assert!(auto_create_is_tracked_value(Some("TRACK")));
++        assert!(auto_create_is_tracked_value(Some(" track ")));
++        // `on` keeps the upstream always-create behaviour.
++        assert!(!auto_create_is_tracked_value(Some("on")));
++        assert!(!auto_create_is_tracked_value(Some("off")));
++        assert!(!auto_create_is_tracked_value(None));
++    }
++}
+diff --git a/src/tmux.rs b/src/tmux.rs
+index ada3225..9718930 100644
+--- a/src/tmux.rs
++++ b/src/tmux.rs
+@@ -14,7 +14,7 @@ pub use options::{
+     PANE_OS_NOTIFY_TASK_FAILED, PANE_PENDING_SESSION_END, PANE_PENDING_WORKTREE_REMOVE,
+     PANE_PERMISSION_MODE, PANE_PROMPT, PANE_PROMPT_SOURCE, PANE_ROLE, PANE_SESSION_ID,
+     PANE_STARTED_AT, PANE_STATUS, PANE_SUBAGENTS, PANE_WAIT_REASON, PANE_WORKTREE_BRANCH,
+-    PANE_WORKTREE_NAME, SIDEBAR_BOTTOM_HEIGHT, SIDEBAR_COLOR_ACCENT,
++    PANE_WORKTREE_NAME, SIDEBAR_AUTO_CREATE, SIDEBAR_BOTTOM_HEIGHT, SIDEBAR_COLOR_ACCENT,
+     SIDEBAR_COLOR_ACTIVITY_TIMESTAMP, SIDEBAR_COLOR_AGENT_CLAUDE, SIDEBAR_COLOR_AGENT_CODEX,
+     SIDEBAR_COLOR_AGENT_OPENCODE, SIDEBAR_COLOR_ALL, SIDEBAR_COLOR_BORDER, SIDEBAR_COLOR_BRANCH,
+     SIDEBAR_COLOR_COMMIT_HASH, SIDEBAR_COLOR_DIFF_ADDED, SIDEBAR_COLOR_DIFF_DELETED,
+@@ -24,12 +24,12 @@ pub use options::{
+     SIDEBAR_COLOR_SECTION_TITLE, SIDEBAR_COLOR_SELECTION, SIDEBAR_COLOR_SESSION,
+     SIDEBAR_COLOR_SUBAGENT, SIDEBAR_COLOR_TASK_PROGRESS, SIDEBAR_COLOR_TEXT_ACTIVE,
+     SIDEBAR_COLOR_TEXT_INACTIVE, SIDEBAR_COLOR_TEXT_MUTED, SIDEBAR_COLOR_WAIT_REASON,
+-    SIDEBAR_COLOR_WAITING, SIDEBAR_CURSOR, SIDEBAR_FILTER, SIDEBAR_HEADER, SIDEBAR_ICON_ALL,
+-    SIDEBAR_ICON_BACKGROUND, SIDEBAR_ICON_ERROR, SIDEBAR_ICON_IDLE, SIDEBAR_ICON_RUNNING,
+-    SIDEBAR_ICON_UNKNOWN, SIDEBAR_ICON_WAITING, SIDEBAR_NOTIFICATION_SOUND, SIDEBAR_NOTIFICATIONS,
+-    SIDEBAR_NOTIFICATIONS_EVENTS, SIDEBAR_PET, SIDEBAR_PID, SIDEBAR_POSITION, SIDEBAR_REPO_FILTER,
+-    SIDEBAR_WIDTH, get_all_global_options, get_option, get_pane_option_value, set_pane_option,
+-    unset_pane_option,
++    SIDEBAR_COLOR_WAITING, SIDEBAR_CURSOR, SIDEBAR_ENABLED, SIDEBAR_FILTER, SIDEBAR_HEADER,
++    SIDEBAR_ICON_ALL, SIDEBAR_ICON_BACKGROUND, SIDEBAR_ICON_ERROR, SIDEBAR_ICON_IDLE,
++    SIDEBAR_ICON_RUNNING, SIDEBAR_ICON_UNKNOWN, SIDEBAR_ICON_WAITING, SIDEBAR_NOTIFICATION_SOUND,
++    SIDEBAR_NOTIFICATIONS, SIDEBAR_NOTIFICATIONS_EVENTS, SIDEBAR_PET, SIDEBAR_PID,
++    SIDEBAR_POSITION, SIDEBAR_REPO_FILTER, SIDEBAR_WIDTH, get_all_global_options, get_option,
++    get_pane_option_value, set_pane_option, unset_pane_option,
+ };
+ pub use panes::{
+     find_active_pane, focused_pane_path, get_pane_path, get_sidebar_pane_info,
+diff --git a/src/tmux/options.rs b/src/tmux/options.rs
+index 42659e5..079b21e 100644
+--- a/src/tmux/options.rs
++++ b/src/tmux/options.rs
+@@ -92,6 +92,13 @@ pub const SIDEBAR_BOTTOM_HEIGHT: &str = "@sidebar_bottom_height";
+ /// When `off`, the two header rows (status filter bar + repo/notices row)
+ /// are not rendered and the agent list starts at the top of the sidebar.
+ pub const SIDEBAR_HEADER: &str = "@sidebar_header";
++/// Last explicit user intent about sidebar visibility, written by the
++/// `toggle` / `toggle-all` subcommands. Read by `toggle --create-only`
++/// when `@sidebar_auto_create` is `track`, so a new window follows the
++/// state the user last chose instead of always opening a sidebar.
++/// Unset is treated as enabled.
++pub const SIDEBAR_ENABLED: &str = "@sidebar_enabled";
++pub const SIDEBAR_AUTO_CREATE: &str = "@sidebar_auto_create";
+ pub const SIDEBAR_PET: &str = "@sidebar_pet";
+ pub const SIDEBAR_NOTIFICATIONS: &str = "@sidebar_notifications";
+ /// Sound played with each desktop notification. On macOS this is a name from

@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[tmux]\033[0m"
+
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+SIDEBAR_DIR="$HOME/.tmux/plugins/tmux-agent-sidebar"
+# the patches in tmux/patches/ apply against this revision (v0.13.0)
+SIDEBAR_PIN="e2474e4"
+
+# install tpm
+if [ ! -d "$TPM_DIR" ]; then
+  git clone -q https://github.com/tmux-plugins/tpm "$TPM_DIR"
+  success "TPM successfully installed"
+else
+  success "TPM already installed"
+fi
+
+# install plugins declared in tmux.conf
+"$TPM_DIR/bin/install_plugins" > /dev/null 2>&1 || true
+success "Tmux plugins installed"
+
+# pin and patch tmux-agent-sidebar, then build the binary (needs rust).
+# after a manual plugin update (prefix+U) remove the marker file and rerun.
+if [ -d "$SIDEBAR_DIR" ] && [ ! -f "$SIDEBAR_DIR/.dotfiles-patched" ]; then
+  patch_failures="$(
+    cd "$SIDEBAR_DIR"
+    git checkout -q "$SIDEBAR_PIN" 2>/dev/null
+    for patch in "$DIR"/tmux/patches/tmux-agent-sidebar/*.patch; do
+      git apply "$patch" 2>/dev/null || basename "$patch"
+    done
+  )"
+  if [ -n "$patch_failures" ]; then
+    info "Sidebar patches failed: $patch_failures — see $DIR/tmux/patches/tmux-agent-sidebar/README.md"
+  else
+    touch "$SIDEBAR_DIR/.dotfiles-patched"
+    success "Sidebar patches applied"
+    if is_executable "cargo"; then
+      (cd "$SIDEBAR_DIR" && cargo build --release > /dev/null 2>&1) \
+        && success "Sidebar binary built" \
+        || info "Sidebar build failed — run 'cargo build --release' in $SIDEBAR_DIR"
+    else
+      info "Rust not installed — run 'cargo build --release' in $SIDEBAR_DIR later"
+    fi
+  fi
+fi
+
+# dark-mode auto switching: launchd agent runs dark-notify, which invokes
+# tmux/darkmode.zsh on every macOS appearance change
+PLIST="$HOME/Library/LaunchAgents/dev.dini.dark-mode.plist"
+if [ ! -f "$PLIST" ] && is_executable "dark-notify"; then
+  mkdir -p "$HOME/Library/LaunchAgents"
+  cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+"http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>dev.dini.dark-mode</string>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardErrorPath</key>
+    <string>$HOME/.dark-mode-notify-stderr.log</string>
+    <key>StandardOutPath</key>
+    <string>$HOME/.dark-mode-notify-stdout.log</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/dark-notify</string>
+        <string>-c</string>
+        <string>/bin/zsh $HOME/.dotfiles/tmux/darkmode.zsh</string>
+    </array>
+</dict>
+</plist>
+EOF
+  launchctl load "$PLIST" 2>/dev/null || true
+  success "Dark-mode watcher installed"
+else
+  success "Dark-mode watcher already setup"
+fi

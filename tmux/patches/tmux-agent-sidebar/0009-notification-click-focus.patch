@@ -1,0 +1,466 @@
+diff --git a/src/cli/hook/handlers/attention.rs b/src/cli/hook/handlers/attention.rs
+index 7fe65b5..8154ead 100644
+--- a/src/cli/hook/handlers/attention.rs
++++ b/src/cli/hook/handlers/attention.rs
+@@ -131,6 +131,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_notification(
+             pane,
+@@ -165,6 +166,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_notification(
+             pane,
+@@ -203,6 +205,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_notification(
+             pane,
+@@ -233,6 +236,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_notification(
+             pane,
+@@ -266,6 +270,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_notification(
+             pane,
+@@ -295,6 +300,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_notification(
+             pane,
+@@ -331,6 +337,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_notification(pane, &ctx, "", /* meta_only */ false, &notifications);
+ 
+@@ -355,6 +362,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         };
+         on_permission_denied(pane, &ctx, &notifications);
+         assert_eq!(
+diff --git a/src/cli/hook/handlers/run.rs b/src/cli/hook/handlers/run.rs
+index 75d36b4..f29c882 100644
+--- a/src/cli/hook/handlers/run.rs
++++ b/src/cli/hook/handlers/run.rs
+@@ -246,6 +246,7 @@ mod tests {
+                 enabled: false,
+                 events: Default::default(),
+                 sound: None,
++                activate: None,
+             },
+         );
+ 
+@@ -282,6 +283,7 @@ mod tests {
+                 enabled: false,
+                 events: Default::default(),
+                 sound: None,
++                activate: None,
+             },
+         );
+ 
+@@ -318,6 +320,7 @@ mod tests {
+                 enabled: false,
+                 events: Default::default(),
+                 sound: None,
++                activate: None,
+             },
+         );
+ 
+@@ -350,6 +353,7 @@ mod tests {
+                 enabled: false,
+                 events: Default::default(),
+                 sound: None,
++                activate: None,
+             },
+         );
+         assert_eq!(exit, 0);
+diff --git a/src/cli/hook/handlers/session.rs b/src/cli/hook/handlers/session.rs
+index fd48a21..08198cc 100644
+--- a/src/cli/hook/handlers/session.rs
++++ b/src/cli/hook/handlers/session.rs
+@@ -105,6 +105,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         }
+     }
+ 
+@@ -295,6 +296,7 @@ mod tests {
+                 .into_iter()
+                 .collect(),
+             sound: None,
++            activate: None,
+         }
+     }
+ 
+diff --git a/src/cli/hook/handlers/subagent.rs b/src/cli/hook/handlers/subagent.rs
+index e134fd8..eb66db4 100644
+--- a/src/cli/hook/handlers/subagent.rs
++++ b/src/cli/hook/handlers/subagent.rs
+@@ -57,6 +57,7 @@ mod tests {
+             enabled: false,
+             events: Default::default(),
+             sound: None,
++            activate: None,
+         }
+     }
+ 
+diff --git a/src/desktop_notification.rs b/src/desktop_notification.rs
+index 879ce2d..c5cfafa 100644
+--- a/src/desktop_notification.rs
++++ b/src/desktop_notification.rs
+@@ -73,6 +73,11 @@ pub struct DesktopNotificationSettings {
+     /// macOS: a name from `/System/Library/Sounds`. Linux: a freedesktop sound
+     /// name passed to `notify-send` as a hint.
+     pub sound: Option<String>,
++    /// macOS only: bundle identifier of the terminal to bring to the front when
++    /// the banner is clicked, or `None` to only move the tmux client. Defaults
++    /// to `$__CFBundleIdentifier`, which macOS sets on every process an app
++    /// launches — so for an agent started in a terminal this is that terminal.
++    pub activate: Option<String>,
+ }
+ 
+ impl Default for DesktopNotificationSettings {
+@@ -81,6 +86,7 @@ impl Default for DesktopNotificationSettings {
+             enabled: true,
+             events: DesktopNotificationEvent::DEFAULT.iter().copied().collect(),
+             sound: None,
++            activate: None,
+         }
+     }
+ }
+@@ -104,10 +110,17 @@ impl DesktopNotificationSettings {
+                 .map(String::as_str),
+         );
+ 
++        let activate = parse_activate(
++            opts.get(tmux::SIDEBAR_NOTIFICATION_ACTIVATE)
++                .map(String::as_str),
++            std::env::var("__CFBundleIdentifier").ok().as_deref(),
++        );
++
+         Self {
+             enabled,
+             events,
+             sound,
++            activate,
+         }
+     }
+ 
+@@ -131,6 +144,86 @@ fn parse_sound(raw: Option<&str>) -> Option<String> {
+     Some(value.to_string())
+ }
+ 
++/// Bundle identifier to activate on click. An explicit `@sidebar_notification_activate`
++/// wins; empty or `off`/`none` disables activation (matching `parse_sound`, so
++/// the two notification options behave the same way); when the option is unset
++/// entirely, fall back to the inherited `$__CFBundleIdentifier`. Values that are
++/// not plausible bundle identifiers are dropped rather than passed on — the
++/// result is interpolated into a shell command for `terminal-notifier -execute`.
++fn parse_activate(configured: Option<&str>, inherited: Option<&str>) -> Option<String> {
++    let raw = match configured.map(str::trim) {
++        Some(v)
++            if v.is_empty() || v.eq_ignore_ascii_case("off") || v.eq_ignore_ascii_case("none") =>
++        {
++            return None;
++        }
++        Some(v) => v,
++        None => inherited?.trim(),
++    };
++    if raw.is_empty() || !raw.chars().all(is_shell_safe_char) {
++        return None;
++    }
++    Some(raw.to_string())
++}
++
++/// Characters allowed in values interpolated into the click command. Bundle
++/// identifiers and tmux pane ids only ever use these, so anything else means
++/// the value is not what we think it is and must not reach a shell.
++fn is_shell_safe_char(c: char) -> bool {
++    c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-' | '%')
++}
++
++/// Shell command `terminal-notifier` runs when the banner is clicked.
++///
++/// `switch-client -t` accepts a pane target — the tmux manual: "As a special
++/// case, -t may refer to a pane (a target that contains ':', '.' or '%'), to
++/// change session, window and pane." So one command moves the attached client
++/// all the way to the pane that raised the notification, wherever it lives.
++///
++/// The terminal is activated after the switch so it comes forward already
++/// showing the right pane.
++/// `tmux_bin` must be absolute. terminal-notifier runs `-execute` from its own
++/// app context, whose PATH is the bare `/usr/bin:/bin:/usr/sbin:/sbin` — a
++/// Homebrew tmux in `/opt/homebrew/bin` is not on it, so a bare `tmux` is
++/// "command not found" and the click silently does nothing. Same reason `open`
++/// is spelled out, even though `/usr/bin` happens to be on that PATH.
++#[cfg(target_os = "macos")]
++fn focus_command(tmux_bin: &str, pane_id: &str, activate: Option<&str>) -> Option<String> {
++    if pane_id.is_empty() || !pane_id.chars().all(is_shell_safe_char) {
++        return None;
++    }
++    if tmux_bin.is_empty() || tmux_bin.contains('\'') {
++        return None;
++    }
++    let mut cmd = format!("'{tmux_bin}' switch-client -t {pane_id}");
++    if let Some(bundle) = activate {
++        cmd.push_str(&format!("; /usr/bin/open -b {bundle}"));
++    }
++    Some(cmd)
++}
++
++/// Absolute path of `name` from the hook process's own PATH, which — unlike the
++/// one `-execute` inherits — is the user's. Falls back to the bare name so a
++/// lookup failure degrades to the previous behaviour rather than to no command.
++#[cfg(target_os = "macos")]
++fn resolve_in_path(name: &str) -> String {
++    use std::os::unix::fs::PermissionsExt;
++
++    std::env::var_os("PATH")
++        .map(|paths| {
++            std::env::split_paths(&paths)
++                .map(|dir| dir.join(name))
++                .find(|candidate| {
++                    std::fs::metadata(candidate)
++                        .map(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
++                        .unwrap_or(false)
++                })
++        })
++        .unwrap_or(None)
++        .and_then(|p| p.to_str().map(str::to_string))
++        .unwrap_or_else(|| name.to_string())
++}
++
+ fn parse_events(raw: &str) -> HashSet<DesktopNotificationEvent> {
+     let trimmed = raw.trim();
+     if trimmed.is_empty() {
+@@ -206,7 +299,13 @@ pub fn notify_if_allowed(
+         return false;
+     }
+ 
+-    match send_desktop_notification(title, body, settings.sound.as_deref()) {
++    match send_desktop_notification(
++        title,
++        body,
++        settings.sound.as_deref(),
++        pane_id,
++        settings.activate.as_deref(),
++    ) {
+         Ok(()) => {
+             tmux::set_pane_option(pane_id, key, &encode_stamp(now, &normalized_fingerprint));
+             true
+@@ -256,9 +355,39 @@ fn normalize_fingerprint(value: &str) -> String {
+     value.replace(['|', '\n', '\r'], " ")
+ }
+ 
+-fn send_desktop_notification(title: &str, body: &str, sound: Option<&str>) -> Result<(), String> {
++fn send_desktop_notification(
++    title: &str,
++    body: &str,
++    sound: Option<&str>,
++    pane_id: &str,
++    activate: Option<&str>,
++) -> Result<(), String> {
+     #[cfg(target_os = "macos")]
+     {
++        // AppleScript's `display notification` has no click action at all, so a
++        // clickable banner has to go through terminal-notifier. It is an
++        // optional Homebrew binary, so fall back to AppleScript whenever it is
++        // missing or fails — a banner without click-to-focus beats no banner.
++        if let Some(execute) = focus_command(&resolve_in_path("tmux"), pane_id, activate) {
++            let mut command = Command::new("terminal-notifier");
++            command
++                .args(["-title", title, "-message", body, "-execute", &execute])
++                .stdout(Stdio::null())
++                .stderr(Stdio::null());
++            if let Some(sound) = sound {
++                command.args(["-sound", sound]);
++            }
++            if run_notification_command(
++                &mut command,
++                "terminal-notifier",
++                DESKTOP_NOTIFICATION_TIMEOUT,
++            )
++            .is_ok()
++            {
++                return Ok(());
++            }
++        }
++
+         let mut script = format!(
+             "display notification \"{}\" with title \"{}\"",
+             escape_applescript(body),
+@@ -295,13 +424,13 @@ fn send_desktop_notification(title: &str, body: &str, sound: Option<&str>) -> Re
+ 
+     #[cfg(target_os = "windows")]
+     {
+-        let _ = (title, body, sound);
++        let _ = (title, body, sound, pane_id, activate);
+         Err("desktop notifications are not supported on Windows yet".into())
+     }
+ 
+     #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+     {
+-        let _ = (title, body, sound);
++        let _ = (title, body, sound, pane_id, activate);
+         Err("desktop notifications are not supported on this platform".into())
+     }
+ }
+@@ -392,6 +521,96 @@ fn run_notification_command(
+ mod tests {
+     use super::*;
+ 
++    #[test]
++    fn activate_prefers_explicit_option_over_inherited() {
++        assert_eq!(
++            parse_activate(Some("com.example.Term"), Some("com.mitchellh.ghostty")),
++            Some("com.example.Term".to_string())
++        );
++    }
++
++    #[test]
++    fn activate_falls_back_to_inherited_bundle_id() {
++        assert_eq!(
++            parse_activate(None, Some("com.mitchellh.ghostty")),
++            Some("com.mitchellh.ghostty".to_string())
++        );
++        assert_eq!(parse_activate(Some("  "), Some("com.apple.Terminal")), None);
++    }
++
++    #[test]
++    fn activate_off_disables_even_with_inherited_bundle_id() {
++        assert_eq!(parse_activate(Some("off"), Some("com.x.y")), None);
++        assert_eq!(parse_activate(Some("NONE"), Some("com.x.y")), None);
++        assert_eq!(parse_activate(None, None), None);
++    }
++
++    #[test]
++    fn activate_rejects_values_that_are_not_bundle_ids() {
++        // The value is interpolated into a shell command for `-execute`.
++        assert_eq!(parse_activate(Some("a b; rm -rf /"), None), None);
++        assert_eq!(parse_activate(Some("$(whoami)"), None), None);
++        assert_eq!(parse_activate(None, Some("com.x`id`")), None);
++    }
++
++    #[cfg(target_os = "macos")]
++    #[test]
++    fn focus_command_switches_client_to_the_pane() {
++        assert_eq!(
++            focus_command("/opt/homebrew/bin/tmux", "%21", None).as_deref(),
++            Some("'/opt/homebrew/bin/tmux' switch-client -t %21")
++        );
++        assert_eq!(
++            focus_command(
++                "/opt/homebrew/bin/tmux",
++                "%21",
++                Some("com.mitchellh.ghostty")
++            )
++            .as_deref(),
++            Some(
++                "'/opt/homebrew/bin/tmux' switch-client -t %21; /usr/bin/open -b com.mitchellh.ghostty"
++            )
++        );
++    }
++
++    #[cfg(target_os = "macos")]
++    #[test]
++    fn focus_command_rejects_unusable_pane_ids() {
++        assert_eq!(focus_command("/opt/homebrew/bin/tmux", "", None), None);
++        assert_eq!(
++            focus_command("/opt/homebrew/bin/tmux", "%1; rm -rf /", None),
++            None
++        );
++    }
++
++    #[cfg(target_os = "macos")]
++    #[test]
++    fn focus_command_rejects_a_tmux_path_that_would_break_quoting() {
++        assert_eq!(focus_command("", "%21", None), None);
++        assert_eq!(focus_command("/tmp/it's/tmux", "%21", None), None);
++    }
++
++    #[cfg(target_os = "macos")]
++    #[test]
++    fn resolve_in_path_finds_an_absolute_path() {
++        // `sh` is guaranteed to exist on a default PATH.
++        let resolved = resolve_in_path("sh");
++        assert!(
++            resolved.starts_with('/'),
++            "expected an absolute path, got {resolved}"
++        );
++        assert!(resolved.ends_with("/sh"), "got {resolved}");
++    }
++
++    #[cfg(target_os = "macos")]
++    #[test]
++    fn resolve_in_path_falls_back_to_the_bare_name() {
++        assert_eq!(
++            resolve_in_path("definitely-not-a-real-binary-xyz"),
++            "definitely-not-a-real-binary-xyz"
++        );
++    }
++
+     #[test]
+     fn settings_parse_bool_and_numbers() {
+         let mut opts = HashMap::new();
+diff --git a/src/tmux.rs b/src/tmux.rs
+index 9718930..2bbb9c5 100644
+--- a/src/tmux.rs
++++ b/src/tmux.rs
+@@ -26,10 +26,11 @@ pub use options::{
+     SIDEBAR_COLOR_TEXT_INACTIVE, SIDEBAR_COLOR_TEXT_MUTED, SIDEBAR_COLOR_WAIT_REASON,
+     SIDEBAR_COLOR_WAITING, SIDEBAR_CURSOR, SIDEBAR_ENABLED, SIDEBAR_FILTER, SIDEBAR_HEADER,
+     SIDEBAR_ICON_ALL, SIDEBAR_ICON_BACKGROUND, SIDEBAR_ICON_ERROR, SIDEBAR_ICON_IDLE,
+-    SIDEBAR_ICON_RUNNING, SIDEBAR_ICON_UNKNOWN, SIDEBAR_ICON_WAITING, SIDEBAR_NOTIFICATION_SOUND,
+-    SIDEBAR_NOTIFICATIONS, SIDEBAR_NOTIFICATIONS_EVENTS, SIDEBAR_PET, SIDEBAR_PID,
+-    SIDEBAR_POSITION, SIDEBAR_REPO_FILTER, SIDEBAR_WIDTH, get_all_global_options, get_option,
+-    get_pane_option_value, set_pane_option, unset_pane_option,
++    SIDEBAR_ICON_RUNNING, SIDEBAR_ICON_UNKNOWN, SIDEBAR_ICON_WAITING,
++    SIDEBAR_NOTIFICATION_ACTIVATE, SIDEBAR_NOTIFICATION_SOUND, SIDEBAR_NOTIFICATIONS,
++    SIDEBAR_NOTIFICATIONS_EVENTS, SIDEBAR_PET, SIDEBAR_PID, SIDEBAR_POSITION, SIDEBAR_REPO_FILTER,
++    SIDEBAR_WIDTH, get_all_global_options, get_option, get_pane_option_value, set_pane_option,
++    unset_pane_option,
+ };
+ pub use panes::{
+     find_active_pane, focused_pane_path, get_pane_path, get_sidebar_pane_info,
+diff --git a/src/tmux/options.rs b/src/tmux/options.rs
+index 079b21e..d866cb8 100644
+--- a/src/tmux/options.rs
++++ b/src/tmux/options.rs
+@@ -105,6 +105,7 @@ pub const SIDEBAR_NOTIFICATIONS: &str = "@sidebar_notifications";
+ /// `/System/Library/Sounds` (e.g. `Glass`); on Linux it is a freedesktop sound
+ /// name passed as a hint. Unset or `off` keeps notifications silent.
+ pub const SIDEBAR_NOTIFICATION_SOUND: &str = "@sidebar_notification_sound";
++pub const SIDEBAR_NOTIFICATION_ACTIVATE: &str = "@sidebar_notification_activate";
+ pub const SIDEBAR_NOTIFICATIONS_EVENTS: &str = "@sidebar_notifications_events";
+ 
+ pub const SIDEBAR_COLOR_ACCENT: &str = "@sidebar_color_accent";
