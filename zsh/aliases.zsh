@@ -19,5 +19,20 @@ function enhanced_command() {
     rm -f "$temp_file"
 }
 
+# for claude switching
+claude() {
+    if [[ "$PWD" == */devguard/* || "$PWD" == */devguard
+       || "$PWD" == */flow/* || "$PWD" == */flow
+       || "$PWD" == */hammerfest/* || "$PWD" == */hammerfest
+       || "$PWD" == */seo/* || "$PWD" == */seo ]]; then
+        CLAUDE_CONFIG_DIR=~/.claude-devguard command claude "$@"
+    else
+        command claude "$@"
+    fi
+}
+
 # alias for easy usage
 alias enh="enhanced_command"
+
+# Godot is a .app bundle, so its binary is not on PATH
+alias godot="/Applications/Godot.app/Contents/MacOS/Godot"

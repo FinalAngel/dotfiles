@@ -35,3 +35,5 @@ Desktop.ini
 .divio
 data/
 data.tar.gz
+
+**/.claude/settings.local.json

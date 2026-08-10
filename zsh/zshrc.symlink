@@ -44,3 +44,15 @@ eval "$(direnv hook zsh)"
 # initialise fzf
 eval "$(fzf --zsh)"
 export PATH="$HOME/.local/bin:$PATH"
+
+# bun completions
+[ -s "/Users/finalangel/.bun/_bun" ] && source "/Users/finalangel/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/finalangel/.lmstudio/bin"
+# End of LM Studio CLI section
+
