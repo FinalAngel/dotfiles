@@ -1,4 +1,5 @@
 *.zsh-theme
 *gitconfig.local.symlink
+*localrc.symlink
 *pypirc.symlink
 private

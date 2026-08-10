@@ -3,6 +3,12 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[zsh]\033[0m"
 
+# create the machine-local secrets file (never part of the repo)
+if [ ! -f "$HOME/.localrc" ]; then
+  printf '# machine-local secrets and env vars — never committed, sourced by zshrc\n' > "$HOME/.localrc"
+  success "Created empty ~/.localrc"
+fi
+
 if [ ! -d "$HOME/.oh-my-zsh" ];then
   # run installation script
   export RUNZSH=no
