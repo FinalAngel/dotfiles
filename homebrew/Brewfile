@@ -129,7 +129,7 @@ cask "syntax-highlight" # code/markdown/json/csv previews
 
 # app store
 brew "mas"
-mas "2Do", id: 477670270
+# 2Do is no longer available in the App Store — installed copy kept manually
 mas "Be Focused - Focus Timer", id: 973134470
 mas "GoodNotes 6", id: 1444383602
 mas "Harvest", id: 506189836
