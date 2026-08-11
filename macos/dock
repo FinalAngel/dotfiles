@@ -32,6 +32,12 @@ else
     esac
   done < "$DOCKFILE"
 
+  # launchd normally relaunches the Dock right after the kill, but it can
+  # fail to come back when killed mid-plist-update — kick it if it didn't
   killall Dock
+  sleep 2
+  if ! pgrep -qx Dock; then
+    launchctl kickstart "gui/$(id -u)/com.apple.Dock.agent"
+  fi
   success "Dock successfully configured"
 fi
