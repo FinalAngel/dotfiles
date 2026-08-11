@@ -116,7 +116,7 @@ cask "windows-app" # former Microsoft Remote Desktop
 cask "appcleaner"
 cask "dash"
 cask "docker-desktop"
-cask "dockutil" # used by macos/dock
+brew "dockutil" # used by macos/dock — it is a formula, there is no cask
 cask "logi-options+" # renamed upstream from logi-options-plus
 cask "meta"
 cask "ngrok"

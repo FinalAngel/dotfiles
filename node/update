@@ -3,13 +3,34 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[node]\033[0m"
 
-if is_executable "fnm"; then
-  eval "$(fnm env)"
-  fnm use default > /dev/null 2>&1
+if ! is_executable "fnm"; then
+  warn "fnm is not installed, skipping — run 'dotfiles -i' to set it up"
+  return 0
+fi
 
-  npm install npm -g > /dev/null
+eval "$(fnm env)"
+
+# a freshly installed fnm has no node version yet. this used to abort the whole
+# update run silently: the failure was fatal under `set -e` and its output went
+# to /dev/null, so the script simply stopped after "Update [node]"
+if ! fnm use default > /dev/null 2>&1; then
+  warn "No default node version, skipping — run 'dotfiles -i' to install one"
+  return 0
+fi
+
+if ! is_executable "npm"; then
+  warn "npm is not available for the current node version, skipping"
+  return 0
+fi
+
+if npm install npm -g > /dev/null; then
   success "Updated npm"
+else
+  warn "Could not update npm, see the output above"
+fi
 
-  npm update -g > /dev/null
+if npm update -g > /dev/null; then
   success "Updated global npm packages"
+else
+  warn "Could not update global npm packages, see the output above"
 fi

@@ -16,9 +16,6 @@ else
   warn "Some system updates could not be installed, see the output above"
 fi
 
-# update gem files
-if sudo gem update --system > /dev/null 2>&1; then
-  success "Updated gems"
-else
-  warn "Could not update gems"
-fi
+# no ruby/gem management here on purpose: nothing in these dotfiles owns a ruby
+# toolchain. homebrew's ruby is only present as a tmuxinator dependency and is
+# managed by homebrew, and bin/git-rank and bin/git-wtf run on the system ruby

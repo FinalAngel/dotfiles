@@ -47,7 +47,10 @@ else
   warn "Some Brewfile entries could not be installed, see the output above"
 fi
 
-# report drift: anything installed that is not declared in the Brewfile
-# (report-only; nothing gets removed automatically)
-brew bundle cleanup --file="$DIR/homebrew/Brewfile" || true
+# report drift: anything installed that is not declared in the Brewfile.
+# stdin is closed on purpose — without it this asks "proceed with the cleanup?"
+# and blocks the run, and confirming would uninstall undeclared packages and
+# reset the homebrew trust store. with no tty to prompt on it just prints the
+# report and exits non-zero, which is exactly the report-only behaviour we want
+brew bundle cleanup --file="$DIR/homebrew/Brewfile" < /dev/null || true
 success "Checked for drift"
