@@ -3,15 +3,22 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[macOS]\033[0m"
 
+# no-op when scripts/update already asked for the password
+require_sudo
+
 # store the current Dock layout in the repo so it syncs across laptops
 source "$DIR/macos/dock-dump"
 
 # update software
-require_sudo
-softwareupdate --install --all --force
-success "Updated software, this might need a reboot"
+if softwareupdate --install --all --force; then
+  success "Updated software, this might need a reboot"
+else
+  warn "Some system updates could not be installed, see the output above"
+fi
 
-# update gem files
-require_sudo
-sudo gem update --system > /dev/null 2>&1
-success "Updated gems"
+# update gem files
+if sudo gem update --system > /dev/null 2>&1; then
+  success "Updated gems"
+else
+  warn "Could not update gems"
+fi

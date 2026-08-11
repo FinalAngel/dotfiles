@@ -3,16 +3,49 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# resolve the prefix rather than hardcoding it, so this also works on Intel
+# machines (/usr/local) and inside a shell that has not loaded brew yet
+if ! is_executable "brew"; then
+  for brew_prefix in /opt/homebrew /usr/local; do
+    if [ -x "$brew_prefix/bin/brew" ]; then
+      eval "$("$brew_prefix/bin/brew" shellenv)"
+      break
+    fi
+  done
+fi
+
+if ! is_executable "brew"; then
+  warn "Homebrew is not installed, skipping — run 'dotfiles -i' to set it up"
+  return 0
+fi
+
+# casks with pkg installers or privileged helpers (docker-desktop, 1password,
+# logi-options+, ...) shell out to sudo themselves. sudo writes its prompt to
+# the tty even when the command is redirected, so without a cached credential
+# the run stalls on a bare "Password:" with no context. require_sudo already
+# ran in scripts/update; this makes the module safe to run on its own too.
+require_sudo
 
 brew update -q > /dev/null 2>&1
 success "Updated homebrew"
-brew upgrade > /dev/null 2>&1
-success "Updated formulae"
+
+# output stays visible on purpose: brew asks questions here, and a hidden
+# prompt is indistinguishable from a hung script
+if brew upgrade; then
+  success "Updated formulae"
+else
+  warn "Some formulae or casks failed to upgrade, see the output above"
+fi
+
 brew cleanup > /dev/null 2>&1
 success "Cleaned formulae"
-brew bundle --file="$DIR/homebrew/Brewfile"
-success "Installed brews"
+
+# also visible — mas entries need an App Store session and casks may prompt
+if brew bundle --file="$DIR/homebrew/Brewfile"; then
+  success "Installed brews"
+else
+  warn "Some Brewfile entries could not be installed, see the output above"
+fi
 
 # report drift: anything installed that is not declared in the Brewfile
 # (report-only; nothing gets removed automatically)

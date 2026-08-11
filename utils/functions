@@ -88,8 +88,38 @@ function is_executable() {
   type "$1" > /dev/null 2>&1
 }
 
+# Asks for the admin password once and keeps the sudo timestamp alive for the
+# rest of the run. Safe to call repeatedly — only the first call prompts.
+#
+# This matters because steps further down shell out to sudo themselves (cask
+# installers, softwareupdate, gem). sudo prints its prompt to the tty even when
+# the surrounding command is redirected to /dev/null, so without a cached
+# credential the run appears to hang on a context-free "Password:".
 function require_sudo() {
-  user "Require admin privileges, you may need to enter your password..."
-  sudo -v
-  while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+  if [ -n "${SUDO_KEEPALIVE_PID:-}" ] && kill -0 "$SUDO_KEEPALIVE_PID" 2>/dev/null; then
+    return 0
+  fi
+
+  if ! sudo -n true 2>/dev/null; then
+    user "Admin privileges are required for this run, please enter your password..."
+    sudo -v || fail_hard "Could not obtain admin privileges"
+  fi
+
+  # macOS expires the timestamp after 5 minutes, which is shorter than a cask
+  # upgrade — refresh it so no later step prompts again mid-run
+  while true; do
+    sudo -n true 2>/dev/null || exit
+    sleep 60
+    kill -0 "$$" 2>/dev/null || exit
+  done &
+  SUDO_KEEPALIVE_PID=$!
+
+  trap release_sudo EXIT
+}
+
+function release_sudo() {
+  if [ -n "${SUDO_KEEPALIVE_PID:-}" ]; then
+    kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+    unset SUDO_KEEPALIVE_PID
+  fi
 }
