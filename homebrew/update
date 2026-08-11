@@ -3,7 +3,28 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# resolve the prefix rather than hardcoding it, so this also works on Intel
+# machines (/usr/local) and inside a shell that has not loaded brew yet
+if ! is_executable "brew"; then
+  for brew_prefix in /opt/homebrew /usr/local; do
+    if [ -x "$brew_prefix/bin/brew" ]; then
+      eval "$("$brew_prefix/bin/brew" shellenv)"
+      break
+    fi
+  done
+fi
+
+if ! is_executable "brew"; then
+  warn "Homebrew is not installed, skipping — run 'dotfiles -i' to set it up"
+  return 0
+fi
+
+# casks with pkg installers or privileged helpers (docker-desktop, 1password,
+# logi-options+, ...) shell out to sudo themselves. sudo writes its prompt to
+# the tty even when the command is redirected, so without a cached credential
+# the run stalls on a bare "Password:" with no context. require_sudo already
+# ran in scripts/update; this makes the module safe to run on its own too.
+require_sudo
 
 # trust the third-party taps declared in the Brewfile, otherwise brew
 # refuses to load or update their formulae
@@ -12,15 +33,29 @@ brew trust cormacrelf/tap stripe/stripe-cli > /dev/null 2>&1 || true
 # individual failures are reported but never abort the whole update chain
 brew update -q > /dev/null 2>&1 || info "Homebrew update failed, continuing"
 success "Updated homebrew"
-brew upgrade > /dev/null 2>&1 || info "Some formulae failed to upgrade, run 'brew upgrade' to see why"
-success "Updated formulae"
-brew cleanup > /dev/null 2>&1 || info "Cleanup incomplete, run 'brew cleanup' to see why"
+
+# output stays visible on purpose: brew asks questions here, and a hidden
+# prompt is indistinguishable from a hung script
+if brew upgrade; then
+  success "Updated formulae"
+else
+  warn "Some formulae or casks failed to upgrade, see the output above"
+fi
+
+brew cleanup > /dev/null 2>&1
 success "Cleaned formulae"
-brew bundle --file="$DIR/homebrew/Brewfile" || info "Some bundle entries failed, run 'brew bundle' to see why"
-success "Installed brews"
+
+# also visible — mas entries need an App Store session and casks may prompt
+if brew bundle --file="$DIR/homebrew/Brewfile"; then
+  success "Installed brews"
+else
+  warn "Some Brewfile entries could not be installed, see the output above"
+fi
 
 # report drift: anything installed that is not declared in the Brewfile.
-# stdin is closed so the interactive confirm prompt can never fire —
-# this must stay a report and never uninstall anything
-brew bundle cleanup --file="$DIR/homebrew/Brewfile" < /dev/null 2>/dev/null || true
+# stdin is closed on purpose — without it this asks "proceed with the cleanup?"
+# and blocks the run, and confirming would uninstall undeclared packages and
+# reset the homebrew trust store. with no tty to prompt on it just prints the
+# report and exits non-zero, which is exactly the report-only behaviour we want
+brew bundle cleanup --file="$DIR/homebrew/Brewfile" < /dev/null || true
 success "Checked for drift"

@@ -5,6 +5,10 @@ declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 # load utilities
 source "$DIR/utils/index"
 
+# ask for the password up front — rosetta, homebrew casks, FileVault and the
+# hosts symlink all need it later on
+require_sudo
+
 # universal installs
 source "$DIR/system/install"
 source "$DIR/zsh/install"

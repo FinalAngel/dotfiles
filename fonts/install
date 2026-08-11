@@ -3,7 +3,7 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[fonts]\033[0m"
 
-# setup variables
+# setup variables
 FONTS_DIR="$DIR/fonts"
 FONTS_FILE="$FONTS_DIR/fonts.txt"
 system_fonts_dir="$HOME/Library/Fonts"

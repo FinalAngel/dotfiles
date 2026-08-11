@@ -23,7 +23,7 @@ brew "wget"
 
 # terminal
 brew "bash" # latest Bash version
-brew "cormacrelf/tap/dark-notify" # watch macOS appearance changes
+brew "cormacrelf/tap/dark-notify", trusted: true # watch macOS appearance changes
 brew "glances"
 brew "htop"
 brew "iperf"
@@ -53,7 +53,7 @@ brew "pyenv"
 brew "pyenv-virtualenv"
 brew "rust" # to build the patched tmux-agent-sidebar
 brew "socat"
-brew "stripe/stripe-cli/stripe"
+brew "stripe/stripe-cli/stripe", trusted: true
 brew "terminal-notifier" # used by notify()
 brew "uv" # python package & tool manager
 
@@ -119,8 +119,8 @@ cask "windows-app" # former Microsoft Remote Desktop
 cask "appcleaner"
 cask "dash"
 cask "docker-desktop"
-cask "dockutil" # used by macos/dock
-cask "logi-options+"
+brew "dockutil" # used by macos/dock — it is a formula, there is no cask
+cask "logi-options+" # renamed upstream from logi-options-plus
 cask "meta"
 cask "ngrok"
 cask "rectangle"

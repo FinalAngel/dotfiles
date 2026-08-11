@@ -24,8 +24,14 @@ if [ -d "$HOME/.oh-my-zsh" ]; then
   # if yes load standard initialisations script
   source $ZSH/oh-my-zsh.sh
   # load additional plugins
-  source ${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-  source ${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+  # (missing until homebrew has installed them; HOMEBREW_PREFIX avoids
+  # forking `brew --prefix` on every shell start)
+  BREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
+  [ -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] && \
+    source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+  [ -f "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
+    source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  unset BREW_PREFIX
 fi
 
 # disable any beeping
@@ -36,17 +42,13 @@ unsetopt prompt_cr prompt_sp
 # fixes slow copy & paste
 zstyle ':bracketed-paste-magic' active-widgets '.self-*'
 
-# initialise theme, needs to be at the end
-eval "$(starship init zsh)"
-
-# initialise direnv
-eval "$(direnv hook zsh)"
-
-# initialise fnm (respects .nvmrc / .node-version on cd)
-eval "$(fnm env --use-on-cd --shell zsh)"
-
-# initialise fzf
-eval "$(fzf --zsh)"
+# initialise the shell tools. each one is guarded because on a fresh machine
+# the shell is used before (and while) homebrew installs them — an unguarded
+# eval turns every new terminal into a "command not found" error
+command -v starship > /dev/null && eval "$(starship init zsh)" # theme, needs to be at the end
+command -v direnv   > /dev/null && eval "$(direnv hook zsh)"
+command -v fnm      > /dev/null && eval "$(fnm env --use-on-cd --shell zsh)" # respects .nvmrc / .node-version on cd
+command -v fzf      > /dev/null && eval "$(fzf --zsh)"
 
 # local user binaries
 export PATH="$HOME/.local/bin:$PATH"

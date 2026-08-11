@@ -5,8 +5,9 @@ declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 # load utilities
 source "$DIR/utils/index"
 
-# ask for the admin password once up front; require_sudo keeps the
-# credentials alive in the background for the entire update run
+# ask for the password up front — homebrew casks and softwareupdate both need
+# it later on, and prompting mid-run reads as a hang; skip when there is no
+# tty to prompt on (non-interactive runs would hang or fail in sudo instead)
 if [ -t 0 ]; then
   require_sudo
 fi
