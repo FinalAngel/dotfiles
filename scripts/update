@@ -5,7 +5,13 @@ declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 # load utilities
 source "$DIR/utils/index"
 
-# get latest repo state
+# ask for the admin password once up front; require_sudo keeps the
+# credentials alive in the background for the entire update run
+if [ -t 0 ]; then
+  require_sudo
+fi
+
+# get latest repo state
 info "Update \033[0;37m[repository]\033[0m"
 cd $DIR && git pull origin master -q
 success "Updated repository"

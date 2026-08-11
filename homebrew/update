@@ -5,6 +5,10 @@ info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
+# trust the third-party taps declared in the Brewfile, otherwise brew
+# refuses to load or update their formulae
+brew trust cormacrelf/tap stripe/stripe-cli > /dev/null 2>&1 || true
+
 # individual failures are reported but never abort the whole update chain
 brew update -q > /dev/null 2>&1 || info "Homebrew update failed, continuing"
 success "Updated homebrew"
@@ -15,7 +19,8 @@ success "Cleaned formulae"
 brew bundle --file="$DIR/homebrew/Brewfile" || info "Some bundle entries failed, run 'brew bundle' to see why"
 success "Installed brews"
 
-# report drift: anything installed that is not declared in the Brewfile
-# (report-only; nothing gets removed automatically)
-brew bundle cleanup --file="$DIR/homebrew/Brewfile" || true
+# report drift: anything installed that is not declared in the Brewfile.
+# stdin is closed so the interactive confirm prompt can never fire —
+# this must stay a report and never uninstall anything
+brew bundle cleanup --file="$DIR/homebrew/Brewfile" < /dev/null 2>/dev/null || true
 success "Checked for drift"

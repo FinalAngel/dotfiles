@@ -15,11 +15,11 @@ node_modules
 npm-debug.log
 .sass-cache
 
-# python
+# python
 *.pyc
 .python-version
 
-# folder view configuration files
+# folder view configuration files
 .DS_Store
 Desktop.ini
 

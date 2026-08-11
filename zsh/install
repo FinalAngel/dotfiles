@@ -10,7 +10,7 @@ if [ ! -f "$HOME/.localrc" ]; then
 fi
 
 if [ ! -d "$HOME/.oh-my-zsh" ];then
-  # run installation script
+  # run installation script
   export RUNZSH=no
   export CHSH=no
   export KEEP_ZSHRC=yes

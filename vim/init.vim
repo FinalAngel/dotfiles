@@ -492,7 +492,7 @@ set ruler
 
         let g:togglecursor_disable_neovim = 1
 
-        " use | instead of █ for insert mode
+        " use | instead of █ for insert mode
         if has('nvim')
             set guicursor=n-v-c:block-Cursor/lCursor,i-ci-ve:ver25-Cursor2/lCursor2,r-cr:hor20,o:hor50
         endif

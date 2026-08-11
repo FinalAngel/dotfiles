@@ -6,7 +6,7 @@ DOTFILES_ROOT="$HOME/.dotfiles"
 typeset -U config_files
 config_files=($DOTFILES_ROOT/**/aliases.zsh)
 
-# load all aliases.zsh files expect for this one
+# load all aliases.zsh files expect for this one
 for file in ${config_files:#*/zsh/aliases.zsh}; do
   source $file
 done

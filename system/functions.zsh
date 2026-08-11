@@ -4,10 +4,10 @@
 # dataurl   $source
 # f         $name         file search
 # fs        [options]     show dir/file sizes
-# mkd       $path         make dir
+# mkd       $path         make dir
 # o         $path         open path
 # r         $name         quick grep
-# server                  start server from dir
+# server                  start server from dir
 # targz     $source       create .tar.gz
 # tre                     open nice tree view
 # custom functions ############################
