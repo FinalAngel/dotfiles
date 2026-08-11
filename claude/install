@@ -3,14 +3,15 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[claude]\033[0m"
 
-MACKUP_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Mackup"
-mkdir -p "$MACKUP_DIR"
+SYSTEM_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/System"
+mkdir -p "$SYSTEM_DIR"
 
-# keep Claude Code state in iCloud, symlinked into place so both
-# machines share settings, memory, skills and hooks
+# keep agent state in iCloud, symlinked into place so both machines share
+# settings, memory, skills and hooks; .agents must live next to .claude so
+# the relative skill links (../../.agents/skills/...) resolve on any machine
 link_icloud_dir () {
   local name="$1"
-  local src="$MACKUP_DIR/$name"
+  local src="$SYSTEM_DIR/$name"
   local dst="$HOME/$name"
 
   # first machine: move the local directory into iCloud
@@ -18,27 +19,36 @@ link_icloud_dir () {
     mv "$dst" "$src"
   fi
 
-  if [ -L "$dst" ]; then
-    success "Claude $name already linked"
-  elif [ -d "$src" ]; then
-    # keep a backup if a local, non-linked directory exists
-    if [ -d "$dst" ]; then
-      mv "$dst" "$dst.backup"
-      info "Existing $name moved to $name.backup"
-    fi
-    ln -s "$src" "$dst"
-    success "Claude $name linked to iCloud"
+  if [ ! -d "$src" ]; then
+    return 0
   fi
+
+  if [ -L "$dst" ]; then
+    if [ "$(readlink "$dst")" == "$src" ]; then
+      success "Claude $name already linked"
+      return 0
+    fi
+    # stale link (e.g. the old Mackup location) — repoint it
+    rm "$dst"
+  elif [ -d "$dst" ]; then
+    # keep a backup if a local, non-linked directory exists
+    mv "$dst" "$dst.backup"
+    info "Existing $name moved to $name.backup"
+  fi
+
+  ln -s "$src" "$dst"
+  success "Claude $name linked to iCloud"
 }
 
+link_icloud_dir ".agents"
 link_icloud_dir ".claude"
 link_icloud_dir ".claude-devguard"
 
 # ~/.claude.json is rewritten atomically (write + rename), which would
 # replace a symlink with a plain file — so it is copied instead:
 # restored here when missing, backed up on every update
-if [ ! -f "$HOME/.claude.json" ] && [ -f "$MACKUP_DIR/.claude.json.backup" ]; then
-  cp "$MACKUP_DIR/.claude.json.backup" "$HOME/.claude.json"
+if [ ! -f "$HOME/.claude.json" ] && [ -f "$SYSTEM_DIR/.claude.json.backup" ]; then
+  cp "$SYSTEM_DIR/.claude.json.backup" "$HOME/.claude.json"
   success "Restored .claude.json from iCloud"
 fi
 

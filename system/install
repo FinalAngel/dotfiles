@@ -9,4 +9,27 @@ if [ "$(uname -m)" = "arm64" ]; then
   sudo softwareupdate --install-rosetta --agree-to-license || warn "Could not install Rosetta"
 fi
 
+# private files (secrets, machine-shared config) live in iCloud and are
+# linked into place here — gitignore keeps the links out of the repo, so a
+# new machine needs this to recreate them; skips anything iCloud hasn't
+# synced yet and picks it up on the next run
+SYSTEM_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/System"
+link_private () {
+  local src="$SYSTEM_DIR/private/$1" dst="$2"
+  if [ ! -e "$src" ]; then
+    warn "Private $1 not in iCloud yet, skipped"
+  elif [ "$(readlink "$dst")" == "$src" ]; then
+    success "Private $1 already linked"
+  else
+    mkdir -p "$(dirname "$dst")"
+    ln -sfh "$src" "$dst"
+    success "Private $1 linked"
+  fi
+}
+
+mkdir -p "$DIR/private"
+link_private "functions.zsh" "$DIR/private/functions.zsh"
+link_private "pypirc.symlink" "$DIR/python/pypirc.symlink"
+link_private "tmuxinator" "$HOME/.config/tmuxinator"
+
 create_symlinks

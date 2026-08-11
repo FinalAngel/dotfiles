@@ -3,10 +3,10 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[claude]\033[0m"
 
-MACKUP_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Mackup"
+SYSTEM_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/System"
 
 if [ -f "$HOME/.claude.json" ] && [ ! -L "$HOME/.claude.json" ]; then
-  cp "$HOME/.claude.json" "$MACKUP_DIR/.claude.json.backup"
+  cp "$HOME/.claude.json" "$SYSTEM_DIR/.claude.json.backup"
   success "Backed up .claude.json to iCloud"
 else
   success "Nothing to back up"
