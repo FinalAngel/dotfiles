@@ -42,8 +42,13 @@ else
   warn "Some formulae or casks failed to upgrade, see the output above"
 fi
 
-brew cleanup > /dev/null 2>&1
-success "Cleaned formulae"
+# cleanup exits non-zero when it hits a keg it cannot delete (e.g. one with
+# root-owned files) — report it instead of letting set -e abort the whole run
+if brew cleanup > /dev/null 2>&1; then
+  success "Cleaned formulae"
+else
+  warn "Cleanup skipped some kegs — run 'brew cleanup' manually to see why"
+fi
 
 # also visible — mas entries need an App Store session and casks may prompt
 if brew bundle --file="$DIR/homebrew/Brewfile"; then

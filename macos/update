@@ -6,8 +6,10 @@ info "Update \033[0;37m[macOS]\033[0m"
 # no-op when scripts/update already asked for the password
 require_sudo
 
-# store the current Dock layout in the repo so it syncs across laptops
-source "$DIR/macos/dock-dump"
+# apply the canonical Dock layout from the repo — the Dockfile is curated,
+# never auto-dumped (a dump would clobber the other machine's layout);
+# to record a rearranged Dock into the repo, run macos/dock-dump manually
+source "$DIR/macos/dock"
 
 # update software — must run via sudo, otherwise softwareupdate asks for
 # the password itself (twice) and ignores the cached sudo credentials
