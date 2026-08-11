@@ -8,6 +8,7 @@
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
   // "soft_wrap": "editor_width",
+  "cli_default_open_behavior": "existing_window",
   "collaboration_panel": {
     "dock": "left"
   },
