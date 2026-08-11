@@ -214,3 +214,8 @@
 [tag]
 	# sort tags as version numbers
 	sort = version:refname
+
+# devguard identity for all repos under ~/Sites/devguard/
+# (must stay last so it overrides [user] above and ~/.gitconfig.local)
+[includeIf "gitdir:~/Sites/devguard/"]
+	path = ~/.gitconfig-devguard
