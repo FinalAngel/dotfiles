@@ -2,3 +2,6 @@
 
 # don't print a new line at the start of the prompt
 add_newline = false
+
+# default 30ms is too tight for directories with iCloud-backed symlinks
+scan_timeout = 100

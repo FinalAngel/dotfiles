@@ -91,5 +91,7 @@ function is_executable() {
 function require_sudo() {
   user "Require admin privileges, you may need to enter your password..."
   sudo -v
-  while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+  # refresh the credentials until the parent script exits; `|| true` keeps
+  # the loop alive through transient failures despite an inherited `set -e`
+  while true; do sudo -n true || true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 }
