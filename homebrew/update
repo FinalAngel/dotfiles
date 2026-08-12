@@ -35,8 +35,15 @@ brew update -q > /dev/null 2>&1 || info "Homebrew update failed, continuing"
 success "Updated homebrew"
 
 # output stays visible on purpose: brew asks questions here, and a hidden
-# prompt is indistinguishable from a hung script
-if brew upgrade; then
+# prompt is indistinguishable from a hung script.
+#
+# --greedy-auto-updates also upgrades casks marked auto_updates, which brew
+# otherwise skips in the expectation that the app updates itself. That covers
+# most of the casks here, and their built-in updaters do silently fall behind —
+# this is the coverage MacUpdater used to provide. The narrower flag is
+# deliberate: plain --greedy would also pull in ':latest' casks, which have no
+# version to compare against and so get re-downloaded on every single run.
+if brew upgrade --greedy-auto-updates; then
   success "Updated formulae"
 else
   warn "Some formulae or casks failed to upgrade, see the output above"

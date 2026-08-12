@@ -74,7 +74,9 @@ cask "claude"
 cask "cyberduck"
 cask "discord"
 cask "downie"
+cask "dropbox"
 cask "firefox"
+cask "gather"
 cask "gifox"
 cask "google-chrome"
 cask "gpg-suite"
@@ -101,11 +103,19 @@ cask "arduino-ide"
 cask "godot"
 
 # media & creative
+cask "ableton-live-standard"
 cask "anki"
 cask "calibre"
+# upstream deprecated hakuneko on 2026-09-01 for failing the Gatekeeper check —
+# the cask will stop resolving then, drop this line once that happens
+cask "hakuneko"
 cask "handbrake-app"
 cask "imageoptim"
 cask "screen-studio"
+cask "screenflow"
+cask "yousician"
+# Guitar Pro is installed manually — its cask was disabled on 2026-03-21
+# because the download URL now requires authentication
 
 # hardware & connectivity
 cask "elgato-camera-hub"
@@ -117,10 +127,12 @@ cask "windows-app" # former Microsoft Remote Desktop
 
 # efficiency
 cask "appcleaner"
+cask "daisydisk"
 cask "dash"
 cask "docker-desktop"
 brew "dockutil" # used by macos/dock — it is a formula, there is no cask
 cask "logi-options+" # renamed upstream from logi-options-plus
+cask "malwarebytes"
 cask "meta"
 cask "ngrok"
 cask "rectangle"
