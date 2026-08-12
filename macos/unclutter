@@ -9,10 +9,20 @@
 # name silently creates an unread file instead.
 #
 # Sourced from both macos/defaults (install) and macos/update, because a second
-# machine that only ever runs `dotfiles -u` would otherwise keep its local paths
-# and never see the synced notes.
+# machine that only ever runs `dotfiles -u` would otherwise keep its local paths.
+#
+# IMPORTANT — this script can only do half the job. Unclutter ships with
+# com.apple.security.app-sandbox plus files.user-selected.read-write, so it can
+# only read a folder the user picked through its own open panel. That grant is
+# persisted as an app-scoped security-scoped bookmark in bookmarks.plist, and
+# those blobs encode the volume UUID and inode of the target — they are not
+# portable between Macs and cannot be minted from a script. Setting the path
+# without the bookmark is the silent failure mode: the panel shows the right
+# folder in preferences and displays nothing at all. So we set the paths, then
+# check for the bookmarks and tell you when the manual pick is still owed.
 
 unclutter_prefs="${HOME}/Library/Containers/com.softwareambience.Unclutter/Data/Library/Preferences/com.softwareambience.Unclutter"
+unclutter_bookmarks="${HOME}/Library/Containers/com.softwareambience.Unclutter/Data/Library/Application Support/Unclutter/bookmarks.plist"
 unclutter_icloud="${HOME}/Library/Mobile Documents/com~apple~CloudDocs"
 
 # the container only exists once Unclutter has been launched at least once, and
@@ -20,11 +30,30 @@ unclutter_icloud="${HOME}/Library/Mobile Documents/com~apple~CloudDocs"
 # write somewhere that gets clobbered
 if [ ! -d "$(dirname "$unclutter_prefs")" ]; then
   warn "Unclutter: container missing — launch the app once, then re-run this script"
-elif pgrep -xq Unclutter; then
-  warn "Unclutter: running — quit it and re-run this script to apply the iCloud paths"
 else
-  mkdir -p "${unclutter_icloud}/Unclutter Notes" "${unclutter_icloud}/Unclutter Files"
-  defaults write "$unclutter_prefs" NotesFolder -string "${unclutter_icloud}/Unclutter Notes"
-  defaults write "$unclutter_prefs" FilesPath -string "${unclutter_icloud}/Unclutter Files"
-  success "Unclutter notes and files pointed at iCloud Drive"
+  if pgrep -xq Unclutter; then
+    warn "Unclutter: running — quit it and re-run this script to apply the iCloud paths"
+  else
+    mkdir -p "${unclutter_icloud}/Unclutter Notes" "${unclutter_icloud}/Unclutter Files"
+    defaults write "$unclutter_prefs" NotesFolder -string "${unclutter_icloud}/Unclutter Notes"
+    defaults write "$unclutter_prefs" FilesPath -string "${unclutter_icloud}/Unclutter Files"
+    success "Unclutter paths pointed at iCloud Drive"
+  fi
+
+  # the paths above are inert until the sandbox has been granted access, and the
+  # only way to grant it is by hand — so say so loudly rather than reporting OK
+  unclutter_unbookmarked=""
+  for key in Bookmark_NotesFolder Bookmark_Files; do
+    if ! plutil -extract "bookmarksData.${key}" raw -o /dev/null "$unclutter_bookmarks" >/dev/null 2>&1; then
+      unclutter_unbookmarked="${unclutter_unbookmarked} ${key#Bookmark_}"
+    fi
+  done
+
+  if [ -n "$unclutter_unbookmarked" ]; then
+    warn "Unclutter: no sandbox grant for:${unclutter_unbookmarked} — panels will show up empty"
+    warn "Unclutter: open Preferences › Notes and Files and re-pick the iCloud folders by hand"
+    warn "Unclutter: this is a one-time step per machine, it cannot be scripted"
+  else
+    success "Unclutter sandbox grants present"
+  fi
 fi
