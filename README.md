@@ -39,6 +39,57 @@ installer automatically 🤖:
       -i, --install  Runs installer
       -u, --update   Runs updater
 
+## The `harvest` command
+
+⏱ &nbsp;A terminal front-end for [Harvest](https://www.getharvest.com/) time tracking,
+so retroactive fixes don't mean clicking around the desktop app. It speaks plain
+language:
+
+    $ harvest "finished a 15 min standup, now back on project"
+    plan:
+      split      0:15  Internal / Meetings  "standup"
+      switch           project / Development
+    apply? [Y/n]
+
+    ⏸ Project / Development — api refactor  2:45 → 2:30 (-0:15)
+    + Internal / Meetings — standup  0:15
+    ▶ Project / Development  running
+
+Under the hood it's plain verbs, which are worth knowing since they're faster
+than a sentence:
+
+| Command | What it does |
+| --- | --- |
+| `harvest` / `harvest status` | What's running, plus today's total |
+| `harvest today [date]` | List a day's entries |
+| `harvest start <alias> [notes]` | Start a timer, stopping any running one |
+| `harvest stop` | Stop the running timer |
+| `harvest split <duration> <alias>` | Move time **out** of the running timer into another project |
+| `harvest trim <duration>` | Shorten the running timer, discarding the time |
+| `harvest log <duration> <alias>` | Add a finished entry, leaving the timer alone |
+| `harvest note <text>` | Rewrite the running timer's notes |
+| `harvest resume [alias]` | Restart today's most recent matching entry |
+| `harvest projects [query]` | Browse the indexed projects and tasks |
+| `harvest alias <name> <project>` | Point a short name at a project/task |
+
+`split` is the interesting one: it shortens the running entry and inserts the
+carved-out time as a separate entry, which is what "that last 15 minutes was
+actually a standup" really means. `trim` is its sibling for time that belongs
+nowhere — a timer left running through lunch.
+
+**Setup**: create a personal access token at
+[id.getharvest.com/developers](https://id.getharvest.com/developers), store it in
+the Keychain, then let it index your assigned projects:
+
+    security add-generic-password -s harvest-cli -a "$USER" -U -w
+    harvest setup --account-id <your account id>
+    harvest alias project Project
+
+Durations accept `15m`, `1h30`, `1.5h`, `0:45` or a bare `90`. The natural-language
+layer uses `ANTHROPIC_API_KEY` when set and otherwise shells out to the `claude`
+CLI, so it works with no extra credentials. The deterministic verbs never call a
+model at all.
+
 ## What's included
 
 Except for `utils/` and `scripts/` every folder is its self-containing

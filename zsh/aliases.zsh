@@ -36,3 +36,6 @@ alias enh="enhanced_command"
 
 # Godot is a .app bundle, so its binary is not on PATH
 alias godot="/Applications/Godot.app/Contents/MacOS/Godot"
+
+# Harvest time tracking (bin/harvest)
+alias hv="harvest"

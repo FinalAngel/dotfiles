@@ -1,0 +1,1302 @@
+#!/usr/bin/env -S uv run --script --quiet
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+"""harvest — drive Harvest time tracking from the terminal.
+
+Deterministic verbs do the time math; an optional natural-language layer only
+picks the verb and its arguments:
+
+    harvest status
+    harvest start project "api refactor"
+    harvest split 15m standup
+    harvest "finished a 15 min standup, now back on project"
+
+Config lives in ~/.config/harvest/, the API token in the macOS Keychain.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import difflib
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+API_ROOT = "https://api.harvestapp.com/v2"
+USER_AGENT = "dotfiles-harvest-cli (angelo.dini@divio.ch)"
+
+KEYCHAIN_SERVICE = "harvest-cli"
+KEYCHAIN_SERVICE_ANTHROPIC = "harvest-cli-anthropic"
+
+CONFIG_DIR = os.path.expanduser("~/.config/harvest")
+CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
+INDEX_PATH = os.path.join(CONFIG_DIR, "index.json")
+
+NL_MODEL_API = "claude-haiku-4-5-20251001"
+NL_MODEL_CLI = "haiku"
+
+
+# --------------------------------------------------------------------------- #
+# output
+# --------------------------------------------------------------------------- #
+
+_TTY = sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
+
+
+def _c(code: str, text: str) -> str:
+    return f"\033[{code}m{text}\033[0m" if _TTY else text
+
+
+def dim(t):
+    return _c("2", t)
+
+
+def bold(t):
+    return _c("1", t)
+
+
+def green(t):
+    return _c("32", t)
+
+
+def yellow(t):
+    return _c("33", t)
+
+
+def red(t):
+    return _c("31", t)
+
+
+def cyan(t):
+    return _c("36", t)
+
+
+def die(msg: str, hint: str | None = None) -> None:
+    print(f"{red('✗')} {msg}", file=sys.stderr)
+    if hint:
+        print(f"  {dim(hint)}", file=sys.stderr)
+    sys.exit(1)
+
+
+# --------------------------------------------------------------------------- #
+# credentials
+# --------------------------------------------------------------------------- #
+
+
+def harvest_token() -> str | None:
+    """The API token, from the environment for one-offs or the Keychain normally."""
+    return os.environ.get("HARVEST_ACCESS_TOKEN") or keychain_get(KEYCHAIN_SERVICE)
+
+
+def keychain_get(service: str) -> str | None:
+    try:
+        out = subprocess.run(
+            ["security", "find-generic-password", "-s", service, "-w"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return out.stdout.strip() or None
+    except subprocess.CalledProcessError:
+        return None
+
+
+def load_config() -> dict:
+    if not os.path.exists(CONFIG_PATH):
+        die(
+            "not configured yet",
+            "run: harvest setup",
+        )
+    with open(CONFIG_PATH) as fh:
+        return json.load(fh)
+
+
+def save_config(cfg: dict) -> None:
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(CONFIG_PATH, "w") as fh:
+        json.dump(cfg, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+
+
+def load_index() -> dict:
+    if not os.path.exists(INDEX_PATH):
+        return {"projects": [], "synced_at": None}
+    with open(INDEX_PATH) as fh:
+        return json.load(fh)
+
+
+def save_index(index: dict) -> None:
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(INDEX_PATH, "w") as fh:
+        json.dump(index, fh, indent=2)
+        fh.write("\n")
+
+
+# --------------------------------------------------------------------------- #
+# api
+# --------------------------------------------------------------------------- #
+
+
+class Api:
+    def __init__(self, token: str, account_id: str):
+        self.token = token
+        self.account_id = account_id
+
+    def __call__(
+        self, method: str, path: str, params: dict | None = None, body: dict | None = None
+    ) -> dict:
+        url = API_ROOT + path
+        if params:
+            pairs = [(k, v) for k, v in params.items() if v is not None]
+            url += "?" + urllib.parse.urlencode(pairs)
+
+        data = json.dumps(body).encode() if body is not None else None
+        req = urllib.request.Request(url, data=data, method=method)
+        req.add_header("Authorization", f"Bearer {self.token}")
+        req.add_header("Harvest-Account-Id", self.account_id)
+        req.add_header("User-Agent", USER_AGENT)
+        if data:
+            req.add_header("Content-Type", "application/json")
+
+        for attempt in range(4):
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    raw = resp.read()
+                    return json.loads(raw) if raw else {}
+            except urllib.error.HTTPError as exc:
+                if exc.code == 429 and attempt < 3:
+                    time.sleep(int(exc.headers.get("Retry-After", 5)))
+                    continue
+                detail = exc.read().decode(errors="replace")[:400]
+                if exc.code == 401:
+                    die(
+                        "Harvest rejected the token (401)",
+                        "re-run: harvest setup",
+                    )
+                die(f"Harvest API {method} {path} failed: {exc.code}", detail)
+            except urllib.error.URLError as exc:
+                if attempt < 3:
+                    time.sleep(2**attempt)
+                    continue
+                die(f"could not reach Harvest: {exc.reason}")
+        raise AssertionError("unreachable")
+
+
+def connect() -> tuple[Api, dict]:
+    cfg = load_config()
+    token = harvest_token()
+    if not token:
+        die(
+            f"no Harvest token in the Keychain (service '{KEYCHAIN_SERVICE}')",
+            "run: harvest setup",
+        )
+    api = Api(token, str(cfg["account_id"]))
+    if not cfg.get("user_id"):
+        # Every query is scoped by this, so it must never be missing.
+        cfg["user_id"] = api("GET", "/users/me")["id"]
+        save_config(cfg)
+    return api, cfg
+
+
+# --------------------------------------------------------------------------- #
+# durations & times
+# --------------------------------------------------------------------------- #
+
+
+def parse_minutes(text: str) -> int:
+    """Parse a human duration into whole minutes.
+
+    Accepts 15m, 1h, 1h30, 1h30m, 1.5h, 0:15, 90m and a bare 15 (minutes).
+    """
+    s = str(text).strip().lower().replace(" ", "")
+    if not s:
+        raise ValueError("empty duration")
+
+    if m := re.fullmatch(r"(\d+):([0-5]\d)", s):
+        return int(m.group(1)) * 60 + int(m.group(2))
+    if m := re.fullmatch(r"(\d+(?:\.\d+)?)h(?:(\d+)m?)?", s):
+        mins = float(m.group(1)) * 60
+        if m.group(2):
+            mins += int(m.group(2))
+        return int(round(mins))
+    if m := re.fullmatch(r"(\d+(?:\.\d+)?)m(?:in(?:ute)?s?)?", s):
+        return int(round(float(m.group(1))))
+    if m := re.fullmatch(r"(\d+(?:\.\d+)?)", s):
+        return int(round(float(m.group(1))))
+    raise ValueError(f"cannot read duration {text!r}")
+
+
+def fmt_minutes(mins: int) -> str:
+    sign = "-" if mins < 0 else ""
+    mins = abs(int(mins))
+    return f"{sign}{mins // 60}:{mins % 60:02d}"
+
+
+def fmt_hours(hours: float) -> str:
+    return fmt_minutes(int(round(float(hours or 0) * 60)))
+
+
+def hours_to_minutes(hours) -> int:
+    return int(round(float(hours or 0) * 60))
+
+
+def api_time(when: dt.datetime) -> str:
+    """Format a datetime the way the Harvest API expects, e.g. '9:15am'."""
+    return when.strftime("%I:%M%p").lstrip("0").lower()
+
+
+def parse_api_time(value: str | None, on_date: dt.date) -> dt.datetime | None:
+    """Parse a Harvest time-of-day ('9:15am' or '09:15') onto a given date."""
+    if not value:
+        return None
+    raw = str(value).strip().lower().replace(" ", "")
+    for fmt in ("%I:%M%p", "%H:%M"):
+        try:
+            parsed = dt.datetime.strptime(raw, fmt).time()
+            return dt.datetime.combine(on_date, parsed)
+        except ValueError:
+            continue
+    return None
+
+
+def parse_date(value: str | None) -> dt.date:
+    if not value or value in ("today", "now"):
+        return dt.date.today()
+    if value == "yesterday":
+        return dt.date.today() - dt.timedelta(days=1)
+    try:
+        return dt.date.fromisoformat(value)
+    except ValueError:
+        die(f"cannot read date {value!r}", "use YYYY-MM-DD, 'today' or 'yesterday'")
+
+
+def entry_date(entry: dict) -> dt.date:
+    return dt.date.fromisoformat(entry["spent_date"])
+
+
+# --------------------------------------------------------------------------- #
+# project / task index
+# --------------------------------------------------------------------------- #
+
+
+def sync_index(api: Api) -> dict:
+    """Pull every project/task the user may log to, preserving existing aliases."""
+    previous = {}
+    for proj in load_index().get("projects", []):
+        for task in proj.get("tasks", []):
+            if task.get("aliases"):
+                previous[(proj["project_id"], task["task_id"])] = task["aliases"]
+
+    page, projects = 1, []
+    while True:
+        data = api("GET", "/users/me/project_assignments", {"page": page, "per_page": 100})
+        for assignment in data.get("project_assignments", []):
+            if not assignment.get("is_active", True):
+                continue
+            project = assignment["project"]
+            client = assignment.get("client") or {}
+            tasks = []
+            for ta in assignment.get("task_assignments", []):
+                if not ta.get("is_active", True):
+                    continue
+                task = ta["task"]
+                tasks.append(
+                    {
+                        "task_id": task["id"],
+                        "task_name": task["name"],
+                        "aliases": previous.get((project["id"], task["id"]), []),
+                    }
+                )
+            if tasks:
+                projects.append(
+                    {
+                        "project_id": project["id"],
+                        "project_name": project["name"],
+                        "project_code": project.get("code") or "",
+                        "client_name": client.get("name") or "",
+                        "tasks": tasks,
+                    }
+                )
+        if page >= (data.get("total_pages") or 1):
+            break
+        page += 1
+
+    index = {"projects": projects, "synced_at": dt.datetime.now().isoformat(timespec="seconds")}
+    save_index(index)
+    return index
+
+
+def index_targets(index: dict) -> list[dict]:
+    """Flatten the index into one searchable record per project+task pair."""
+    out = []
+    for proj in index.get("projects", []):
+        for task in proj["tasks"]:
+            out.append(
+                {
+                    "project_id": proj["project_id"],
+                    "project_name": proj["project_name"],
+                    "client_name": proj.get("client_name", ""),
+                    "task_id": task["task_id"],
+                    "task_name": task["task_name"],
+                    "aliases": task.get("aliases", []),
+                    "label": f"{proj['project_name']} / {task['task_name']}",
+                }
+            )
+    return out
+
+
+def _norm(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", str(text).lower()).strip()
+
+
+def resolve_target(index: dict, query: str, interactive: bool = True) -> dict:
+    """Map a phrase onto exactly one project+task, asking if genuinely ambiguous."""
+    targets = index_targets(index)
+    if not targets:
+        die("project index is empty", "run: harvest sync")
+
+    q = _norm(query)
+    if not q:
+        die("no project given")
+
+    # 1. exact alias
+    exact = [t for t in targets if q in [_norm(a) for a in t["aliases"]]]
+    if len(exact) == 1:
+        return exact[0]
+    if len(exact) > 1:
+        return _choose(exact, query, interactive)
+
+    # 2. substring against alias / task / project / client
+    def haystacks(t):
+        return [_norm(a) for a in t["aliases"]] + [
+            _norm(t["task_name"]),
+            _norm(t["project_name"]),
+            _norm(t["client_name"]),
+            _norm(t["label"]),
+            _norm(f"{t['client_name']} {t['label']}"),
+        ]
+
+    subs = [t for t in targets if any(q and q in h for h in haystacks(t))]
+    if len(subs) == 1:
+        return subs[0]
+    if subs:
+        return _choose(subs, query, interactive)
+
+    # 3. every query word appears somewhere in the record
+    words = q.split()
+    loose = [t for t in targets if all(any(w in h for h in haystacks(t)) for w in words)]
+    if len(loose) == 1:
+        return loose[0]
+    if loose:
+        return _choose(loose, query, interactive)
+
+    # 4. fuzzy
+    scored = sorted(
+        targets,
+        key=lambda t: max(
+            difflib.SequenceMatcher(None, q, h).ratio() for h in haystacks(t) if h
+        ),
+        reverse=True,
+    )
+    best = max(
+        difflib.SequenceMatcher(None, q, h).ratio() for h in haystacks(scored[0]) if h
+    )
+    if best >= 0.82:
+        return scored[0]
+    return _choose(scored[:8], query, interactive)
+
+
+def _choose(options: list[dict], query: str, interactive: bool) -> dict:
+    if len(options) == 1:
+        return options[0]
+    if not interactive or not sys.stdin.isatty():
+        lines = "\n".join(f"    {o['label']}" for o in options[:8])
+        die(f"{query!r} matches {len(options)} project/task pairs", f"candidates:\n{lines}")
+
+    print(f"{yellow('?')} {bold(query)} could be:")
+    for i, opt in enumerate(options, 1):
+        alias = f"  {dim('(' + ', '.join(opt['aliases']) + ')')}" if opt["aliases"] else ""
+        client = dim(f"[{opt['client_name']}] ") if opt["client_name"] else ""
+        print(f"  {cyan(str(i))}. {client}{opt['label']}{alias}")
+    while True:
+        raw = input(f"  {dim('pick 1-' + str(len(options)) + ' (or q to abort): ')}").strip()
+        if raw.lower() in ("q", "quit", ""):
+            sys.exit(1)
+        if raw.isdigit() and 1 <= int(raw) <= len(options):
+            return options[int(raw) - 1]
+
+
+# --------------------------------------------------------------------------- #
+# time entry helpers
+# --------------------------------------------------------------------------- #
+
+
+def running_entry(api: Api, cfg: dict) -> dict | None:
+    """The caller's own running timer.
+
+    Scoping by user_id is not optional: managers and admins see the whole
+    company's entries, so an unscoped query happily returns a colleague's timer.
+    """
+    data = api(
+        "GET",
+        "/time_entries",
+        {"is_running": "true", "user_id": cfg["user_id"], "per_page": 1},
+    )
+    entries = data.get("time_entries", [])
+    entry = entries[0] if entries else None
+    return assert_mine(entry, cfg) if entry else None
+
+
+def entries_for(api: Api, cfg: dict, day: dt.date) -> list[dict]:
+    data = api(
+        "GET",
+        "/time_entries",
+        {
+            "from": day.isoformat(),
+            "to": day.isoformat(),
+            "user_id": cfg["user_id"],
+            "per_page": 100,
+        },
+    )
+    return [e for e in data.get("time_entries", []) if (e.get("user") or {}).get("id") == cfg["user_id"]]
+
+
+def assert_mine(entry: dict, cfg: dict) -> dict:
+    """Refuse to touch anyone else's time, whatever the API would permit."""
+    owner = (entry.get("user") or {}).get("id")
+    if owner is not None and owner != cfg["user_id"]:
+        name = (entry.get("user") or {}).get("name", "someone else")
+        die(
+            f"time entry {entry.get('id')} belongs to {name}, not you",
+            "refusing to modify another person's timesheet",
+        )
+    return entry
+
+
+def uses_timestamps(api: Api, cfg: dict) -> bool:
+    """Whether this Harvest account records start/end times rather than durations."""
+    if "wants_timestamp_timers" not in cfg:
+        company = api("GET", "/company")
+        cfg["wants_timestamp_timers"] = bool(company.get("wants_timestamp_timers"))
+        save_config(cfg)
+    return cfg["wants_timestamp_timers"]
+
+
+def describe(entry: dict) -> str:
+    project = (entry.get("project") or {}).get("name", "?")
+    task = (entry.get("task") or {}).get("name", "?")
+    notes = entry.get("notes") or ""
+    label = f"{project} / {task}"
+    return f"{label} {dim('— ' + notes)}" if notes else label
+
+
+def create_entry(
+    api: Api,
+    target: dict,
+    day: dt.date,
+    notes: str | None,
+    minutes: int | None = None,
+    started: dt.datetime | None = None,
+    ended: dt.datetime | None = None,
+) -> dict:
+    body = {
+        "project_id": target["project_id"],
+        "task_id": target["task_id"],
+        "spent_date": day.isoformat(),
+    }
+    if notes:
+        body["notes"] = notes
+    if started is not None:
+        body["started_time"] = api_time(started)
+        if ended is not None:
+            body["ended_time"] = api_time(ended)
+    elif minutes is not None:
+        body["hours"] = round(minutes / 60, 4)
+    return api("POST", "/time_entries", body=body)
+
+
+# --------------------------------------------------------------------------- #
+# operations
+# --------------------------------------------------------------------------- #
+
+
+def op_status(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    day = dt.date.today()
+    entries = entries_for(api, cfg, day)
+    total = sum(hours_to_minutes(e.get("hours")) for e in entries)
+    running = next((e for e in entries if e.get("is_running")), None)
+
+    if running:
+        print(f"{green('▶')} {describe(running)}  {bold(fmt_hours(running.get('hours')))}")
+    else:
+        print(f"{dim('■')} {dim('no timer running')}")
+    print(f"  {dim('today:')} {bold(fmt_minutes(total))} {dim(f'across {len(entries)} entries')}")
+
+
+def op_today(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    day = parse_date(args.get("date"))
+    entries = sorted(entries_for(api, cfg, day), key=lambda e: e.get("created_at") or "")
+    if not entries:
+        print(dim(f"no entries on {day.isoformat()}"))
+        return
+    for entry in entries:
+        mark = green("▶") if entry.get("is_running") else " "
+        window = ""
+        if entry.get("started_time"):
+            window = dim(f"  {entry['started_time']}–{entry.get('ended_time') or 'now'}")
+        print(f"{mark} {bold(fmt_hours(entry.get('hours'))):>6}  {describe(entry)}{window}")
+    total = sum(hours_to_minutes(e.get("hours")) for e in entries)
+    print(f"  {bold(fmt_minutes(total)):>6}  {dim('total')}")
+
+
+def op_stop(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    entry = running_entry(api, cfg)
+    if not entry:
+        print(dim("nothing running"))
+        return
+    stopped = api("PATCH", f"/time_entries/{entry['id']}/stop")
+    print(f"{yellow('⏸')} {describe(stopped)}  {bold(fmt_hours(stopped.get('hours')))}")
+
+
+def op_start(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    target = resolve_target(index, args["target"])
+    day = parse_date(args.get("date"))
+    stamps = uses_timestamps(api, cfg)
+
+    current = running_entry(api, cfg)
+    if current:
+        stopped = api("PATCH", f"/time_entries/{current['id']}/stop")
+        print(f"{yellow('⏸')} {describe(stopped)}  {bold(fmt_hours(stopped.get('hours')))}")
+
+    entry = create_entry(
+        api,
+        target,
+        day,
+        args.get("notes"),
+        started=dt.datetime.now() if stamps else None,
+        minutes=None,
+    )
+    print(f"{green('▶')} {describe(entry)}  {dim('running')}")
+
+
+def op_log(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    """Add a finished entry without touching the running timer."""
+    target = resolve_target(index, args["target"])
+    minutes = parse_minutes(args["duration"])
+    day = parse_date(args.get("date"))
+    stamps = uses_timestamps(api, cfg)
+
+    started = ended = None
+    if stamps:
+        if args.get("at"):
+            started = parse_api_time(args["at"], day)
+            if not started:
+                die(f"cannot read time {args['at']!r}", "use e.g. 9:15am or 09:15")
+        else:
+            started = dt.datetime.now() - dt.timedelta(minutes=minutes)
+        ended = started + dt.timedelta(minutes=minutes)
+
+    entry = create_entry(
+        api, target, day, args.get("notes"), minutes=minutes, started=started, ended=ended
+    )
+    print(f"{green('+')} {describe(entry)}  {bold(fmt_hours(entry.get('hours')))}")
+
+
+def op_split(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    """Carve a duration out of the running entry into an entry of its own.
+
+    This is the retroactive case: you were timing one thing, part of that time
+    actually belonged somewhere else.
+    """
+    minutes = parse_minutes(args["duration"])
+    current = running_entry(api, cfg)
+    if not current:
+        die(
+            "no timer is running, so there is nothing to split",
+            f"to add it standalone: harvest log {args['duration']} {args.get('target', '<project>')}",
+        )
+
+    target = resolve_target(index, args["target"])
+    day = entry_date(current)
+    stamps = uses_timestamps(api, cfg)
+    elapsed = hours_to_minutes(current.get("hours"))
+
+    if minutes >= elapsed:
+        die(
+            f"the running entry only has {fmt_minutes(elapsed)} on it, "
+            f"cannot take {fmt_minutes(minutes)} out of it",
+            "stop it and log the two entries separately instead",
+        )
+
+    before = fmt_minutes(elapsed)
+
+    if stamps:
+        started_at = parse_api_time(current.get("started_time"), day)
+        if not started_at:
+            die("running entry has no start time to work from")
+        boundary = dt.datetime.now() - dt.timedelta(minutes=minutes)
+        if boundary <= started_at:
+            die("the split would end the running entry before it started")
+        # Stop first, then move the end back: patching ended_time on a live
+        # timer is not reliably accepted, stopping always is.
+        api("PATCH", f"/time_entries/{current['id']}/stop")
+        shortened = api(
+            "PATCH", f"/time_entries/{current['id']}", body={"ended_time": api_time(boundary)}
+        )
+        carved = create_entry(
+            api,
+            target,
+            day,
+            args.get("notes"),
+            started=boundary,
+            ended=boundary + dt.timedelta(minutes=minutes),
+        )
+    else:
+        api("PATCH", f"/time_entries/{current['id']}/stop")
+        shortened = api(
+            "PATCH",
+            f"/time_entries/{current['id']}",
+            body={"hours": round((elapsed - minutes) / 60, 4)},
+        )
+        carved = create_entry(api, target, day, args.get("notes"), minutes=minutes)
+
+    after = fmt_hours(shortened.get("hours"))
+    print(f"{yellow('⏸')} {describe(shortened)}  {bold(before)} → {bold(after)} {dim(f'(-{fmt_minutes(minutes)})')}")
+    print(f"{green('+')} {describe(carved)}  {bold(fmt_hours(carved.get('hours')))}")
+
+
+def op_trim(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    """Shorten the running entry, discarding the time rather than moving it.
+
+    Unlike split, the time does not land anywhere — use this when a stretch was
+    simply not work, e.g. the timer ran through lunch.
+    """
+    minutes = parse_minutes(args["duration"])
+    current = running_entry(api, cfg)
+    if not current:
+        die("no timer is running, so there is nothing to trim")
+
+    elapsed = hours_to_minutes(current.get("hours"))
+    if minutes >= elapsed:
+        die(
+            f"the running entry only has {fmt_minutes(elapsed)} on it, "
+            f"cannot take {fmt_minutes(minutes)} off it",
+            "to discard it entirely, delete the entry in Harvest",
+        )
+
+    day = entry_date(current)
+    before = fmt_minutes(elapsed)
+    keep_running = not args.get("stop")
+
+    if uses_timestamps(api, cfg):
+        # Moving the start forward shortens it without interrupting the timer.
+        started_at = parse_api_time(current.get("started_time"), day)
+        if not started_at:
+            die("running entry has no start time to work from")
+        trimmed = api(
+            "PATCH",
+            f"/time_entries/{current['id']}",
+            body={"started_time": api_time(started_at + dt.timedelta(minutes=minutes))},
+        )
+    else:
+        api("PATCH", f"/time_entries/{current['id']}/stop")
+        trimmed = api(
+            "PATCH",
+            f"/time_entries/{current['id']}",
+            body={"hours": round((elapsed - minutes) / 60, 4)},
+        )
+        if keep_running:
+            trimmed = api("PATCH", f"/time_entries/{current['id']}/restart")
+
+    mark = green("▶") if trimmed.get("is_running") else yellow("⏸")
+    state = dim("still running") if trimmed.get("is_running") else dim("stopped")
+    print(
+        f"{mark} {describe(trimmed)}  {bold(before)} → {bold(fmt_hours(trimmed.get('hours')))} "
+        f"{dim(f'(-{fmt_minutes(minutes)})')}  {state}"
+    )
+
+
+def op_note(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    entry = running_entry(api, cfg)
+    if not entry:
+        die("nothing running to annotate")
+    updated = api("PATCH", f"/time_entries/{entry['id']}", body={"notes": args["notes"]})
+    print(f"{green('▶')} {describe(updated)}")
+
+
+def op_resume(api: Api, cfg: dict, index: dict, args: dict) -> None:
+    if running_entry(api, cfg):
+        die("a timer is already running", "stop it first: harvest stop")
+    entries = sorted(
+        entries_for(api, cfg, dt.date.today()), key=lambda e: e.get("updated_at") or "", reverse=True
+    )
+    if not entries:
+        die("no entries today to resume")
+    entry = entries[0]
+    if args.get("target"):
+        target = resolve_target(index, args["target"])
+        match = [
+            e
+            for e in entries
+            if (e.get("project") or {}).get("id") == target["project_id"]
+            and (e.get("task") or {}).get("id") == target["task_id"]
+        ]
+        if not match:
+            die(f"no entry for {target['label']} today to resume")
+        entry = match[0]
+    restarted = api("PATCH", f"/time_entries/{entry['id']}/restart")
+    print(f"{green('▶')} {describe(restarted)}  {dim('resumed')}")
+
+
+OPS = {
+    "status": op_status,
+    "today": op_today,
+    "start": op_start,
+    "switch": op_start,  # starting always stops whatever was running
+    "stop": op_stop,
+    "log": op_log,
+    "split": op_split,
+    "trim": op_trim,
+    "note": op_note,
+    "resume": op_resume,
+}
+
+
+# --------------------------------------------------------------------------- #
+# natural language layer
+# --------------------------------------------------------------------------- #
+
+NL_SYSTEM = """\
+You translate a short spoken-style sentence about time tracking into a JSON plan.
+
+Reply with JSON only, no prose and no code fences:
+{"ops": [ ... ], "clarify": null}
+
+Available ops, in the order they should run:
+- {"op":"split","duration":"15m","target":"<alias>","notes":"<short>"}
+    Move a duration OUT of the currently running timer and INTO another
+    project/task. Use this when the user says they just did something that was
+    running on the wrong clock ("just finished a 15 min standup"). Requires a
+    destination; if none is implied, use trim instead.
+- {"op":"trim","duration":"15m"}
+    Shorten the running timer and DISCARD the time — it lands nowhere. Use this
+    when no destination is named: "remove 15 minutes from the current entry",
+    "the timer ran through lunch, take an hour off". Never ask where the time
+    should go when the user did not imply it belongs somewhere; that is trim.
+- {"op":"switch","target":"<alias>","notes":"<short>"}
+    Stop whatever runs now and start a new timer. Use for "now working on X",
+    "continuing with X", "moving to X".
+- {"op":"start","target":"<alias>","notes":"<short>"}
+    Same as switch; prefer switch when something was already running.
+- {"op":"log","duration":"30m","target":"<alias>","notes":"<short>","at":"9:00am","date":"today"}
+    Add a finished entry WITHOUT touching the running timer. Use for purely
+    retroactive time ("I forgot to log an hour of review yesterday").
+    "at" and "date" are optional; omit them when unstated.
+- {"op":"stop"}
+- {"op":"note","notes":"<short>"}   Rewrite the notes on the running timer.
+- {"op":"status"} / {"op":"today"} / {"op":"resume"}
+
+Rules:
+- "target" MUST be copied verbatim from the Alias column of the index below,
+  never invented. If no alias plausibly fits, return an empty ops list and put a
+  single short question in "clarify".
+- "duration" uses forms like 15m, 45m, 1h, 1h30, 2h.
+- "notes" is a terse human label for the entry (e.g. "standup", "api refactor").
+  Omit it rather than padding it with filler.
+- A sentence often means two ops: finishing something (split) then moving on
+  (switch). Emit both, split first.
+- Never invent time that was not mentioned.
+"""
+
+
+def nl_index_prompt(index: dict) -> str:
+    lines = ["Alias | Project / Task | Client"]
+    for t in index_targets(index):
+        aliases = ", ".join(t["aliases"]) if t["aliases"] else _norm(t["task_name"])
+        lines.append(f"{aliases} | {t['label']} | {t['client_name']}")
+    return "\n".join(lines)
+
+
+def _llm_via_api(key: str, system: str, user: str) -> str:
+    body = {
+        "model": NL_MODEL_API,
+        "max_tokens": 1024,
+        "system": system,
+        "messages": [{"role": "user", "content": user}],
+    }
+    req = urllib.request.Request(
+        "https://api.anthropic.com/v1/messages", data=json.dumps(body).encode(), method="POST"
+    )
+    req.add_header("x-api-key", key)
+    req.add_header("anthropic-version", "2023-06-01")
+    req.add_header("content-type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            data = json.loads(resp.read())
+    except urllib.error.HTTPError as exc:
+        die(f"Anthropic API error {exc.code}", exc.read().decode(errors="replace")[:300])
+    return "".join(b.get("text", "") for b in data.get("content", []))
+
+
+def _llm_via_claude_cli(system: str, user: str) -> str:
+    cmd = [
+        "claude",
+        "-p",
+        user,
+        "--model",
+        NL_MODEL_CLI,
+        "--system-prompt",
+        system,
+        "--output-format",
+        "json",
+        "--strict-mcp-config",
+        "--disallowed-tools",
+        "Bash",
+        "Read",
+        "Write",
+        "Edit",
+        "WebFetch",
+        "WebSearch",
+        "Glob",
+        "Grep",
+        "Task",
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    except FileNotFoundError:
+        die(
+            "no natural-language backend available",
+            "set ANTHROPIC_API_KEY, or install the claude CLI",
+        )
+    if proc.returncode != 0:
+        die("claude CLI failed", (proc.stderr or proc.stdout)[:300])
+    try:
+        return json.loads(proc.stdout).get("result", "")
+    except json.JSONDecodeError:
+        return proc.stdout
+
+
+def plan_from_language(
+    phrase: str,
+    index: dict,
+    api: Api,
+    cfg: dict,
+    answered: list[tuple[str, str]] | None = None,
+) -> dict:
+    current = running_entry(api, cfg)
+    context = [f"Sentence: {phrase}", "", "Index:", nl_index_prompt(index), ""]
+    for question, answer in answered or []:
+        context.append(f"You asked: {question}")
+        context.append(f"They answered: {answer}")
+    if answered:
+        context.append("Use those answers; do not ask again.")
+        context.append("")
+    if current:
+        context.append(
+            f"Currently running: {describe(current)} "
+            f"({fmt_hours(current.get('hours'))} so far, started {current.get('started_time') or 'unknown'})"
+        )
+    else:
+        context.append("Currently running: nothing")
+    context.append(f"Today is {dt.date.today().isoformat()}, local time {api_time(dt.datetime.now())}.")
+    user = "\n".join(context)
+
+    key = os.environ.get("ANTHROPIC_API_KEY") or keychain_get(KEYCHAIN_SERVICE_ANTHROPIC)
+    raw = _llm_via_api(key, NL_SYSTEM, user) if key else _llm_via_claude_cli(NL_SYSTEM, user)
+
+    text = raw.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-z]*\n?|```$", "", text, flags=re.MULTILINE).strip()
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+    if not match:
+        die("could not understand that", f"model said: {text[:200]}")
+    try:
+        return json.loads(match.group(0))
+    except json.JSONDecodeError:
+        die("could not understand that", f"model said: {text[:200]}")
+
+
+REQUIRED_FIELDS = {
+    "split": ("duration", "target"),
+    "trim": ("duration",),
+    "log": ("duration", "target"),
+    "start": ("target",),
+    "switch": ("target",),
+    "note": ("notes",),
+}
+
+
+def validate_ops(ops: list[dict]) -> None:
+    """Reject a malformed plan up front, before anything is written to Harvest."""
+    for i, op in enumerate(ops, 1):
+        name = op.get("op")
+        if name not in OPS:
+            die(f"op {i} is {name!r}, which is not something I can do")
+        for field in REQUIRED_FIELDS.get(name, ()):
+            if not op.get(field):
+                die(f"op {i} ({name}) is missing {field!r}", "try rephrasing, or use the verbs directly")
+        if op.get("duration"):
+            try:
+                parse_minutes(op["duration"])
+            except ValueError as exc:
+                die(f"op {i} ({name}): {exc}")
+
+
+def preview_plan(ops: list[dict], index: dict) -> None:
+    print(bold("plan:"))
+    for op in ops:
+        name = op.get("op", "?")
+        bits = []
+        if op.get("duration"):
+            bits.append(fmt_minutes(parse_minutes(op["duration"])))
+        if op.get("target"):
+            try:
+                bits.append(resolve_target(index, op["target"], interactive=False)["label"])
+            except SystemExit:
+                bits.append(f"{op['target']} {dim('(will ask)')}")
+        if op.get("notes"):
+            bits.append(f'"{op["notes"]}"')
+        if op.get("at"):
+            bits.append(f"at {op['at']}")
+        if op.get("date"):
+            bits.append(op["date"])
+        print(f"  {cyan(name):<10} {'  '.join(bits)}")
+
+
+def confirm(prompt: str) -> bool:
+    if not sys.stdin.isatty():
+        return True
+    return input(f"{prompt} {dim('[Y/n] ')}").strip().lower() in ("", "y", "yes")
+
+
+def run_natural(phrase: str, assume_yes: bool) -> None:
+    api, cfg = connect()
+    index = load_index()
+    if not index.get("projects"):
+        die("project index is empty", "run: harvest sync")
+
+    # The model may need one detail before it can commit to a plan; answer it
+    # and re-plan rather than abandoning the command.
+    answered: list[tuple[str, str]] = []
+    for _ in range(3):
+        plan = plan_from_language(phrase, index, api, cfg, answered)
+        question = plan.get("clarify")
+        if not question or plan.get("ops"):
+            break
+        if not sys.stdin.isatty():
+            print(f"{yellow('?')} {question}", file=sys.stderr)
+            sys.exit(2)
+        print(f"{yellow('?')} {question}")
+        reply = input(f"  {dim('answer (or q to abort): ')}").strip()
+        if not reply or reply.lower() in ("q", "quit"):
+            print(dim("aborted"))
+            return
+        answered.append((question, reply))
+    else:
+        die("still not sure what you mean", "try the verbs directly: harvest --help")
+
+    ops = plan.get("ops") or []
+    if not ops:
+        die("that did not map onto any action", "try: harvest --help")
+    validate_ops(ops)
+
+    read_only = all(op.get("op") in ("status", "today") for op in ops)
+    if not read_only and not assume_yes:
+        preview_plan(ops, index)
+        if not confirm("apply?"):
+            print(dim("aborted"))
+            return
+
+    for op in ops:
+        name = op.get("op")
+        handler = OPS.get(name)
+        if not handler:
+            die(f"unknown operation {name!r} from the model")
+        handler(api, cfg, index, op)
+
+
+# --------------------------------------------------------------------------- #
+# setup & alias management
+# --------------------------------------------------------------------------- #
+
+
+def cmd_setup(args) -> None:
+    print(bold("Harvest CLI setup"))
+    print()
+    token = harvest_token()
+    if not token:
+        print(f"{red('✗')} no token in the Keychain.")
+        print()
+        print("  1. open https://id.getharvest.com/developers")
+        print("  2. create a personal access token")
+        print("  3. store it (paste the token when prompted, then press return):")
+        print()
+        print(cyan(f"     security add-generic-password -s {KEYCHAIN_SERVICE} \\"))
+        print(cyan(f"       -a $USER -w -U"))
+        print()
+        print("  then re-run: harvest setup")
+        sys.exit(1)
+    print(f"{green('✓')} token found in the Keychain")
+
+    account_id = args.account_id
+    if not account_id and os.path.exists(CONFIG_PATH):
+        with open(CONFIG_PATH) as fh:
+            account_id = json.load(fh).get("account_id")
+    if not account_id:
+        account_id = input("  Harvest account ID: ").strip()
+    if not account_id:
+        die("an account ID is required", "it is shown next to your token on id.getharvest.com")
+
+    api = Api(token, str(account_id))
+    me = api("GET", "/users/me")
+    company = api("GET", "/company")
+    cfg = {
+        "account_id": str(account_id),
+        "user_id": me["id"],
+        "user_name": f"{me.get('first_name', '')} {me.get('last_name', '')}".strip(),
+        "wants_timestamp_timers": bool(company.get("wants_timestamp_timers")),
+    }
+    save_config(cfg)
+    print(f"{green('✓')} authenticated as {bold(cfg['user_name'])} on {bold(company.get('name', '?'))}")
+    mode = "start/end timestamps" if cfg["wants_timestamp_timers"] else "durations"
+    print(f"{green('✓')} this account records time as {bold(mode)}")
+
+    index = sync_index(api)
+    targets = index_targets(index)
+    print(f"{green('✓')} indexed {bold(str(len(targets)))} project/task pairs")
+    print()
+    print(f"Next: give the ones you use short aliases, e.g.")
+    print(cyan('  harvest alias project "Project"'))
+    print(cyan('  harvest alias standup "Internal / Meetings"'))
+    print()
+    print(f"See everything with {cyan('harvest projects')}.")
+
+
+def cmd_sync(args) -> None:
+    api, _ = connect()
+    index = sync_index(api)
+    print(f"{green('✓')} indexed {bold(str(len(index_targets(index))))} project/task pairs")
+
+
+def cmd_projects(args) -> None:
+    index = load_index()
+    targets = index_targets(index)
+    if not targets:
+        die("project index is empty", "run: harvest sync")
+    query = " ".join(args.query) if args.query else ""
+    if query:
+        q = _norm(query)
+        targets = [
+            t
+            for t in targets
+            if q in _norm(f"{t['client_name']} {t['label']} {' '.join(t['aliases'])}")
+        ]
+    current_project = None
+    for t in targets:
+        if t["project_name"] != current_project:
+            current_project = t["project_name"]
+            client = dim(f"  [{t['client_name']}]") if t["client_name"] else ""
+            print(f"{bold(current_project)}{client}")
+        alias = f"  {green('← ' + ', '.join(t['aliases']))}" if t["aliases"] else ""
+        print(f"    {t['task_name']}{alias}")
+    if args.query and not targets:
+        print(dim(f"nothing matching {query!r}"))
+
+
+def cmd_alias(args) -> None:
+    index = load_index()
+    name = args.name.strip()
+    target = resolve_target(index, " ".join(args.target))
+    for proj in index["projects"]:
+        for task in proj["tasks"]:
+            aliases = task.setdefault("aliases", [])
+            same = (
+                proj["project_id"] == target["project_id"]
+                and task["task_id"] == target["task_id"]
+            )
+            if same:
+                if name not in aliases:
+                    aliases.append(name)
+            elif name in aliases:
+                aliases.remove(name)  # an alias points at exactly one pair
+    save_index(index)
+    print(f"{green('✓')} {bold(name)} → {target['label']}")
+
+
+def cmd_unalias(args) -> None:
+    index = load_index()
+    found = False
+    for proj in index["projects"]:
+        for task in proj["tasks"]:
+            if args.name in task.get("aliases", []):
+                task["aliases"].remove(args.name)
+                found = True
+    if not found:
+        die(f"no alias named {args.name!r}")
+    save_index(index)
+    print(f"{green('✓')} removed alias {bold(args.name)}")
+
+
+def cmd_aliases(args) -> None:
+    rows = [(a, t["label"]) for t in index_targets(load_index()) for a in t["aliases"]]
+    if not rows:
+        print(dim("no aliases yet — add one with: harvest alias <name> <project>"))
+        return
+    width = max(len(a) for a, _ in rows)
+    for alias, label in sorted(rows):
+        print(f"  {cyan(alias.ljust(width))}  {label}")
+
+
+# --------------------------------------------------------------------------- #
+# cli
+# --------------------------------------------------------------------------- #
+
+
+def _direct(op_name: str, **mapping):
+    """Build an argparse handler that forwards parsed args into an op."""
+
+    def handler(args):
+        api, cfg = connect()
+        index = load_index()
+        payload = {}
+        for key, attr in mapping.items():
+            value = getattr(args, attr, None)
+            if isinstance(value, list):
+                value = " ".join(value) or None
+            if value is not None:
+                payload[key] = value
+        OPS[op_name](api, cfg, index, payload)
+
+    return handler
+
+
+def build_parser() -> tuple[argparse.ArgumentParser, set[str]]:
+    p = argparse.ArgumentParser(
+        prog="harvest",
+        description="Drive Harvest time tracking from the terminal.",
+        epilog=(
+            'anything else is read as plain language, e.g.\n'
+            '  harvest "finished a 15 min standup, now back on project"'
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p.add_argument("-y", "--yes", action="store_true", help="skip the confirmation prompt")
+    sub = p.add_subparsers(dest="cmd")
+
+    sub.add_parser("status", help="show the running timer and today's total").set_defaults(
+        func=_direct("status")
+    )
+
+    today = sub.add_parser("today", help="list a day's entries")
+    today.add_argument("date", nargs="?", help="YYYY-MM-DD, 'yesterday' (default: today)")
+    today.set_defaults(func=_direct("today", date="date"))
+
+    start = sub.add_parser("start", help="start a timer (stops any running one)")
+    start.add_argument("target", help="alias or project/task fragment")
+    start.add_argument("notes", nargs="*", help="what you are doing")
+    start.set_defaults(func=_direct("start", target="target", notes="notes"))
+
+    sub.add_parser("stop", help="stop the running timer").set_defaults(func=_direct("stop"))
+
+    log = sub.add_parser("log", help="add a finished entry, leaving the timer alone")
+    log.add_argument("duration", help="15m, 1h30, 0:45 …")
+    log.add_argument("target", help="alias or project/task fragment")
+    log.add_argument("notes", nargs="*")
+    log.add_argument("--at", help="start time, e.g. 9:00am")
+    log.add_argument("--date", help="YYYY-MM-DD or 'yesterday'")
+    log.set_defaults(
+        func=_direct("log", duration="duration", target="target", notes="notes", at="at", date="date")
+    )
+
+    split = sub.add_parser(
+        "split", help="carve a duration out of the running timer into its own entry"
+    )
+    split.add_argument("duration", help="15m, 1h30, 0:45 …")
+    split.add_argument("target", help="alias or project/task fragment")
+    split.add_argument("notes", nargs="*")
+    split.set_defaults(
+        func=_direct("split", duration="duration", target="target", notes="notes")
+    )
+
+    trim = sub.add_parser(
+        "trim", help="shorten the running timer, discarding the time entirely"
+    )
+    trim.add_argument("duration", help="15m, 1h30, 0:45 …")
+    trim.add_argument(
+        "--stop", action="store_true", help="leave the timer stopped afterwards"
+    )
+    trim.set_defaults(func=_direct("trim", duration="duration", stop="stop"))
+
+    note = sub.add_parser("note", help="rewrite the notes on the running timer")
+    note.add_argument("notes", nargs="+")
+    note.set_defaults(func=_direct("note", notes="notes"))
+
+    resume = sub.add_parser("resume", help="restart today's most recent (or a matching) entry")
+    resume.add_argument("target", nargs="?")
+    resume.set_defaults(func=_direct("resume", target="target"))
+
+    setup = sub.add_parser("setup", help="authenticate and build the project index")
+    setup.add_argument("--account-id")
+    setup.set_defaults(func=cmd_setup)
+
+    sub.add_parser("sync", help="refresh the project/task index").set_defaults(func=cmd_sync)
+
+    projects = sub.add_parser("projects", help="list indexed projects and tasks")
+    projects.add_argument("query", nargs="*")
+    projects.set_defaults(func=cmd_projects)
+
+    alias = sub.add_parser("alias", help="point a short name at a project/task")
+    alias.add_argument("name")
+    alias.add_argument("target", nargs="+")
+    alias.set_defaults(func=cmd_alias)
+
+    unalias = sub.add_parser("unalias", help="remove an alias")
+    unalias.add_argument("name")
+    unalias.set_defaults(func=cmd_unalias)
+
+    sub.add_parser("aliases", help="list every alias").set_defaults(func=cmd_aliases)
+
+    return p, set(sub.choices)
+
+
+def main(argv: list[str]) -> None:
+    parser, known = build_parser()
+
+    argv = list(argv)
+    assume_yes = False
+    for flag in ("-y", "--yes"):
+        if flag in argv:
+            argv.remove(flag)
+            assume_yes = True
+
+    if not argv:
+        api, cfg = connect()
+        op_status(api, cfg, load_index(), {})
+        return
+
+    if argv[0] in known or argv[0] in ("-h", "--help"):
+        args = parser.parse_args(argv)
+        if not getattr(args, "func", None):
+            parser.print_help()
+            return
+        args.func(args)
+        return
+
+    run_natural(" ".join(argv), assume_yes)
+
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv[1:])
+    except KeyboardInterrupt:
+        print()
+        sys.exit(130)
