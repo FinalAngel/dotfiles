@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# Point the Notes and Files panels at iCloud Drive so both machines see the same
+# content. These are the only two stores Unclutter lets you relocate — the
+# clipboard history is deliberately left local.
+#
+# Unclutter is sandboxed and keeps no plist in ~/Library/Preferences, so the
+# domain has to be the full path inside its container. Writing the short domain
+# name silently creates an unread file instead.
+#
+# Sourced from both macos/defaults (install) and macos/update, because a second
+# machine that only ever runs `dotfiles -u` would otherwise keep its local paths
+# and never see the synced notes.
+
+unclutter_prefs="${HOME}/Library/Containers/com.softwareambience.Unclutter/Data/Library/Preferences/com.softwareambience.Unclutter"
+unclutter_icloud="${HOME}/Library/Mobile Documents/com~apple~CloudDocs"
+
+# the container only exists once Unclutter has been launched at least once, and
+# a running app rewrites its prefs from memory on quit — so skip rather than
+# write somewhere that gets clobbered
+if [ ! -d "$(dirname "$unclutter_prefs")" ]; then
+  warn "Unclutter: container missing — launch the app once, then re-run this script"
+elif pgrep -xq Unclutter; then
+  warn "Unclutter: running — quit it and re-run this script to apply the iCloud paths"
+else
+  mkdir -p "${unclutter_icloud}/Unclutter Notes" "${unclutter_icloud}/Unclutter Files"
+  defaults write "$unclutter_prefs" NotesFolder -string "${unclutter_icloud}/Unclutter Notes"
+  defaults write "$unclutter_prefs" FilesPath -string "${unclutter_icloud}/Unclutter Files"
+  success "Unclutter notes and files pointed at iCloud Drive"
+fi

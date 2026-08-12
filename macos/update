@@ -11,6 +11,10 @@ require_sudo
 # to record a rearranged Dock into the repo, run macos/dock-dump manually
 source "$DIR/macos/dock"
 
+# re-point Unclutter at iCloud Drive — this lives in the update path (not just
+# in macos/defaults) so a machine that only ever runs `dotfiles -u` picks it up
+source "$DIR/macos/unclutter"
+
 # update software — must run via sudo, otherwise softwareupdate asks for
 # the password itself (twice) and ignores the cached sudo credentials
 if sudo softwareupdate --install --all --force; then
