@@ -29,6 +29,7 @@ alias top="htop"
 
 # directories
 alias apps="cd /Applications"
+alias dg="cd $HOME/Sites/devguard"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
 alias lib="cd $HOME/Library"
