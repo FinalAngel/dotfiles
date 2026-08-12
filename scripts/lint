@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Syntax-checks every script in the repository. Runs locally the same way it
+# runs in CI, so a green badge means the same thing on both.
+#
+# Deliberately limited to syntax and error-level shellcheck findings: these
+# files install software and rewrite system state, so they cannot be executed
+# in CI. Catching an unbalanced quote before it lands on a machine is the
+# realistic win here.
+declare PARENT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
+
+# note: utils/index is not used here, its `set -e` would abort on the first
+# failing check instead of reporting every one of them
+source "$DIR/utils/messages"
+
+cd "$DIR" || exit 1
+
+declare -i failures=0
+
+check () {
+  local label="$1"; shift
+  if "$@" > /dev/null 2>&1; then
+    success "$label"
+  else
+    fail "$label"
+    # rerun without silencing so the actual error reaches the log
+    "$@" || true
+    failures+=1
+  fi
+}
+
+# collect the tracked files by language. the *.zsh files carry a bash shebang
+# in places but are only ever sourced by zsh, so the extension decides
+declare -a bash_files=() zsh_files=() ruby_files=()
+
+while IFS= read -r file; do
+  case "$file" in
+    *.zsh|zsh/zshrc.symlink)
+      zsh_files+=("$file")
+      continue
+      ;;
+    *.symlink)
+      continue
+      ;;
+  esac
+
+  case "$(head -1 "$file" 2>/dev/null)" in
+    *bash) bash_files+=("$file") ;;
+    *ruby) ruby_files+=("$file") ;;
+  esac
+done < <(git ls-files)
+
+info "Lint \033[0;37m[bash]\033[0m"
+for file in "${bash_files[@]}"; do
+  check "$file" bash -n "$file"
+done
+
+info "Lint \033[0;37m[zsh]\033[0m"
+for file in "${zsh_files[@]}"; do
+  check "$file" zsh -n "$file"
+done
+
+info "Lint \033[0;37m[ruby]\033[0m"
+for file in "${ruby_files[@]}"; do
+  check "$file" ruby -c "$file"
+done
+# the Brewfile is a ruby DSL, so it parses like one
+check "homebrew/Brewfile" ruby -c homebrew/Brewfile
+
+info "Lint \033[0;37m[python]\033[0m"
+# parsed rather than py_compile'd, which would litter the repo with __pycache__
+check "bin/harvest" python3 -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())' bin/harvest
+
+info "Lint \033[0;37m[shellcheck]\033[0m"
+if type shellcheck > /dev/null 2>&1; then
+  # error level only. the warning level flags intentional choices here, such
+  # as utils/constants declaring values that are consumed by sourcing scripts
+  # SC1091 is excluded because sourced paths resolve at runtime, not lint time
+  check "shellcheck" shellcheck -S error -e SC1091 "${bash_files[@]}"
+else
+  warn "shellcheck not installed, skipped"
+fi
+
+empty
+if [ "$failures" -gt 0 ]; then
+  fail "$failures check(s) failed"
+  empty
+  exit 1
+fi
+
+success "All checks passed"
+empty

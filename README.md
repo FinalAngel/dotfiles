@@ -1,5 +1,7 @@
 # Angelo's dotfiles
 
+[![CI](https://github.com/finalangel/dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/finalangel/dotfiles/actions/workflows/ci.yml)
+
 ![Dotfiles preview](https://raw.githubusercontent.com/finalangel/dotfiles/master/preview.png)
 
 🤗 &nbsp;These dotfiles help me to set up and maintain my macOS or Linux installations.
@@ -17,6 +19,8 @@ fresh installation is recommended. Use at your own risk.
 
 **macOS notes**: Make sure to install the Xcode Command Line Tools by running
 `xcode-select --install` first, then log into iCloud and the Apple App Store.
+The installer asks for your admin password once up front — Rosetta, Homebrew
+casks, FileVault and the `/etc/hosts` symlink all need it later on.
 
 The following command will install the dotfiles into `~/.dotfiles` and runs the
 installer automatically 🤖:
@@ -39,86 +43,56 @@ installer automatically 🤖:
       -i, --install  Runs installer
       -u, --update   Runs updater
 
-## The `harvest` command
-
-⏱ &nbsp;A terminal front-end for [Harvest](https://www.getharvest.com/) time tracking,
-so retroactive fixes don't mean clicking around the desktop app. It speaks plain
-language:
-
-    $ harvest "finished a 15 min standup, now back on project"
-    plan:
-      split      0:15  Internal / Meetings  "standup"
-      switch           project / Development
-    apply? [Y/n]
-
-    ⏸ Project / Development — api refactor  2:45 → 2:30 (-0:15)
-    + Internal / Meetings — standup  0:15
-    ▶ Project / Development  running
-
-Under the hood it's plain verbs, which are worth knowing since they're faster
-than a sentence:
-
-| Command | What it does |
-| --- | --- |
-| `harvest` / `harvest status` | What's running, plus today's total |
-| `harvest today [date]` | List a day's entries |
-| `harvest start <alias> [notes]` | Start a timer, stopping any running one |
-| `harvest stop` | Stop the running timer |
-| `harvest split <duration> <alias>` | Move time **out** of the running timer into another project |
-| `harvest trim <duration>` | Shorten the running timer, discarding the time |
-| `harvest log <duration> <alias>` | Add a finished entry, leaving the timer alone |
-| `harvest note <text>` | Rewrite the running timer's notes |
-| `harvest resume [alias]` | Restart today's most recent matching entry |
-| `harvest projects [query]` | Browse the indexed projects and tasks |
-| `harvest alias <name> <project>` | Point a short name at a project/task |
-
-`split` is the interesting one: it shortens the running entry and inserts the
-carved-out time as a separate entry, which is what "that last 15 minutes was
-actually a standup" really means. `trim` is its sibling for time that belongs
-nowhere — a timer left running through lunch.
-
-**Setup**: create a personal access token at
-[id.getharvest.com/developers](https://id.getharvest.com/developers), store it in
-the Keychain, then let it index your assigned projects:
-
-    security add-generic-password -s harvest-cli -a "$USER" -U -w
-    harvest setup --account-id <your account id>
-    harvest alias project Project
-
-Durations accept `15m`, `1h30`, `1.5h`, `0:45` or a bare `90`. The natural-language
-layer uses `ANTHROPIC_API_KEY` when set and otherwise shells out to the `claude`
-CLI, so it works with no extra credentials. The deterministic verbs never call a
-model at all.
+`dotfiles -u` is the one that matters day to day: it pulls this repository,
+then runs every topic's `update` script — Homebrew, npm globals, `uv` tools,
+tmux plugins, fonts, the Dock layout and macOS software updates.
 
 ## What's included
 
-Except for `utils/` and `scripts/` every folder is its self-containing
-**topic/** providing an `install` and `update` script. You can easily disable
-individual **topics/** by commenting the lines in `scripts/`. On top of that:
+Except for `bin/`, `scripts/` and `utils/`, every top-level folder is a
+self-contained **topic** providing an `install` and `update` script. You can
+easily disable individual topics by commenting the lines in `scripts/`. On top
+of that:
 
-- every `aliases.zsh`, `paths.zsh` and `functions.zsh` file in **topics/** is automatically loaded
-- every `.symlink` file in **topics/** will be mapped to `~/.[filename]`
+- every `aliases.zsh`, `paths.zsh` and `functions.zsh` file in a topic is automatically loaded
+- every `.symlink` file in a topic will be mapped to `~/.[filename]`
 - everything in the `bin/` folder gets automatically added to your `$PATH`
 
 The following package flavours are installed:
 
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
-- [Git with GPG signing](https://gnupg.org/) enabled
+- [Git with GPG signing](https://gnupg.org/) enabled, plus [delta](https://github.com/dandavison/delta) as the diff pager
 - [Homebrew](https://brew.sh/) with cask and mas
 - [Neovim](https://neovim.io/)
 - [Node with fnm](https://github.com/Schniz/fnm) manager
 - [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh)
-- [Python with pyenv](https://virtualenv.pypa.io/en/latest/) and virtualenv
+- [Python with uv](https://github.com/astral-sh/uv) and [pyenv](https://github.com/pyenv/pyenv)
 - [Starship](https://starship.rs/) 🚀
-- [VSCode](https://code.visualstudio.com/) and plugins
+- [tmux](https://github.com/tmux/tmux) with [TPM](https://github.com/tmux-plugins/tpm) and an agent sidebar
+- [Zed](https://zed.dev/) and [iTerm2](https://iterm2.com/) with their settings
+
+A few things are kept in sync across machines rather than installed:
+
+- **Claude** config (`~/.claude`, `~/.agents`) lives in iCloud and is symlinked into place, so settings, memory, skills and hooks follow both machines
+- **Private files** (secrets, `.pypirc`, tmuxinator projects) are linked out of iCloud too, which keeps them out of this public repository
+- **The Dock** is declared in `macos/Dockfile` and reapplied on every update; `macos/dock-dump` regenerates it from the current Dock
+- **Dark mode** re-themes a running tmux server automatically through a `dark-notify` launch agent
 
 ## Contributions
 
 🐛 &nbsp;Feel free to send me pull requests if something is misconfigured or could be
 enhanced upon. These are very personal, but if they work for others as well,
-the more, the merrier. I generally still want to improve on:
+the more, the merrier.
 
-- Adding [tests](https://github.com/webpro/dotfiles/tree/master/test) would be nice :)
+`scripts/lint` syntax-checks every bash, zsh, ruby and python file in the
+repository and runs on each push through GitHub Actions — the badge at the top
+reflects it. Run it locally before opening a pull request:
+
+    ./scripts/lint
+
+I generally still want to improve on:
+
+- Adding real [tests](https://github.com/webpro/dotfiles/tree/master/test) beyond linting would be nice :)
 
 ## Credits
 
