@@ -8,18 +8,29 @@
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
   // "soft_wrap": "editor_width",
+  "edit_predictions": {
+    "mode": "eager"
+  },
+  "agent_servers": {
+    "claude-acp": {
+      "type": "registry",
+      "default_model": "claude-opus-5"
+    }
+  },
   "cli_default_open_behavior": "existing_window",
   "collaboration_panel": {
     "dock": "left"
   },
   "agent": {
+    "tool_permissions": {
+      "default": "allow"
+    },
     "dock": "right",
     "default_profile": "write",
     "default_model": {
       "provider": "anthropic",
-      "model": "claude-sonnet-4-5-latest"
+      "model": "claude-opus-5"
     },
-    "always_allow_tool_actions": true,
     "default_width": 240
   },
   "buffer_font_family": "Fira Code",
@@ -60,19 +71,42 @@
     "dock": "left",
     "default_width": 240
   },
-  "notification_panel": {
-    "default_width": 240
-  },
+  "format_on_save": "on",
+  "lsp_document_colors": "none",
+  // Specifying this key replaces Zed's defaults, so the VCS/OS entries
+  // below are re-listed rather than inherited.
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/.jj",
+    "**/CVS",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "**/.classpath",
+    "**/.settings",
+    "**/node_modules",
+    "**/.next",
+    "**/.turbo",
+    "**/dist",
+    "**/build",
+    "**/.venv",
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "**/.mypy_cache",
+    "**/.ruff_cache"
+  ],
   "languages": {
     "CSS": {
-      "language_servers": ["tailwindcss-language-server"]
+      // "..." keeps Zed's default CSS servers; listing only tailwind
+      // would disable vscode-css-language-server.
+      "language_servers": ["tailwindcss-language-server", "..."]
     }
   },
   "context_servers": {
     "next-devtools": {
-      "source": "custom",
       "command": "npx",
-      "args": ["-y", "next-devtools-mcp@latest"]
+      "args": ["-y", "next-devtools-mcp@0.4.0"]
     }
   }
 }
