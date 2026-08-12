@@ -101,7 +101,7 @@ cask "zoom"
 cask "antigravity-cli" # replaces the deprecated gemini-cli formula
 cask "arduino-ide"
 cask "godot"
-cask "google-cloud-sdk" # gcloud, needed by the Google Analytics MCP server
+cask "gcloud-cli" # gcloud, needed by the Google Analytics MCP server; renamed upstream from google-cloud-sdk
 
 # media & creative
 cask "ableton-live-standard"
