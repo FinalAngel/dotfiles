@@ -44,6 +44,26 @@ link_icloud_dir ".agents"
 link_icloud_dir ".claude"
 link_icloud_dir ".claude-devguard"
 
+# the devguard profile (CLAUDE_CONFIG_DIR=~/.claude-devguard) has its own
+# skills dir, so personal skills from .agents are linked in individually;
+# same relative-path trick as .claude/skills — .agents sits next to
+# .claude-devguard both in iCloud and locally
+if [ -d "$HOME/.agents/skills" ]; then
+  mkdir -p "$HOME/.claude-devguard/skills"
+
+  # prune broken links left behind by renames or old machines
+  find "$HOME/.claude-devguard/skills" -maxdepth 1 -type l ! -exec test -e {} \; -delete
+
+  for skill in "$HOME/.agents/skills"/*/; do
+    name="$(basename "$skill")"
+    dst="$HOME/.claude-devguard/skills/$name"
+    if [ ! -e "$dst" ]; then
+      ln -s "../../.agents/skills/$name" "$dst"
+    fi
+  done
+  success "Claude devguard skills linked"
+fi
+
 # ~/.claude.json is rewritten atomically (write + rename), which would
 # replace a symlink with a plain file — so it is copied instead:
 # restored here when missing, backed up on every update

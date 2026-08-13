@@ -33,7 +33,6 @@ Desktop.ini
 # work
 .aldryn
 .divio
-data/
 data.tar.gz
 
 **/.claude/settings.local.json
