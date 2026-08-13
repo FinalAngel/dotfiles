@@ -190,7 +190,7 @@
 	name = Angelo Dini
 	email = angelo.dini@divio.ch
 [safe]
-	directory = /Users/finalangel/Sites/actions-runner/_work/devguard/devguard
+	directory = ~/Sites/actions-runner/_work/devguard/devguard
 
 # use delta as the diff pager
 [core]
