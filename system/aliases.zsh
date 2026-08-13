@@ -45,7 +45,7 @@ alias code="zed"
 
 # helper
 alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info|\.tox|\.coverage$)' | xargs rm -rf"
-copyssh() { pbcopy < "$HOME/.ssh/id_ed25519.pub" 2>/dev/null || pbcopy < "$HOME/.ssh/id_rsa.pub" }
+copyssh() { pbcopy < "$HOME/.ssh/id_rsa.pub" }
 alias listgpg="gpg --list-secret-keys --keyid-format LONG"
 copygpg() { gpg --armor --export "$1" | pbcopy }
 alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
