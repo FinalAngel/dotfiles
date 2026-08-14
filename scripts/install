@@ -21,6 +21,7 @@ source "$DIR/zed/install"
 source "$DIR/tmux/install"
 source "$DIR/iterm2/install"
 source "$DIR/claude/install"
+source "$DIR/herdr/install"
 source "$DIR/fonts/install"
 
 # system specific installs

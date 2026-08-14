@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[herdr]\033[0m"
+
+# the installer drops a single binary into ~/.local/bin, which is not on the
+# path yet on a fresh machine — check the file rather than the command
+if [ -x "${HERDR_INSTALL_DIR:-$HOME/.local/bin}/herdr" ]; then
+  # already there, the updater pulls the latest release
+  source "$DIR/herdr/update"
+else
+  curl -fsSL https://herdr.dev/install.sh | sh > /dev/null 2>&1
+  success "Herdr successfully installed"
+fi

@@ -17,6 +17,7 @@ prepend_path "/sbin"
 prepend_path "/usr/sbin"
 prepend_path "/usr/local/sbin"
 prepend_path "$HOME/.dotfiles/bin"
+prepend_path "$HOME/.local/bin"
 
 # homebrew
 eval "$(/opt/homebrew/bin/brew shellenv)"

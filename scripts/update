@@ -29,6 +29,7 @@ source "$DIR/zed/update"
 source "$DIR/tmux/update"
 source "$DIR/iterm2/update"
 source "$DIR/claude/update"
+source "$DIR/herdr/update"
 source "$DIR/fonts/update"
 
 # system specific installs

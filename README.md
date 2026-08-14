@@ -62,6 +62,7 @@ The following package flavours are installed:
 
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
 - [Git with GPG signing](https://gnupg.org/) enabled, plus [delta](https://github.com/dandavison/delta) as the diff pager
+- [herdr](https://herdr.dev/) installed into `~/.local/bin`
 - [Homebrew](https://brew.sh/) with cask and mas
 - [Neovim](https://neovim.io/)
 - [Node with fnm](https://github.com/Schniz/fnm) manager
