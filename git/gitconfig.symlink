@@ -188,9 +188,12 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
-[user]
-	name = Angelo Dini
-	email = angelo.dini@divio.ch
+# no [user] block here on purpose: the identity is per machine and lives in
+# ~/.gitconfig.local, which git/install generates and the [include] at the top
+# of this file pulls in. A [user] block here would appear later in the file
+# than that include and silently win, which is exactly what it used to do —
+# and it put a personal address in a public repository besides.
+
 [safe]
 	directory = ~/Sites/actions-runner/_work/devguard/devguard
 

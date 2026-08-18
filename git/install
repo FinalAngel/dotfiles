@@ -59,13 +59,25 @@ if ! [ -f "$DIR/git/gitconfig.local.symlink" ]; then
   read -e git_authorname
   user "Enter your git author email:"
   read -e git_authoremail
+  # github.user is the account name, not the person's name — tooling that reads
+  # it uses it to build api and clone urls
+  user "Enter your github username:"
+  read -e git_githubuser
 
-  sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s|GIT_CREDENTIAL_HELPER|$git_credential|g" "$DIR/git/gitconfig.local.symlink.example" > "$DIR/git/gitconfig.local.symlink"
+  sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s/GITHUBUSER/$git_githubuser/g" -e "s|GIT_CREDENTIAL_HELPER|$git_credential|g" "$DIR/git/gitconfig.local.symlink.example" > "$DIR/git/gitconfig.local.symlink"
 
   success "Git successfully configured"
 else
   success "Git already configured, remove ~/.dotfiles/gitconfig.local.symlink to recreate"
 fi
+
+# link it here rather than leaving it to create_symlinks. That runs from
+# system/install, several topics earlier, so on a fresh machine the file does
+# not exist yet when it looks — ~/.gitconfig.local was then never created, the
+# [include] in gitconfig resolved to nothing, and the identity just entered
+# above was silently ignored until the next run.
+force_link "$DIR/git/gitconfig.local.symlink" "$HOME/.gitconfig.local"
+success "Linked ~/.gitconfig.local"
 
 # setup GPG for signing git commits
 if ! is_executable "gpg"; then
