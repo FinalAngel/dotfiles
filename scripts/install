@@ -38,5 +38,5 @@ source "$DIR/fonts/install"
 # system specific installs
 source "$DIR/$DOTFILES_OS/install"
 
-# info "👉 Installation finished"
-# echo ""
+info "👉 Installation finished"
+echo ""
