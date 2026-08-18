@@ -3,9 +3,41 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[linux]\033[0m"
 
-# Only the tools linux/tooling installed into $HOME are updated here. System
-# packages are left to the machine's own package manager on purpose — see
-# linux/install for why.
+# Pick up anything newly declared in linux/packages, the way `brew bundle` does
+# on the mac — adding a line there and running `dotfiles -u` is enough.
+declare -a NEW_PACKAGES=()
+while IFS= read -r package; do
+  NEW_PACKAGES+=("$package")
+done < <(missing_packages "$DIR/linux/packages")
+
+if [ ${#NEW_PACKAGES[@]} -gt 0 ]; then
+  install_packages "${NEW_PACKAGES[@]}" || true
+fi
+
+# Upgrade the installed packages. This is the counterpart to `brew upgrade` and
+# `softwareupdate --install --all` in macos/update, which run on every single
+# `dotfiles -u` — drop this block if you would rather own that yourself.
+#
+# Skipped without sudo rather than prompting for it: there is nothing to
+# install at this point, and a password prompt for a routine upgrade on a box
+# you may not administer is the wrong default.
+if is_executable "apt-get" && sudo -n true 2>/dev/null; then
+  if sudo apt-get update -qq > /dev/null 2>&1; then
+    if sudo env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq > /dev/null 2>&1; then
+      success "Upgraded system packages"
+    else
+      warn "Some packages could not be upgraded, run 'sudo apt upgrade' to see why"
+    fi
+    sudo env DEBIAN_FRONTEND=noninteractive apt-get autoremove -y -qq > /dev/null 2>&1 || true
+  else
+    warn "Could not refresh the package lists, upgrade skipped"
+  fi
+elif is_executable "apt-get"; then
+  info "No cached sudo, system upgrade skipped — run 'sudo apt upgrade' yourself"
+fi
+
+# The rest are the $HOME-local tools from linux/tooling. System packages are
+# handled above; these have no distribution package worth using.
 
 if is_executable "uv"; then
   # uv ships its own updater, which is a no-op when already current

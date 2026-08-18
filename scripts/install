@@ -6,8 +6,10 @@ declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 source "$DIR/utils/index"
 
 # ask for the password up front — rosetta, homebrew casks, FileVault and the
-# hosts symlink all need it later on. nothing on the linux path shells out to
-# sudo, so it is never asked for there
+# hosts symlink all need it later on, and a prompt appearing mid-run reads as a
+# hang. linux asks later and only if it has to: the one step that needs sudo
+# there is installing missing packages, which is a no-op on every run after the
+# first, so asking up front would be a password prompt for nothing
 if is_macos; then
   require_sudo
 fi

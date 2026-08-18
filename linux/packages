@@ -1,0 +1,54 @@
+# Declared system packages — the linux counterpart to homebrew/Brewfile.
+#
+# Format per line is "probe[|probe...]:package".
+#
+#   probe    what gets tested to decide whether the package is already there.
+#            A bare word is looked up as a command; a value starting with "/"
+#            is tested as a file. Several alternatives can be separated by "|",
+#            which is how the Debian-renamed binaries are handled (bat ships as
+#            batcat, fd-find as fdfind).
+#   package  what the package manager is asked to install.
+#
+# The two halves are listed separately because neither can be derived from the
+# other: nvim comes from neovim, delta from git-delta, fd from fd-find.
+#
+# Only missing entries are installed, so re-running is cheap and silent.
+
+# core
+git:git
+curl:curl
+wget:wget
+gpg:gnupg
+
+# shell. the two zsh plugins have no binary of their own — zshrc sources them
+# by path, so that same path is what gets probed
+zsh:zsh
+/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh:zsh-syntax-highlighting
+/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh:zsh-autosuggestions
+
+# terminal
+tmux:tmux
+nvim:neovim
+htop:htop
+tree:tree
+fzf:fzf
+
+# git. delta is not optional: gitconfig sets it as core.pager, so git paging
+# breaks outright without it
+delta:git-delta
+
+# development
+direnv:direnv
+jq:jq
+
+# modern cli replacements
+bat|batcat:bat
+eza:eza
+fd|fdfind:fd-find
+
+# clipboard, used by clipboard() in linux/functions.zsh
+xclip:xclip
+
+# required by the $HOME tooling installers in linux/tooling — fnm's install
+# script checks for unzip up front and refuses to run without it
+unzip:unzip

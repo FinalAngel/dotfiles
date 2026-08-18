@@ -7,8 +7,9 @@ source "$DIR/utils/index"
 
 # ask for the password up front — homebrew casks and softwareupdate both need
 # it later on, and prompting mid-run reads as a hang; skip when there is no
-# tty to prompt on (non-interactive runs would hang or fail in sudo instead),
-# and on linux, where nothing in the update path uses sudo
+# tty to prompt on (non-interactive runs would hang or fail in sudo instead).
+# linux handles its own sudo in linux/update, lazily and only when a package is
+# actually missing
 if is_macos && [ -t 0 ]; then
   require_sudo
 fi

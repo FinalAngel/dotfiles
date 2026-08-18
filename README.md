@@ -22,17 +22,28 @@ fresh installation is recommended. Use at your own risk.
 The installer asks for your admin password once up front — Rosetta, Homebrew
 casks, FileVault and the `/etc/hosts` symlink all need it later on.
 
-**Linux notes**: Linux is treated as a headless *configuration* target, not a
-provisioning one. The installer never calls a package manager and never asks
-for sudo — on the boxes this runs on, the packages usually belong to somebody
-else. It configures the shell, git, tmux, vim, node and python, and installs
-only the tooling that lives inside `$HOME` (`fnm`, `uv`, `starship`,
-oh-my-zsh, TPM, vim-plug, herdr). Anything else it expects is reported at the
-end of the run with the exact `apt install` line to fix it, so you can install
-it yourself:
+**Linux notes**: Linux is headless — no GUI applications, no casks — but it
+does provision its own command line. `linux/packages` is the counterpart to the
+Brewfile: a declared list of system packages, installed with `apt` when
+missing. Tools with no distribution package worth using (`fnm`, `uv`,
+`starship`) are installed into `$HOME` instead, alongside oh-my-zsh, TPM,
+vim-plug and herdr.
 
-    [WARN] Missing required packages: neovim git-delta
+Sudo is asked for **only when a package is actually missing**, which is the
+first run and nothing after it. Where sudo is unavailable — a container, or a
+box you do not administer — nothing fails: the run reports what is missing and
+carries on.
+
+    [WARN] Still missing: neovim git-delta
     [ .. ]   sudo apt install neovim git-delta
+
+`dotfiles -u` also upgrades installed packages, mirroring what `brew upgrade`
+and `softwareupdate` already do on the mac. That block sits on its own in
+`linux/update` and is easy to remove if you would rather own upgrades
+yourself; it is skipped silently when there is no cached sudo.
+
+Only `apt` is implemented. Other package managers get the report and the
+matching install line, not an automatic install.
 
 Applications, fonts, iTerm2, the Dock and the iCloud-synced config are macOS
 concerns and skip themselves with a message. If you have no iCloud Drive,
@@ -82,7 +93,8 @@ shell, and `resolvectl` out of a mac. Topics that only make sense on one side
 (Homebrew, iTerm2, fonts, the iCloud sync) guard themselves and report a skip
 rather than being left out of the list.
 
-The following package flavours are installed **on macOS**:
+The macOS package list lives in `homebrew/Brewfile`, the Linux one in
+`linux/packages`. The following package flavours are installed **on macOS**:
 
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
 - [Git with GPG signing](https://gnupg.org/) enabled, plus [delta](https://github.com/dandavison/delta) as the diff pager

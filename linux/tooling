@@ -1,14 +1,29 @@
 #!/usr/bin/env bash
 source "$DIR/utils/index"
 
-# Linux counterpart to the homebrew slot in scripts/install: the handful of
-# tools these dotfiles genuinely depend on, installed into $HOME.
+# Linux counterpart to the homebrew slot in scripts/install, in two halves:
+# the system packages declared in linux/packages, then the handful of tools
+# that have no distribution package worth using and install into $HOME.
 #
-# System packages are deliberately not touched. Every installer used here drops
-# a single binary under ~/.local/bin, needs no sudo and no package manager, so
-# this stays safe to run on a box whose packages belong to somebody else.
+# This runs here, early, rather than from linux/install at the end of the run,
+# because the topics in between need what it provides — zsh/install needs zsh,
+# vim/install needs neovim, node and python need fnm and uv.
 if ! is_linux; then
   return 0
+fi
+
+info "Setup \033[0;37m[packages]\033[0m"
+
+# only the missing ones, so a second run neither prompts nor prints noise
+declare -a PACKAGES=()
+while IFS= read -r package; do
+  PACKAGES+=("$package")
+done < <(missing_packages "$DIR/linux/packages")
+
+if [ ${#PACKAGES[@]} -eq 0 ]; then
+  success "All declared packages installed"
+else
+  install_packages "${PACKAGES[@]}" || true
 fi
 
 info "Setup \033[0;37m[tooling]\033[0m"
@@ -31,7 +46,9 @@ elif curl -fsSL https://fnm.vercel.app/install \
   | bash -s -- --install-dir "$BIN_DIR" --skip-shell > /dev/null 2>&1; then
   success "fnm successfully installed"
 else
-  warn "Could not install fnm, node setup will be skipped"
+  # the installer refuses to run without unzip, which is why it is declared in
+  # linux/packages — this is the path where that install did not happen
+  warn "Could not install fnm, node setup will be skipped (needs unzip)"
 fi
 
 # uv — python package and tool manager, required by python/install
