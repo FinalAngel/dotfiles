@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[linux]\033[0m"
+
+# create general code directory
+if [ ! -d "$CODE_DIR" ]; then
+  mkdir -p "$CODE_DIR"
+  success "Code directory created"
+else
+  success "Code directory already created"
+fi
+
+# These dotfiles do not install system packages on linux — the box's packages
+# are its owner's business, and half the machines this runs on have no sudo to
+# begin with. What it does do is say plainly what is missing, so the gap is
+# visible instead of surfacing later as a "command not found" mid-session.
+#
+# Each entry is "command:package". A few Debian packages install under a
+# different command name (bat -> batcat, fd -> fdfind), so both are accepted.
+report_packages () {
+  local label="$1"; shift
+  local -a missing=()
+  local entry command package
+
+  for entry in "$@"; do
+    command="${entry%%:*}"
+    package="${entry##*:}"
+
+    # accept the debian-renamed binary as proof the package is there
+    case "$command" in
+      bat) is_executable batcat && continue ;;
+      fd)  is_executable fdfind && continue ;;
+    esac
+
+    is_executable "$command" || missing+=("$package")
+  done
+
+  if [ ${#missing[@]} -eq 0 ]; then
+    success "All $label packages present"
+  else
+    warn "Missing $label packages: ${missing[*]}"
+    info "  \033[0;37m$(install_hint "${missing[*]}")\033[0m"
+  fi
+}
+
+# without these the shell, editor, multiplexer or git paging simply do not work
+report_packages "required" \
+  zsh:zsh \
+  git:git \
+  curl:curl \
+  tmux:tmux \
+  nvim:neovim \
+  gpg:gnupg \
+  delta:git-delta
+
+# referenced by the aliases and shell init, but everything still starts without
+report_packages "recommended" \
+  fzf:fzf \
+  direnv:direnv \
+  jq:jq \
+  tree:tree \
+  htop:htop \
+  wget:wget \
+  bat:bat \
+  eza:eza \
+  fd:fd-find \
+  xclip:xclip
+
+# run updates
+source "$DIR/linux/update"

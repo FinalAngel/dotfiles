@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Update \033[0;37m[linux]\033[0m"
+
+# Only the tools linux/tooling installed into $HOME are updated here. System
+# packages are left to the machine's own package manager on purpose — see
+# linux/install for why.
+
+if is_executable "uv"; then
+  # uv ships its own updater, which is a no-op when already current
+  uv self update > /dev/null 2>&1 || true
+  success "Updated uv"
+fi
+
+# fnm and starship have no self-update, but both official installers resolve
+# the latest release and replace the binary in place, so re-running them is the
+# update. Only done when the tool is already present — a missing one means the
+# install step could not reach it, and retrying belongs to 'dotfiles -i'.
+if is_executable "fnm" && is_executable "curl"; then
+  if curl -fsSL https://fnm.vercel.app/install \
+    | bash -s -- --install-dir "$HOME/.local/bin" --skip-shell > /dev/null 2>&1; then
+    success "Updated fnm"
+  else
+    warn "Could not update fnm, see https://github.com/Schniz/fnm"
+  fi
+fi
+
+if is_executable "starship" && is_executable "curl"; then
+  if curl -sS https://starship.rs/install.sh \
+    | sh -s -- --bin-dir "$HOME/.local/bin" --yes > /dev/null 2>&1; then
+    success "Updated starship"
+  else
+    warn "Could not update starship, see https://starship.rs"
+  fi
+fi
