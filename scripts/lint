@@ -56,16 +56,27 @@ for file in "${bash_files[@]}"; do
 done
 
 info "Lint \033[0;37m[zsh]\033[0m"
-for file in "${zsh_files[@]}"; do
-  check "$file" zsh -n "$file"
-done
+# zsh is what these files are written for, but it is not always installed on the
+# machine editing them — CI installs it explicitly, so coverage is not lost
+if type zsh > /dev/null 2>&1; then
+  for file in "${zsh_files[@]}"; do
+    check "$file" zsh -n "$file"
+  done
+else
+  warn "zsh not installed, skipped"
+fi
 
 info "Lint \033[0;37m[ruby]\033[0m"
-for file in "${ruby_files[@]}"; do
-  check "$file" ruby -c "$file"
-done
-# the Brewfile is a ruby DSL, so it parses like one
-check "homebrew/Brewfile" ruby -c homebrew/Brewfile
+# ruby ships with macOS but is not a given on linux
+if type ruby > /dev/null 2>&1; then
+  for file in "${ruby_files[@]}"; do
+    check "$file" ruby -c "$file"
+  done
+  # the Brewfile is a ruby DSL, so it parses like one
+  check "homebrew/Brewfile" ruby -c homebrew/Brewfile
+else
+  warn "ruby not installed, skipped"
+fi
 
 info "Lint \033[0;37m[python]\033[0m"
 # parsed rather than py_compile'd, which would litter the repo with __pycache__
