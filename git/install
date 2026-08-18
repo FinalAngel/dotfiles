@@ -23,11 +23,17 @@ if [ ! -f "$SSH_DIR/id_ed25519.pub" ] && [ ! -f "$SSH_DIR/id_rsa.pub" ]; then
   user "Copy the SSH public key to github/gitlab! Enter to continue."
   read -e _
 
-  # register key
-  touch ~/.ssh/config
-  echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown AddKeysToAgent,UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_ed25519" >> $SSH_DIR/config
-
-  ssh-add --apple-use-keychain $SSH_DIR/id_ed25519 > /dev/null
+  # register key. UseKeychain and --apple-use-keychain store the passphrase in
+  # the macOS keychain and are rejected outright by OpenSSH elsewhere, so the
+  # linux config is the same block without them
+  touch "$SSH_DIR/config"
+  if is_macos; then
+    echo -e "Host *\n  AddKeysToAgent yes\n  IgnoreUnknown AddKeysToAgent,UseKeychain\n  UseKeychain yes\n  IdentityFile $SSH_DIR/id_ed25519" >> $SSH_DIR/config
+    ssh-add --apple-use-keychain $SSH_DIR/id_ed25519 > /dev/null
+  else
+    echo -e "Host *\n  AddKeysToAgent yes\n  IdentityFile $SSH_DIR/id_ed25519" >> $SSH_DIR/config
+    ssh-add $SSH_DIR/id_ed25519 > /dev/null
+  fi
 
   success "SSH key successfully generated in $SSH_DIR"
 else
@@ -36,7 +42,17 @@ fi
 
 # setup gitconfig
 if ! [ -f "$DIR/git/gitconfig.local.symlink" ]; then
-  git_credential="osxkeychain"
+  # osxkeychain ships with the macOS build of git and does not exist elsewhere.
+  # libsecret is the linux equivalent when the distribution built it, otherwise
+  # fall back to the in-memory cache — never `store`, which writes the
+  # credentials to disk in plain text
+  if is_macos; then
+    git_credential="osxkeychain"
+  elif git credential-libsecret --help > /dev/null 2>&1; then
+    git_credential="libsecret"
+  else
+    git_credential="cache --timeout=3600"
+  fi
 
   # need git information
   user "Enter your git author name:"
@@ -44,7 +60,7 @@ if ! [ -f "$DIR/git/gitconfig.local.symlink" ]; then
   user "Enter your git author email:"
   read -e git_authoremail
 
-  sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s/GIT_CREDENTIAL_HELPER/$git_credential/g" "$DIR/git/gitconfig.local.symlink.example" > "$DIR/git/gitconfig.local.symlink"
+  sed -e "s/AUTHORNAME/$git_authorname/g" -e "s/AUTHOREMAIL/$git_authoremail/g" -e "s|GIT_CREDENTIAL_HELPER|$git_credential|g" "$DIR/git/gitconfig.local.symlink.example" > "$DIR/git/gitconfig.local.symlink"
 
   success "Git successfully configured"
 else
@@ -52,7 +68,9 @@ else
 fi
 
 # setup GPG for signing git commits
-if [ ! -d "$HOME/.gnupg" ]; then
+if ! is_executable "gpg"; then
+  warn "gpg is not installed, commit signing skipped — run '$(install_hint gnupg)'"
+elif [ ! -d "$HOME/.gnupg" ]; then
   user "Generating GPG key, use same email as for git:"
   # generate key, prompts will appear
   gpg --default-new-key-algo rsa4096 --gen-key
@@ -62,9 +80,16 @@ if [ ! -d "$HOME/.gnupg" ]; then
   user "Copy the GPG public key to github/gitlab! Enter to continue."
   read -e _
 
-  # install and restart config
+  # install and restart config. pinentry-mac is a macOS program; on linux the
+  # curses prompt is the equivalent that works over ssh, with the plain tty one
+  # as a fallback
   git config --global gpg.program "$(which gpg)"
-  echo "pinentry-program $(which pinentry-mac)" >> "$HOME/.gnupg/gpg-agent.conf"
+  for pinentry in pinentry-mac pinentry-curses pinentry-tty pinentry; do
+    if is_executable "$pinentry"; then
+      echo "pinentry-program $(which $pinentry)" >> "$HOME/.gnupg/gpg-agent.conf"
+      break
+    fi
+  done
   gpgconf --kill gpg-agent
 
   success "GPG key successfully setup"

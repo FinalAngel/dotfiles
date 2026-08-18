@@ -130,7 +130,9 @@
 	gpgsign = true
 
 [gpg]
-	program = /opt/homebrew/bin/gpg
+	# resolved from $PATH rather than pinned to /opt/homebrew — the same
+	# config now has to work on linux, where homebrew is not installed
+	program = gpg
 
 [diff]
     # [i]ndex, [w]ork tree, [c]ommit, [o]bject instead of a/b
@@ -205,17 +207,22 @@
 # let the gh CLI handle HTTPS GitHub credentials
 [credential "https://github.com"]
 	helper =
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper = !gh auth git-credential
 
 [credential "https://gist.github.com"]
 	helper =
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper = !gh auth git-credential
 
 [tag]
 	# sort tags as version numbers
 	sort = version:refname
 
-# devguard identity for all repos under ~/Sites/devguard/
-# (must stay last so it overrides [user] above and ~/.gitconfig.local)
+# devguard identity for all repos under the projects directory
+# (must stay last so it overrides [user] above and ~/.gitconfig.local).
+# both roots are listed because the projects directory differs per platform:
+# ~/Sites on macOS, ~/code on linux — a missing include is silently ignored
 [includeIf "gitdir:~/Sites/devguard/"]
+	path = ~/.gitconfig-devguard
+
+[includeIf "gitdir:~/code/devguard/"]
 	path = ~/.gitconfig-devguard
