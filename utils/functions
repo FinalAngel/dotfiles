@@ -88,6 +88,20 @@ function is_executable() {
   type "$1" > /dev/null 2>&1
 }
 
+# Portable replacement for `ln -Fs` / `ln -sfh`. Those flags are BSD-only —
+# GNU ln spells the same thing `-n` — so neither set is safe to hardcode in
+# files that now run on both platforms. Dropping the destination first behaves
+# identically on either ln, including when it is a symlink to a directory.
+function force_link() {
+  local src="$1" dst="$2"
+
+  if [ -L "$dst" ] || [ -f "$dst" ]; then
+    rm -f "$dst"
+  fi
+
+  ln -s "$src" "$dst"
+}
+
 # Asks for the admin password once and keeps the sudo timestamp alive for the
 # rest of the run. Safe to call repeatedly — only the first call prompts.
 #

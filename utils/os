@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Platform detection. Sourced early by utils/index so every topic can branch on
+# the OS without re-running `uname` in a dozen places.
+#
+# The split these dotfiles make is deliberate: macOS is the *provisioning*
+# platform — it installs applications, fonts and system defaults. Linux is a
+# headless *configuration* platform: shell, git, tmux, vim, node and python get
+# configured, and only tooling that lives inside $HOME gets installed. Nothing
+# on the Linux path shells out to a package manager or asks for sudo, which
+# keeps it usable on boxes where the packages are somebody else's business.
+
+case "$(uname -s)" in
+  Darwin) declare DOTFILES_OS="macos" ;;
+  Linux)  declare DOTFILES_OS="linux" ;;
+  *)      declare DOTFILES_OS="unsupported" ;;
+esac
+
+function is_macos () { [ "$DOTFILES_OS" = "macos" ]; }
+function is_linux () { [ "$DOTFILES_OS" = "linux" ]; }
+
+# Names the command that would install a missing system package, so a warning
+# can tell you what to run instead of just reporting the absence. Nothing here
+# runs it — installing system packages is out of scope on Linux by design.
+function install_hint () {
+  local package="$1"
+
+  if is_macos; then
+    echo "brew install $package"
+  elif is_executable apt-get; then
+    echo "sudo apt install $package"
+  elif is_executable dnf; then
+    echo "sudo dnf install $package"
+  elif is_executable pacman; then
+    echo "sudo pacman -S $package"
+  elif is_executable apk; then
+    echo "sudo apk add $package"
+  else
+    echo "install $package"
+  fi
+}
+
+# Reports a missing system package once, in a consistent shape. Returns
+# non-zero when the tool is absent so callers can bail out of a topic:
+#
+#   require_package nvim neovim || return 0
+function require_package () {
+  local command="$1" package="${2:-$1}"
+
+  if is_executable "$command"; then
+    return 0
+  fi
+
+  warn "$command is not installed, skipping — run '$(install_hint "$package")'"
+  return 1
+}
