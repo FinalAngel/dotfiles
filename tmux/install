@@ -3,6 +3,10 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[tmux]\033[0m"
 
+# tpm installs plugins by asking a running tmux to source them, so there is
+# nothing useful to do without tmux itself
+require_package "tmux" || return 0
+
 TPM_DIR="$HOME/.tmux/plugins/tpm"
 SIDEBAR_DIR="$HOME/.tmux/plugins/tmux-agent-sidebar"
 # the patches in tmux/patches/ apply against this revision (v0.13.0)
@@ -46,7 +50,14 @@ if [ -d "$SIDEBAR_DIR" ] && [ ! -f "$SIDEBAR_DIR/.dotfiles-patched" ]; then
 fi
 
 # dark-mode auto switching: launchd agent runs dark-notify, which invokes
-# tmux/darkmode.zsh on every macOS appearance change
+# tmux/darkmode.zsh on every macOS appearance change. there is no system-wide
+# appearance to follow on a headless linux box — switch themes by hand with the
+# bindings in tmux.conf instead
+if ! is_macos; then
+  success "Dark-mode watcher is macOS only, skipped"
+  return 0
+fi
+
 PLIST="$HOME/Library/LaunchAgents/dev.dini.dark-mode.plist"
 if [ ! -f "$PLIST" ] && is_executable "dark-notify"; then
   mkdir -p "$HOME/Library/LaunchAgents"

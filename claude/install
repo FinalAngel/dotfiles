@@ -3,7 +3,14 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[claude]\033[0m"
 
-SYSTEM_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/System"
+# this topic syncs agent state through iCloud Drive, which only exists on
+# macOS. without this guard the `mkdir` below would happily create a fake
+# iCloud tree on a linux box and then *move* the real ~/.claude into it
+if ! is_macos; then
+  success "No iCloud Drive on $DOTFILES_OS, agent state stays local"
+  return 0
+fi
+
 mkdir -p "$SYSTEM_DIR"
 
 # keep agent state in iCloud, symlinked into place so both machines share

@@ -3,7 +3,11 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[claude]\033[0m"
 
-SYSTEM_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/System"
+# see claude/install — the iCloud backup is macOS only
+if ! is_macos; then
+  success "No iCloud Drive on $DOTFILES_OS, nothing to back up"
+  return 0
+fi
 
 if [ -f "$HOME/.claude.json" ] && [ ! -L "$HOME/.claude.json" ]; then
   cp "$HOME/.claude.json" "$SYSTEM_DIR/.claude.json.backup"

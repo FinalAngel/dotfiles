@@ -3,10 +3,21 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[fonts]\033[0m"
 
+# fonts are rendered by whatever terminal or browser you are sitting in front
+# of. on a headless linux box that is a different machine entirely, so there
+# is nothing to install into — fc-cache is the tell that a desktop is present
+if ! is_macos && ! is_executable "fc-cache"; then
+  success "No desktop font stack present, skipped"
+  return 0
+fi
+
 # setup variables
 FONTS_DIR="$DIR/fonts"
 FONTS_FILE="$FONTS_DIR/fonts.txt"
-system_fonts_dir="$HOME/Library/Fonts"
+# per-user font directory, ~/Library/Fonts on macOS and the XDG data dir on
+# linux (see utils/constants)
+system_fonts_dir="$FONTS_INSTALL_DIR"
+mkdir -p "$system_fonts_dir"
 
 # specificly copy fonts files defined in FONTS_FILE
 while read font; do

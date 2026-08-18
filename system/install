@@ -4,7 +4,7 @@ source "$DIR/utils/index"
 info "Setup \033[0;37m[symlinks]\033[0m"
 
 # rosetta only exists on Apple Silicon; the command fails on Intel machines
-if [ "$(uname -m)" = "arm64" ]; then
+if is_macos && [ "$(uname -m)" = "arm64" ]; then
   require_sudo
   sudo softwareupdate --install-rosetta --agree-to-license || warn "Could not install Rosetta"
 fi
@@ -13,7 +13,6 @@ fi
 # linked into place here — gitignore keeps the links out of the repo, so a
 # new machine needs this to recreate them; skips anything iCloud hasn't
 # synced yet and picks it up on the next run
-SYSTEM_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/System"
 link_private () {
   local src="$SYSTEM_DIR/private/$1" dst="$2"
   if [ ! -e "$src" ]; then
@@ -22,14 +21,22 @@ link_private () {
     success "Private $1 already linked"
   else
     mkdir -p "$(dirname "$dst")"
-    ln -sfh "$src" "$dst"
+    force_link "$src" "$dst"
     success "Private $1 linked"
   fi
 }
 
 mkdir -p "$DIR/private"
-link_private "functions.zsh" "$DIR/private/functions.zsh"
-link_private "pypirc.symlink" "$DIR/python/pypirc.symlink"
-link_private "tmuxinator" "$HOME/.config/tmuxinator"
+
+# there is no iCloud Drive on linux, so the private files simply are not
+# available there — reported once instead of once per file. anything genuinely
+# needed on a linux box goes into ~/.localrc, which is machine-local anyway
+if [ -d "$SYSTEM_DIR" ]; then
+  link_private "functions.zsh" "$DIR/private/functions.zsh"
+  link_private "pypirc.symlink" "$DIR/python/pypirc.symlink"
+  link_private "tmuxinator" "$HOME/.config/tmuxinator"
+else
+  info "No iCloud Drive here, private files skipped — use ~/.localrc instead"
+fi
 
 create_symlinks

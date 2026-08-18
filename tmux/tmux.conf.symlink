@@ -66,10 +66,14 @@ set -g @sidebar_auto_create track
 
 # Statusline and sidebar palette matched to the macOS appearance at server
 # start; tmux/darkmode.zsh re-sources these when the appearance changes.
-if-shell 'defaults read -g AppleInterfaceStyle >/dev/null 2>&1' \
+#
+# `defaults` does not exist off macOS, where the test simply fails and the light
+# palette wins. Export DOTFILES_THEME=dark (in ~/.localrc, so it is picked up
+# before tmux starts) to force the dark palette on linux.
+if-shell '[ "$DOTFILES_THEME" = "dark" ] || defaults read -g AppleInterfaceStyle >/dev/null 2>&1' \
   'source-file ~/.dotfiles/tmux/tmux-statusline-dark.conf' \
   'source-file ~/.dotfiles/tmux/tmux-statusline-light.conf'
-if-shell 'defaults read -g AppleInterfaceStyle >/dev/null 2>&1' \
+if-shell '[ "$DOTFILES_THEME" = "dark" ] || defaults read -g AppleInterfaceStyle >/dev/null 2>&1' \
   'source-file ~/.dotfiles/tmux/tmux-sidebar-dark.conf' \
   'source-file ~/.dotfiles/tmux/tmux-sidebar-light.conf'
 
