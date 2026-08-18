@@ -6,5 +6,8 @@ info "Update \033[0;37m[herdr]\033[0m"
 # the official installer is idempotent: it resolves the latest release from the
 # same manifest `herdr update` uses, verifies the checksum and replaces the
 # binary — so re-running it is the update
-curl -fsSL https://herdr.dev/install.sh | sh > /dev/null 2>&1
-success "Herdr up to date"
+if curl -fsSL https://herdr.dev/install.sh | sh > /dev/null 2>&1; then
+  success "Herdr up to date"
+else
+  warn "Could not update herdr, see https://herdr.dev"
+fi

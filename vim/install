@@ -3,6 +3,11 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[vim]\033[0m"
 
+# the plugin directory below is neovim's, so neovim is what has to be present.
+# homebrew installs it on macOS; on linux it comes from the machine's package
+# manager, which these dotfiles deliberately do not drive
+require_package "nvim" "neovim" || return 0
+
 plugin_path="${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim"
 
 if [ ! -f $plugin_path ]; then
@@ -11,10 +16,11 @@ if [ ! -f $plugin_path ]; then
 
   # symlink configuration file
   mkdir -p "$HOME/.config/nvim/"
-  ln -Fs "$DIR/vim/init.vim" "$HOME/.config/nvim/init.vim"
+  force_link "$DIR/vim/init.vim" "$HOME/.config/nvim/init.vim"
 
-  # install plugins
-  vim +PlugInstall +qall
+  # install plugins. neovim, not vim: the autoload path above is neovim's, so
+  # plain vim would report success without ever loading plug.vim
+  nvim +PlugInstall +qall
 
   success "VIM plugins successfully installed"
 else

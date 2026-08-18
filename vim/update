@@ -3,6 +3,8 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[vim]\033[0m"
 
+require_package "nvim" "neovim" || return 0
+
 # update plugins
 nvim +PlugInstall +qall
 

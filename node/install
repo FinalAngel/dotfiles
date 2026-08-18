@@ -3,8 +3,11 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[node]\033[0m"
 
+# fnm comes from homebrew on macOS and from linux/tooling on linux. a hard
+# failure here used to abort the entire installer over one missing tool
 if ! is_executable "fnm"; then
-  fail_hard "fnm is not installed, run the homebrew setup first!"
+  warn "fnm is not installed, skipping — check the tooling step above"
+  return 0
 fi
 
 # make fnm available within this script

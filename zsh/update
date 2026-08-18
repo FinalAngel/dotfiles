@@ -3,6 +3,16 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[zsh]\033[0m"
 
+# $ZSH is only set once zshrc has run, so it is empty on a machine that has not
+# been through the installer yet — the upgrade then ran `sh /tools/upgrade.sh`,
+# failed, and `set -e` aborted the rest of the update
+ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+
+if [ ! -d "$ZSH" ]; then
+  warn "Oh-my-zsh is not installed, skipping — run 'dotfiles -i' to set it up"
+  return 0
+fi
+
 env ZSH="$ZSH" sh "$ZSH/tools/upgrade.sh" > /dev/null 2>&1
 command rm -rf "$ZSH/log/update.lock"
 

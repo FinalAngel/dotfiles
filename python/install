@@ -3,12 +3,15 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[python]\033[0m"
 
-if is_executable "uv"; then
-  # install global python tooling in isolated environments
-  uv tool install black > /dev/null 2>&1 || true
-  success "Black successfully installed"
-  uv tool install twine > /dev/null 2>&1 || true
-  success "Twine successfully installed"
-else
-  fail_hard "uv is not installed, run the homebrew setup first!"
+# uv comes from homebrew on macOS and from linux/tooling on linux. as with
+# node, a missing tool warns instead of aborting the whole installer
+if ! is_executable "uv"; then
+  warn "uv is not installed, skipping — check the tooling step above"
+  return 0
 fi
+
+# install global python tooling in isolated environments
+uv tool install black > /dev/null 2>&1 || true
+success "Black successfully installed"
+uv tool install twine > /dev/null 2>&1 || true
+success "Twine successfully installed"

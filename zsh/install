@@ -3,6 +3,11 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[zsh]\033[0m"
 
+# the oh-my-zsh installer bails out when zsh itself is missing, which under
+# `set -e` takes the whole run down with it. homebrew provides zsh on macOS;
+# on linux it comes from the distribution
+require_package "zsh" || return 0
+
 # create the machine-local secrets file (never part of the repo)
 if [ ! -f "$HOME/.localrc" ]; then
   printf '# machine-local secrets and env vars — never committed, sourced by zshrc\n' > "$HOME/.localrc"
