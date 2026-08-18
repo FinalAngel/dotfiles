@@ -3,7 +3,12 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[vim]\033[0m"
 
-# update plugins
-nvim +PlugInstall +qall
+require_package "nvim" "neovim" || return 0
 
-success "Updated vim plugins "
+# update plugins. non-fatal for the same reason as zsh/update: a plugin that
+# fails to fetch should not take the rest of the update run with it
+if nvim +PlugInstall +qall > /dev/null 2>&1; then
+  success "Updated vim plugins"
+else
+  warn "Could not update vim plugins, run 'nvim +PlugInstall' to see why"
+fi

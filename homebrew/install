@@ -3,6 +3,14 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[homebrew]\033[0m"
 
+# homebrew is how macOS provisions its applications and CLI tooling. linux is
+# configuration-only here by design: packages on that side belong to the
+# machine's own package manager, not to these dotfiles
+if ! is_macos; then
+  success "Not managed on $DOTFILES_OS, skipped"
+  return 0
+fi
+
 # check if homebrew is installed
 if ! is_executable "brew"; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"

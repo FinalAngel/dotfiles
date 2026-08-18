@@ -3,10 +3,34 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[zsh]\033[0m"
 
-env ZSH="$ZSH" sh "$ZSH/tools/upgrade.sh" > /dev/null 2>&1
+# $ZSH is only set once zshrc has run, so it is empty on a machine that has not
+# been through the installer yet — the upgrade then ran `sh /tools/upgrade.sh`,
+# failed, and `set -e` aborted the rest of the update
+ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+
+if [ ! -d "$ZSH" ]; then
+  warn "Oh-my-zsh is not installed, skipping — run 'dotfiles -i' to set it up"
+  return 0
+fi
+
+if ! is_executable "zsh"; then
+  warn "zsh is not installed, skipping — run '$(install_hint zsh)'"
+  return 0
+fi
+
+# Run with zsh, which is what upgrade.sh's own shebang asks for. It used to be
+# invoked through `sh`: that is bash on macOS, which tolerates the `local` at
+# the top of the script, but dash on debian, which rejects it with
+# "local: not in a function" and exits 2. With the output redirected to
+# /dev/null and `set -e` on, that ended the entire update run at "Update [zsh]"
+# without printing a single word about why.
+if env ZSH="$ZSH" zsh "$ZSH/tools/upgrade.sh" > /dev/null 2>&1; then
+  success "Updated oh-my-zsh"
+else
+  warn "Could not update oh-my-zsh, run '$ZSH/tools/upgrade.sh' to see why"
+fi
+
 command rm -rf "$ZSH/log/update.lock"
 
 # fix permissions if broken
 # compaudit | xargs chmod g-w,o-w > /dev/null 2>&1
-
-success "Updated oh-my-zsh"

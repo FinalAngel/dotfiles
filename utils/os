@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+# Platform detection. Sourced early by utils/index so every topic can branch on
+# the OS without re-running `uname` in a dozen places.
+#
+# The split these dotfiles make is deliberate: macOS provisions applications,
+# fonts and system defaults through homebrew. Linux is headless — no GUI apps,
+# no casks — but it does provision its own command line, from the declared list
+# in linux/packages, the way the Brewfile does on the mac.
+#
+# The difference is that Linux asks for sudo only when something is actually
+# missing, and reports what to run rather than failing when it cannot get it.
+# That keeps the same dotfiles usable on a box where the packages belong to
+# somebody else.
+
+case "$(uname -s)" in
+  Darwin) declare DOTFILES_OS="macos" ;;
+  Linux)  declare DOTFILES_OS="linux" ;;
+  *)      declare DOTFILES_OS="unsupported" ;;
+esac
+
+function is_macos () { [ "$DOTFILES_OS" = "macos" ]; }
+function is_linux () { [ "$DOTFILES_OS" = "linux" ]; }
+
+# Names the command that would install a missing system package, so a warning
+# can tell you what to run instead of just reporting the absence. Nothing here
+# runs it — installing system packages is out of scope on Linux by design.
+function install_hint () {
+  local package="$1"
+
+  if is_macos; then
+    echo "brew install $package"
+  elif is_executable apt-get; then
+    echo "sudo apt install $package"
+  elif is_executable dnf; then
+    echo "sudo dnf install $package"
+  elif is_executable pacman; then
+    echo "sudo pacman -S $package"
+  elif is_executable apk; then
+    echo "sudo apk add $package"
+  else
+    echo "install $package"
+  fi
+}
+
+# Reports a missing system package once, in a consistent shape. Returns
+# non-zero when the tool is absent so callers can bail out of a topic:
+#
+#   require_package nvim neovim || return 0
+function require_package () {
+  local command="$1" package="${2:-$1}"
+
+  if is_executable "$command"; then
+    return 0
+  fi
+
+  warn "$command is not installed, skipping — run '$(install_hint "$package")'"
+  return 1
+}
+
+
+# Reads a "probe[|probe...]:package" list and echoes the packages that are not
+# installed yet, one per line. See linux/packages for the format.
+function missing_packages () {
+  local list="$1"
+  local line probes probe package found
+
+  [ -f "$list" ] || return 0
+
+  while IFS= read -r line; do
+    # strip comments and surrounding whitespace, skip what is left of blanks
+    line="${line%%#*}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [ -z "$line" ] && continue
+
+    probes="${line%:*}"
+    package="${line##*:}"
+    found=""
+
+    # `|` separates alternative probes for the same package
+    while [ -n "$probes" ]; do
+      case "$probes" in
+        *"|"*) probe="${probes%%|*}"; probes="${probes#*|}" ;;
+        *)     probe="$probes";       probes="" ;;
+      esac
+
+      case "$probe" in
+        /*) [ -e "$probe" ] && found=1 ;;
+        *)  is_executable "$probe" && found=1 ;;
+      esac
+
+      [ -n "$found" ] && break
+    done
+
+    [ -n "$found" ] || echo "$package"
+  done < "$list"
+}
+
+# Installs system packages. Reports what to run and returns non-zero instead of
+# failing when it cannot — no supported package manager, or no way to get sudo.
+#
+# Nothing here runs when the list is empty, which is the normal case: an
+# unnecessary password prompt on every single `dotfiles -u` would train you to
+# type it without reading it.
+function install_packages () {
+  local -a packages=("$@")
+
+  [ ${#packages[@]} -eq 0 ] && return 0
+
+  if ! is_executable "apt-get"; then
+    warn "No supported package manager, install these yourself:"
+    info "  \033[0;37m$(install_hint "${packages[*]}")\033[0m"
+    return 1
+  fi
+
+  # a run with no tty cannot answer a password prompt — it would hang on a
+  # bare "Password:" or fail inside sudo, so report the gap and move on
+  if ! sudo -n true 2>/dev/null && [ ! -t 0 ]; then
+    warn "No sudo in a non-interactive run, install these yourself:"
+    info "  \033[0;37m$(install_hint "${packages[*]}")\033[0m"
+    return 1
+  fi
+
+  # asked for explicitly rather than through require_sudo, whose fail_hard
+  # would take the whole installer down if you decline at the prompt
+  if ! sudo -n true 2>/dev/null; then
+    user "Admin privileges are required to install ${#packages[@]} package(s)..."
+    if ! sudo -v; then
+      warn "Could not obtain admin privileges, install these yourself:"
+      info "  \033[0;37m$(install_hint "${packages[*]}")\033[0m"
+      return 1
+    fi
+  fi
+
+  # credentials are cached now, so this only starts the keepalive
+  require_sudo
+
+  info "Installing \033[0;37m${packages[*]}\033[0m"
+
+  if ! sudo apt-get update -qq > /dev/null 2>&1; then
+    warn "Could not refresh the package lists, continuing anyway"
+  fi
+
+  # noninteractive keeps a package's own post-install prompts from blocking a
+  # run that has no one watching it
+  if sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq "${packages[@]}" > /dev/null 2>&1; then
+    success "Installed ${#packages[@]} package(s)"
+    return 0
+  fi
+
+  warn "Some packages failed to install, try them by hand:"
+  info "  \033[0;37m$(install_hint "${packages[*]}")\033[0m"
+  return 1
+}

@@ -4,7 +4,7 @@
     signingkey = AUTHOREMAIL
 
 [github]
-    user = AUTHORNAME
+    user = GITHUBUSER
 
 [credential]
     helper = GIT_CREDENTIAL_HELPER

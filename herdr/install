@@ -8,7 +8,10 @@ info "Setup \033[0;37m[herdr]\033[0m"
 if [ -x "${HERDR_INSTALL_DIR:-$HOME/.local/bin}/herdr" ]; then
   # already there, the updater pulls the latest release
   source "$DIR/herdr/update"
-else
-  curl -fsSL https://herdr.dev/install.sh | sh > /dev/null 2>&1
+elif curl -fsSL https://herdr.dev/install.sh | sh > /dev/null 2>&1; then
   success "Herdr successfully installed"
+else
+  # the installer resolves a release per os/arch — a machine it has no build
+  # for used to abort the entire run under `set -e`
+  warn "Could not install herdr, see https://herdr.dev"
 fi

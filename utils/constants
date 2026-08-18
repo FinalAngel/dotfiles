@@ -1,8 +1,27 @@
 #!/usr/bin/env bash
 declare SSH_DIR="$HOME/.ssh"
 declare APPLICATION_DIR="/Applications"
-declare CODE_DIR="$HOME/Sites"
 
 # settings
 declare COMPUTER_NAME="Angelo's MacBook Air"
 declare COMPUTER_NAME_SLUG="Angelos-MacBook-Air"
+
+# where projects live. ~/Sites is a macOS convention that reads as clutter in a
+# Linux home, so the ~/.config/user-dirs-style equivalent is used there
+if is_macos; then
+  declare CODE_DIR="$HOME/Sites"
+else
+  declare CODE_DIR="${CODE_DIR:-$HOME/code}"
+fi
+
+# fonts are installed per-user on both platforms, just to different paths
+if is_macos; then
+  declare FONTS_INSTALL_DIR="$HOME/Library/Fonts"
+else
+  declare FONTS_INSTALL_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/fonts"
+fi
+
+# the shared config store. on macOS this is iCloud Drive, which is what keeps
+# the two Macs in sync; Linux has no equivalent, so topics that sync through it
+# check for the directory and skip when it is absent
+declare SYSTEM_DIR="$HOME/Library/Mobile Documents/com~apple~CloudDocs/System"

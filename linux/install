@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[linux]\033[0m"
+
+# create general code directory
+if [ ! -d "$CODE_DIR" ]; then
+  mkdir -p "$CODE_DIR"
+  success "Code directory created"
+else
+  success "Code directory already created"
+fi
+
+# The packages themselves are installed by linux/tooling, which runs early
+# enough for the topics in between to use them. What is left here is the
+# report: anything still absent means the install was declined, failed, or the
+# machine has no apt — so say which ones and how to finish the job.
+declare -a STILL_MISSING=()
+while IFS= read -r package; do
+  STILL_MISSING+=("$package")
+done < <(missing_packages "$DIR/linux/packages")
+
+if [ ${#STILL_MISSING[@]} -eq 0 ]; then
+  success "All declared packages present"
+else
+  warn "Still missing: ${STILL_MISSING[*]}"
+  info "  \033[0;37m$(install_hint "${STILL_MISSING[*]}")\033[0m"
+fi
+
+# run updates
+source "$DIR/linux/update"

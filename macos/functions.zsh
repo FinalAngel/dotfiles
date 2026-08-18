@@ -20,3 +20,16 @@ function meet() {
   echo "Opening ${url}…"
   open -a "Google Chrome" "$url"
 }
+
+# write stdin to the system clipboard. the shared aliases (copyssh, copygpg,
+# meh, table) call this rather than pbcopy directly, so they keep working on
+# linux where the equivalent is xclip or wl-copy
+function clipboard() {
+  pbcopy
+}
+
+# desktop notification, e.g. `long-task; notify "done"`
+function notify() {
+  local message="${1:-It is finished, whatever it is}";
+  terminal-notifier -sound default -message "${message}";
+}

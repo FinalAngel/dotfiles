@@ -1,6 +1,15 @@
 #!/bin/zsh
 export ARCHFLAGS="-arch $(uname -m)"
 
+# where projects live. mirrors utils/constants, which only the installer sees —
+# $PROJECTS in zshrc and $PROJECT_HOME in python/paths.zsh both read this, and
+# both were silently empty before it was set here
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  export CODE_DIR="${CODE_DIR:-$HOME/Sites}"
+else
+  export CODE_DIR="${CODE_DIR:-$HOME/code}"
+fi
+
 # required helpers
 prepend_path() { [ -d $1 ] && PATH="$1:$PATH"; }
 is_executable() { type "$1" > /dev/null 2>&1; }
@@ -19,8 +28,18 @@ prepend_path "/usr/local/sbin"
 prepend_path "$HOME/.dotfiles/bin"
 prepend_path "$HOME/.local/bin"
 
-# homebrew
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# homebrew. the prefix is not fixed — /opt/homebrew on apple silicon,
+# /usr/local on intel, /home/linuxbrew/.linuxbrew when someone has installed it
+# on linux — and on the linux boxes these dotfiles only configure it is absent
+# entirely. hardcoding the path made every new shell there open with a
+# "no such file or directory" before the prompt even appeared
+for brew_prefix in /opt/homebrew /usr/local /home/linuxbrew/.linuxbrew "$HOME/.linuxbrew"; do
+  if [[ -x "$brew_prefix/bin/brew" ]]; then
+    eval "$("$brew_prefix/bin/brew" shellenv)"
+    break
+  fi
+done
+unset brew_prefix
 
 # remove duplicates (preserving prepended items)
 # source: http://unix.stackexchange.com/a/40755

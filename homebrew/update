@@ -3,6 +3,11 @@ source "$DIR/utils/index"
 
 info "Update \033[0;37m[homebrew]\033[0m, this might take some time..."
 
+if ! is_macos; then
+  success "Not managed on $DOTFILES_OS, skipped"
+  return 0
+fi
+
 # resolve the prefix rather than hardcoding it, so this also works on Intel
 # machines (/usr/local) and inside a shell that has not loaded brew yet
 if ! is_executable "brew"; then

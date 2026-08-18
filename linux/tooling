@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+# Linux counterpart to the homebrew slot in scripts/install, in two halves:
+# the system packages declared in linux/packages, then the handful of tools
+# that have no distribution package worth using and install into $HOME.
+#
+# This runs here, early, rather than from linux/install at the end of the run,
+# because the topics in between need what it provides — zsh/install needs zsh,
+# vim/install needs neovim, node and python need fnm and uv.
+if ! is_linux; then
+  return 0
+fi
+
+info "Setup \033[0;37m[packages]\033[0m"
+
+# only the missing ones, so a second run neither prompts nor prints noise
+declare -a PACKAGES=()
+while IFS= read -r package; do
+  PACKAGES+=("$package")
+done < <(missing_packages "$DIR/linux/packages")
+
+if [ ${#PACKAGES[@]} -eq 0 ]; then
+  success "All declared packages installed"
+else
+  install_packages "${PACKAGES[@]}" || true
+fi
+
+info "Setup \033[0;37m[tooling]\033[0m"
+
+# ~/.local/bin is already prepended to $PATH by system/paths.zsh, but the
+# installer itself runs before any of that is loaded
+BIN_DIR="$HOME/.local/bin"
+mkdir -p "$BIN_DIR"
+export PATH="$BIN_DIR:$PATH"
+
+if ! is_executable "curl"; then
+  warn "curl is not installed, tooling skipped — run '$(install_hint curl)'"
+  return 0
+fi
+
+# fnm — node version manager, required by node/install
+if is_executable "fnm"; then
+  success "fnm already installed"
+elif curl -fsSL https://fnm.vercel.app/install \
+  | bash -s -- --install-dir "$BIN_DIR" --skip-shell > /dev/null 2>&1; then
+  success "fnm successfully installed"
+else
+  # the installer refuses to run without unzip, which is why it is declared in
+  # linux/packages — this is the path where that install did not happen
+  warn "Could not install fnm, node setup will be skipped (needs unzip)"
+fi
+
+# uv — python package and tool manager, required by python/install
+if is_executable "uv"; then
+  success "uv already installed"
+elif curl -LsSf https://astral.sh/uv/install.sh | sh > /dev/null 2>&1; then
+  success "uv successfully installed"
+else
+  warn "Could not install uv, python setup will be skipped"
+fi
+
+# starship — the prompt zshrc initialises
+if is_executable "starship"; then
+  success "starship already installed"
+elif curl -sS https://starship.rs/install.sh \
+  | sh -s -- --bin-dir "$BIN_DIR" --yes > /dev/null 2>&1; then
+  success "starship successfully installed"
+else
+  warn "Could not install starship, the prompt falls back to the zsh default"
+fi

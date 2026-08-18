@@ -130,7 +130,9 @@
 	gpgsign = true
 
 [gpg]
-	program = /opt/homebrew/bin/gpg
+	# resolved from $PATH rather than pinned to /opt/homebrew — the same
+	# config now has to work on linux, where homebrew is not installed
+	program = gpg
 
 [diff]
     # [i]ndex, [w]ork tree, [c]ommit, [o]bject instead of a/b
@@ -186,9 +188,12 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
-[user]
-	name = Angelo Dini
-	email = angelo.dini@divio.ch
+# no [user] block here on purpose: the identity is per machine and lives in
+# ~/.gitconfig.local, which git/install generates and the [include] at the top
+# of this file pulls in. A [user] block here would appear later in the file
+# than that include and silently win, which is exactly what it used to do —
+# and it put a personal address in a public repository besides.
+
 [safe]
 	directory = ~/Sites/actions-runner/_work/devguard/devguard
 
@@ -205,17 +210,22 @@
 # let the gh CLI handle HTTPS GitHub credentials
 [credential "https://github.com"]
 	helper =
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper = !gh auth git-credential
 
 [credential "https://gist.github.com"]
 	helper =
-	helper = !/opt/homebrew/bin/gh auth git-credential
+	helper = !gh auth git-credential
 
 [tag]
 	# sort tags as version numbers
 	sort = version:refname
 
-# devguard identity for all repos under ~/Sites/devguard/
-# (must stay last so it overrides [user] above and ~/.gitconfig.local)
+# devguard identity for all repos under the projects directory
+# (must stay last so it overrides [user] above and ~/.gitconfig.local).
+# both roots are listed because the projects directory differs per platform:
+# ~/Sites on macOS, ~/code on linux — a missing include is silently ignored
 [includeIf "gitdir:~/Sites/devguard/"]
+	path = ~/.gitconfig-devguard
+
+[includeIf "gitdir:~/code/devguard/"]
 	path = ~/.gitconfig-devguard

@@ -22,6 +22,33 @@ fresh installation is recommended. Use at your own risk.
 The installer asks for your admin password once up front — Rosetta, Homebrew
 casks, FileVault and the `/etc/hosts` symlink all need it later on.
 
+**Linux notes**: Linux is headless — no GUI applications, no casks — but it
+does provision its own command line. `linux/packages` is the counterpart to the
+Brewfile: a declared list of system packages, installed with `apt` when
+missing. Tools with no distribution package worth using (`fnm`, `uv`,
+`starship`) are installed into `$HOME` instead, alongside oh-my-zsh, TPM,
+vim-plug and herdr.
+
+Sudo is asked for **only when a package is actually missing**, which is the
+first run and nothing after it. Where sudo is unavailable — a container, or a
+box you do not administer — nothing fails: the run reports what is missing and
+carries on.
+
+    [WARN] Still missing: neovim git-delta
+    [ .. ]   sudo apt install neovim git-delta
+
+`dotfiles -u` also upgrades installed packages, mirroring what `brew upgrade`
+and `softwareupdate` already do on the mac. That block sits on its own in
+`linux/update` and is easy to remove if you would rather own upgrades
+yourself; it is skipped silently when there is no cached sudo.
+
+Only `apt` is implemented. Other package managers get the report and the
+matching install line, not an automatic install.
+
+Applications, fonts, iTerm2, the Dock and the iCloud-synced config are macOS
+concerns and skip themselves with a message. If you have no iCloud Drive,
+machine-local secrets go in `~/.localrc` as usual.
+
 The following command will install the dotfiles into `~/.dotfiles` and runs the
 installer automatically 🤖:
 
@@ -58,7 +85,16 @@ of that:
 - every `.symlink` file in a topic will be mapped to `~/.[filename]`
 - everything in the `bin/` folder gets automatically added to your `$PATH`
 
-The following package flavours are installed:
+`macos/` and `linux/` are the two **platform topics**, and exactly one of them
+is ever active: `utils/os` detects the system, `scripts/install` dispatches to
+the matching topic, and the shell loaders skip the other one's `aliases.zsh`
+and `functions.zsh`. That is what keeps `pbcopy` and `defaults` out of a Linux
+shell, and `resolvectl` out of a mac. Topics that only make sense on one side
+(Homebrew, iTerm2, fonts, the iCloud sync) guard themselves and report a skip
+rather than being left out of the list.
+
+The macOS package list lives in `homebrew/Brewfile`, the Linux one in
+`linux/packages`. The following package flavours are installed **on macOS**:
 
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
 - [Git with GPG signing](https://gnupg.org/) enabled, plus [delta](https://github.com/dandavison/delta) as the diff pager

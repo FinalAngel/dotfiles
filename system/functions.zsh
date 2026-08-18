@@ -109,11 +109,9 @@ function extract() {
   fi
 }
 
-# desktop notification, e.g. `long-task; notify "done"`
-function notify() {
-  local message="${1:-It is finished, whatever it is}";
-  terminal-notifier -sound default -message "${message}";
-}
+# notify() — desktop notification, e.g. `long-task; notify "done"` — is defined
+# per platform in macos/functions.zsh and linux/functions.zsh, since the tool
+# behind it differs (terminal-notifier vs notify-send)
 
 # deploy a divio app and get notified about the outcome
 function deploy() {

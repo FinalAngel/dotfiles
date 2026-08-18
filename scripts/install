@@ -6,14 +6,25 @@ declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 source "$DIR/utils/index"
 
 # ask for the password up front — rosetta, homebrew casks, FileVault and the
-# hosts symlink all need it later on
-require_sudo
+# hosts symlink all need it later on, and a prompt appearing mid-run reads as a
+# hang. linux asks later and only if it has to: the one step that needs sudo
+# there is installing missing packages, which is a no-op on every run after the
+# first, so asking up front would be a password prompt for nothing
+if is_macos; then
+  require_sudo
+fi
 
-# universal installs
+# universal installs. the macOS-only topics among these (homebrew, zed, iterm2,
+# fonts) guard themselves and report a skip on linux, rather than being left out
+# of the list here — the order matters, homebrew has to run before node and
+# python pick up fnm and uv
 source "$DIR/system/install"
 source "$DIR/zsh/install"
 source "$DIR/vim/install"
 source "$DIR/homebrew/install"
+# the linux half of the same provisioning slot: node and python below need fnm
+# and uv, which homebrew supplies on macOS. no-op on macOS
+source "$DIR/linux/tooling"
 source "$DIR/git/install"
 source "$DIR/node/install"
 source "$DIR/python/install"
@@ -25,7 +36,7 @@ source "$DIR/herdr/install"
 source "$DIR/fonts/install"
 
 # system specific installs
-source "$DIR/macos/install"
+source "$DIR/$DOTFILES_OS/install"
 
-# info "👉 Installation finished"
-# echo ""
+info "👉 Installation finished"
+echo ""

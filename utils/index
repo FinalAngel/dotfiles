@@ -6,6 +6,8 @@ declare DIR="$( cd "$( dirname "$PARENT" )" >/dev/null 2>&1 && pwd )"
 set -e
 
 # should only be used internally for install/update purposes
+# os comes first — constants branch on the detected platform
+source "$DIR/utils/os"
 source "$DIR/utils/constants"
 source "$DIR/utils/messages"
 source "$DIR/utils/functions"

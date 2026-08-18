@@ -23,15 +23,21 @@ if [ -d "$HOME/.oh-my-zsh" ]; then
   ZSH_DISABLE_COMPFIX=true
   # if yes load standard initialisations script
   source $ZSH/oh-my-zsh.sh
-  # load additional plugins
-  # (missing until homebrew has installed them; HOMEBREW_PREFIX avoids
-  # forking `brew --prefix` on every shell start)
-  BREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
-  [ -f "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] && \
-    source "$BREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-  [ -f "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh" ] && \
-    source "$BREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-  unset BREW_PREFIX
+  # load additional plugins.
+  #
+  # missing until homebrew has installed them, so every path is tested first.
+  # HOMEBREW_PREFIX avoids forking `brew --prefix` on every shell start; on
+  # linux these come from the distribution instead and land under /usr/share,
+  # so both roots are searched and the first hit wins
+  for plugin in zsh-syntax-highlighting zsh-autosuggestions; do
+    for prefix in "${HOMEBREW_PREFIX:-/opt/homebrew}/share" /usr/share /usr/local/share; do
+      if [ -f "$prefix/$plugin/$plugin.zsh" ]; then
+        source "$prefix/$plugin/$plugin.zsh"
+        break
+      fi
+    done
+  done
+  unset plugin prefix
 fi
 
 # disable any beeping

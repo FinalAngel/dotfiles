@@ -36,8 +36,16 @@ while test $# -gt 0; do
       exit
       ;;
     "-e"|"--edit")
-      exec "code" "$DIR"
-      exit
+      # `code` is the GUI editor launcher on the mac. a headless linux box has
+      # none, so fall back through $VISUAL/$EDITOR to a terminal editor rather
+      # than failing with "command not found"
+      for editor in code zed "$VISUAL" "$EDITOR" nvim vim; do
+        if [ -n "$editor" ] && type "$editor" > /dev/null 2>&1; then
+          exec "$editor" "$DIR"
+        fi
+      done
+      echo "No editor found, set \$EDITOR or \$VISUAL"
+      exit 1
       ;;
     "-g"|"--go")
       cd $DIR

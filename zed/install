@@ -3,6 +3,14 @@ source "$DIR/utils/index"
 
 info "Setup \033[0;37m[zed]\033[0m"
 
+# Zed is a GUI editor. its config path is the same on linux, so the settings
+# are linked whenever it is actually installed, and skipped on the headless
+# boxes these dotfiles otherwise run on
+if ! is_macos && ! is_executable "zed"; then
+  success "Zed is not installed, skipped"
+  return 0
+fi
+
 ZED_CONFIG_DIR="$HOME/.config/zed"
 mkdir -p "$ZED_CONFIG_DIR"
 
@@ -16,6 +24,6 @@ for file in settings.json keymap.json; do
     info "Existing $file moved to $file.backup"
   fi
 
-  ln -Fs "$src" "$dst"
+  force_link "$src" "$dst"
   success "Zed $file linked"
 done
