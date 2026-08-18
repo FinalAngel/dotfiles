@@ -19,7 +19,14 @@ alias cd.='cd $(readlink -f .)' # go to real dir (i.e. if current dir is linked)
 alias c="clear"
 alias q="exit"
 alias l="ls -lF ${colorflag}"
-alias ll='${HOMEBREW_PREFIX:-/opt/homebrew}/opt/coreutils/libexec/gnubin/ls -AhlFo --color --group-directories-first'
+# `ll` wants GNU ls: -o, --color and --group-directories-first are all GNU
+# extensions. on linux that is just `ls`; on macOS the system one is BSD, so it
+# has to come from the coreutils build homebrew keeps in a gnubin directory
+if [ "$colorflag" = "--color" ]; then
+	alias ll='ls -AhlFo --color --group-directories-first'
+else
+	alias ll='${HOMEBREW_PREFIX:-/opt/homebrew}/opt/coreutils/libexec/gnubin/ls -AhlFo --color --group-directories-first'
+fi
 alias la="ls -lAF ${colorflag}"
 alias ls="command ls ${colorflag}"
 alias lsd="ls -lF ${colorflag} | grep --color=never '^d'"
@@ -28,38 +35,46 @@ alias reload="source $HOME/.zshrc"
 alias top="htop"
 
 # directories
-alias apps="cd /Applications"
-alias dg="cd $HOME/Sites/devguard"
+alias dg="cd ${CODE_DIR:-$HOME/Sites}/devguard"
 alias dl="cd ~/Downloads"
 alias dt="cd ~/Desktop"
-alias lib="cd $HOME/Library"
-alias ws="cd $HOME/Sites"
+alias ws="cd ${CODE_DIR:-$HOME/Sites}"
 
 # development
 alias dc="docker compose"
 alias dcr="docker compose run --rm web"
 alias dcrun="dc run --rm"
 alias dclog="dc logs -f"
-alias dclint="docker run --env-file=.lint -it -v $(pwd):/app divio/lint /bin/lint"
+# single-quoted on purpose: in double quotes $(pwd) is expanded once, when this
+# file is sourced, so the alias would forever mount whatever directory the
+# shell happened to start in
+alias dclint='docker run --env-file=.lint -it -v $(pwd):/app divio/lint /bin/lint'
 alias code="zed"
 
 # helper
 alias cleanup="find . | grep -E '(\.DS_STORE|__pycache__|\.pyc|\.pyo|\.eggs|\.egg-info|\.tox|\.coverage$)' | xargs rm -rf"
-copyssh() { pbcopy < "$HOME/.ssh/id_rsa.pub" }
+# clipboard() is defined per platform (macos/ and linux/ functions.zsh) — pbcopy
+# does not exist off macOS. the key is ed25519 now, which is what git/install
+# generates; id_rsa is still accepted as a fallback for older machines.
+# picked by which file exists, not by exit code: clipboard() reports failure on
+# a headless box, and a `||` chain would then try the second key as well
+copyssh() {
+  local key="$HOME/.ssh/id_ed25519.pub"
+  [ -f "$key" ] || key="$HOME/.ssh/id_rsa.pub"
+  clipboard < "$key"
+}
 alias listgpg="gpg --list-secret-keys --keyid-format LONG"
-copygpg() { gpg --armor --export "$1" | pbcopy }
-alias flush="dscacheutil -flushcache && sudo killall -HUP mDNSResponder"
-alias ip="ipconfig getifaddr en0"
-alias ips="ifconfig -a | grep -o 'inet6\? \(addr:\)\?\s\?\(\(\([0-9]\+\.\)\{3\}[0-9]\+\)\|[a-fA-F0-9:]\+\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
-alias route="netstat -rn"
+copygpg() { gpg --armor --export "$1" | clipboard }
 alias urlencode="python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.argv[1]))'"
 alias week="date +%V"
-alias 8000="kill -9 $(lsof -i TCP:8000 | grep LISTEN | awk '{print $2}')"
+# single-quoted for the same reason as dclint — double quotes ran lsof at load
+# time and baked the result (usually nothing) into the alias
+alias 8000='kill -9 $(lsof -i TCP:8000 | grep LISTEN | awk "{print \$2}")'
 
 # divio
 alias ddivio="DIVIO_HOST=dev.aldryn.net divio"
 alias ldivio="DIVIO_HOST=local.aldryn.net divio"
 
 # fun stuff
-alias meh="echo '¯\_(ツ)_/¯' | pbcopy"
-alias table="echo '(╯°□°)╯︵ ┻━┻' | pbcopy"
+alias meh="echo '¯\_(ツ)_/¯' | clipboard"
+alias table="echo '(╯°□°)╯︵ ┻━┻' | clipboard"

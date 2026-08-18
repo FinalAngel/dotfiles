@@ -6,8 +6,17 @@ DOTFILES_ROOT="$HOME/.dotfiles"
 typeset -U config_files
 config_files=($DOTFILES_ROOT/**/aliases.zsh)
 
-# load all aliases.zsh files expect for this one
-for file in ${config_files:#*/zsh/aliases.zsh}; do
+# the platform topics are mutually exclusive: macos/aliases.zsh is `defaults`
+# and `pbcopy` all the way down, linux/aliases.zsh is its counterpart. loading
+# the wrong one would shadow the working aliases with broken ones
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  local skip_os="linux"
+else
+  local skip_os="macos"
+fi
+
+# load all aliases.zsh files expect for this one and the other platform's
+for file in ${${config_files:#*/zsh/aliases.zsh}:#*/$skip_os/*}; do
   source $file
 done
 
@@ -33,9 +42,6 @@ claude() {
 
 # alias for easy usage
 alias enh="enhanced_command"
-
-# Godot is a .app bundle, so its binary is not on PATH
-alias godot="/Applications/Godot.app/Contents/MacOS/Godot"
 
 # Harvest time tracking (bin/harvest)
 alias hv="harvest"
