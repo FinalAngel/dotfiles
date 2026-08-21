@@ -28,15 +28,13 @@ function enhanced_command() {
     rm -f "$temp_file"
 }
 
-# for claude switching
+# for claude switching. devguard is the default config; divio work (and
+# anything else under the divio tree) uses the plain ~/.claude config
 claude() {
-    if [[ "$PWD" == */devguard/* || "$PWD" == */devguard
-       || "$PWD" == */flow/* || "$PWD" == */flow
-       || "$PWD" == */hammerfest/* || "$PWD" == */hammerfest
-       || "$PWD" == */seo/* || "$PWD" == */seo ]]; then
-        CLAUDE_CONFIG_DIR=~/.claude-devguard command claude "$@"
-    else
+    if [[ "$PWD" == */divio/* || "$PWD" == */divio ]]; then
         command claude "$@"
+    else
+        CLAUDE_CONFIG_DIR=~/.claude-devguard command claude "$@"
     fi
 }
 
