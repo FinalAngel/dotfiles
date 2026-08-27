@@ -123,6 +123,9 @@ cask "elgato-camera-hub"
 cask "elgato-control-center"
 cask "elgato-stream-deck"
 cask "elgato-wave-link"
+# CLI + tailscaled daemon, no menu bar app. after a fresh install the daemon
+# still needs a one-time "sudo brew services start tailscale" and "tailscale up"
+brew "tailscale"
 cask "tunnelbear"
 cask "windows-app" # former Microsoft Remote Desktop
 
