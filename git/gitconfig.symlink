@@ -18,6 +18,13 @@
     pu = "!git pull && git push"
     whoami = "config user.email"
 
+    # worktrees: `wt` in the shell (git/functions.zsh) is the day-to-day
+    # entry point — these are for the plumbing underneath it
+    wt = "worktree"
+    wtls = "worktree list"
+    wtrm = "worktree remove"
+    wtp = "worktree prune"
+
     # links to bin helpers
     promote = !$ZSH/bin/git-promote
     wtf     = !$ZSH/bin/git-wtf
@@ -161,6 +168,12 @@
     default = current
     # make `git push` push relevant annotated tags when pushing branches out
 	  followTags = true
+
+[worktree]
+    # `git worktree add ../dir topic` with a topic that only exists on a remote
+    # creates a tracking branch instead of an unrelated local namesake. The
+    # `wt` function passes --track explicitly, this is for bare git usage
+    guessRemote = true
 
 # URL shorthands
 [url "git@github.com:"]

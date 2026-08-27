@@ -36,3 +36,8 @@ Desktop.ini
 data.tar.gz
 
 **/.claude/settings.local.json
+
+# worktrees created by `claude --worktree` / the desktop app, which live inside
+# the repository they belong to. `**/` because a pattern with a slash is
+# anchored to the repository root otherwise, and this file is a global exclude
+**/.claude/worktrees/
