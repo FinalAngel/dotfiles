@@ -26,7 +26,7 @@ spacer
 /Applications/Zed.app
 /Applications/Tower.app
 /Applications/Docker.app/Contents/MacOS/Docker Desktop.app
-/Applications/Yaak.app
+/Applications/yaak.app
 /Applications/Kaleidoscope.app
 /Applications/Modern CSV.app
 /Applications/Dash.app
@@ -36,16 +36,15 @@ spacer
 /Applications/Notion.app
 /Applications/Claude.app
 /Applications/LM Studio.app
-/Applications/Bionic.app
 /Applications/WhatsApp.app
-/Applications/Discord.app
 /System/Applications/Messages.app
+/Applications/Discord.app
+/Applications/Microsoft Teams.app
 /Applications/Telegram.app
 /Applications/VLC.app
 spacer
 /Applications/Plex.app
 /Applications/Goodnotes.app
-/Applications/MindNode.app
 /Applications/Anki.app
 /System/Applications/Books.app
 /Applications/VMware Remote Console.app
