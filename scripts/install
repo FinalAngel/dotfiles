@@ -14,7 +14,7 @@ if is_macos; then
   require_sudo
 fi
 
-# universal installs. the macOS-only topics among these (homebrew, zed, iterm2,
+# universal installs. the macOS-only topics among these (homebrew, zed, ghostty,
 # fonts) guard themselves and report a skip on linux, rather than being left out
 # of the list here — the order matters, homebrew has to run before node and
 # python pick up fnm and uv
@@ -30,7 +30,7 @@ source "$DIR/node/install"
 source "$DIR/python/install"
 source "$DIR/zed/install"
 source "$DIR/tmux/install"
-source "$DIR/iterm2/install"
+source "$DIR/ghostty/install"
 source "$DIR/claude/install"
 source "$DIR/herdr/install"
 source "$DIR/fonts/install"

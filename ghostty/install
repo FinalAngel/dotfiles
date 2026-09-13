@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+source "$DIR/utils/index"
+
+info "Setup \033[0;37m[ghostty]\033[0m"
+
+# Ghostty is a GUI terminal. its config path is the same on linux, so the
+# config is linked whenever it is actually installed, and skipped on the
+# headless boxes these dotfiles otherwise run on
+if ! is_macos && ! is_executable "ghostty"; then
+  success "Ghostty is not installed, skipped"
+  return 0
+fi
+
+GHOSTTY_CONFIG_DIR="$HOME/.config/ghostty"
+mkdir -p "$GHOSTTY_CONFIG_DIR"
+
+src="$DIR/ghostty/config"
+dst="$GHOSTTY_CONFIG_DIR/config"
+
+# keep a backup if a local, non-linked config exists
+if [ -f "$dst" ] && [ ! -L "$dst" ]; then
+  mv "$dst" "$dst.backup"
+  info "Existing config moved to config.backup"
+fi
+
+force_link "$src" "$dst"
+success "Ghostty config linked"

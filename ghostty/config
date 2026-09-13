@@ -1,0 +1,54 @@
+# Ghostty configuration, migrated from the iTerm2 "Default" profile.
+# Reference: ghostty +show-config --default --docs
+
+# --- font ---------------------------------------------------------------
+# iTerm2 had "FiraCode-Regular 16". Ghostty addresses the family, not the face.
+font-family = Fira Code
+font-size = 16
+
+# --- colours ------------------------------------------------------------
+background = #272c35
+foreground = #c3d0e1
+cursor-color = #c7c7c7
+selection-background = #3f464f
+selection-foreground = #c3d0e1
+
+palette = 0=#3e4452
+palette = 1=#f2475d
+palette = 2=#92e364
+palette = 3=#dc8c44
+palette = 4=#17b0ff
+palette = 5=#d87adf
+palette = 6=#00d1e0
+palette = 7=#b9c0cb
+palette = 8=#6f7783
+palette = 9=#f1475d
+palette = 10=#91e364
+palette = 11=#dc8c44
+palette = 12=#17b0ff
+palette = 13=#d87adf
+palette = 14=#02d1e0
+palette = 15=#ffffff
+
+# --- cursor -------------------------------------------------------------
+cursor-style = block
+cursor-style-blink = false
+
+# --- scrollback ---------------------------------------------------------
+# iTerm2 was set to unlimited, which Ghostty has no equivalent for — this is a
+# byte cap, not a line count. 100MB against a 10MB default.
+scrollback-limit = 100000000
+
+# --- behaviour ----------------------------------------------------------
+# iTerm2: "Prompt Before Closing" was off.
+confirm-close-surface = false
+
+# iTerm2 reported xterm-256color. Ghostty defaults to xterm-ghostty, whose
+# terminfo does not exist on remote hosts you ssh into — keep the portable one.
+term = xterm-256color
+
+# iTerm2: visual bell on, audible bell not silenced.
+bell-features = audio,attention,title,border
+
+# NOTE: macos-option-as-alt is deliberately left unset. On the Swiss German
+# layout Option composes characters (@, #, [, ]) — binding it to Alt breaks them.

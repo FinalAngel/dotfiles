@@ -45,7 +45,7 @@ yourself; it is skipped silently when there is no cached sudo.
 Only `apt` is implemented. Other package managers get the report and the
 matching install line, not an automatic install.
 
-Applications, fonts, iTerm2, the Dock and the iCloud-synced config are macOS
+Applications, fonts, Ghostty, the Dock and the iCloud-synced config are macOS
 concerns and skip themselves with a message. If you have no iCloud Drive,
 machine-local secrets go in `~/.localrc` as usual.
 
@@ -90,7 +90,7 @@ is ever active: `utils/os` detects the system, `scripts/install` dispatches to
 the matching topic, and the shell loaders skip the other one's `aliases.zsh`
 and `functions.zsh`. That is what keeps `pbcopy` and `defaults` out of a Linux
 shell, and `resolvectl` out of a mac. Topics that only make sense on one side
-(Homebrew, iTerm2, fonts, the iCloud sync) guard themselves and report a skip
+(Homebrew, Ghostty, fonts, the iCloud sync) guard themselves and report a skip
 rather than being left out of the list.
 
 The macOS package list lives in `homebrew/Brewfile`, the Linux one in
@@ -106,7 +106,7 @@ The macOS package list lives in `homebrew/Brewfile`, the Linux one in
 - [Python with uv](https://github.com/astral-sh/uv) and [pyenv](https://github.com/pyenv/pyenv)
 - [Starship](https://starship.rs/) 🚀
 - [tmux](https://github.com/tmux/tmux) with [TPM](https://github.com/tmux-plugins/tpm) and an agent sidebar
-- [Zed](https://zed.dev/) and [iTerm2](https://iterm2.com/) with their settings
+- [Zed](https://zed.dev/) and [Ghostty](https://ghostty.org/) with their settings
 
 A few things are kept in sync across machines rather than installed:
 
