@@ -1,0 +1,31 @@
+# Herdr configuration - linked to ~/.config/herdr/config.toml by herdr/link.
+# Apply changes to a running server with: herdr server reload-config
+# Reference: https://herdr.dev/llms.txt  (Config reference JSON)
+onboarding = false
+
+[theme]
+name = "nord"
+auto_switch = false
+
+[ui.sound]
+enabled = false
+
+[ui.toast]
+# "system" spawns /usr/bin/osascript and blocks herdr's UI thread until it
+# exits (~1s). "terminal" asks the outer terminal (Ghostty) for a desktop
+# notification instead - no subprocess.
+delivery = "terminal"
+
+[ui]
+status_indicators = "dots"
+
+# Agent rows:  finance            <- tab name, white; dimmed while the agent is working
+#              flow · claude      <- Space/folder dimmed, agent dimmed
+# $tab_idle / $tab_busy are pane tokens published by the local plugin
+# herdr/plugins/tab-state (only one of the two is set at a time). Herdr's own
+# style rules can only match a token's text, never the agent state, hence the plugin.
+[ui.sidebar.agents]
+rows = [
+  ["state_icon", "machine", { token = "$tab_idle", fg = "#ffffff", bold = true, dim = false }, { token = "$tab_busy", fg = "#ffffff", bold = true, dim = true }],
+  [{ token = "workspace", bold = false, dim = true }, "agent"],
+]

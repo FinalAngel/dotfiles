@@ -98,7 +98,7 @@ The macOS package list lives in `homebrew/Brewfile`, the Linux one in
 
 - [FiraCode](https://github.com/tonsky/FiraCode) with nice custom font management
 - [Git with GPG signing](https://gnupg.org/) enabled, plus [delta](https://github.com/dandavison/delta) as the diff pager
-- [herdr](https://herdr.dev/) installed into `~/.local/bin`
+- [herdr](https://herdr.dev/) installed into `~/.local/bin`, with its config linked and the local sidebar plugin registered
 - [Homebrew](https://brew.sh/) with cask and mas
 - [Neovim](https://neovim.io/)
 - [Node with fnm](https://github.com/Schniz/fnm) manager

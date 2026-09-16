@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Shared by herdr/install and herdr/update: links the config into place and
+# registers the local plugin. Safe to re-run - both steps are idempotent.
+source "$DIR/utils/index"
+
+HERDR_BIN="${HERDR_INSTALL_DIR:-$HOME/.local/bin}/herdr"
+HERDR_CONFIG_DIR="$HOME/.config/herdr"
+mkdir -p "$HERDR_CONFIG_DIR"
+
+# config.toml - keep a backup if a local, non-linked config exists
+src="$DIR/herdr/config.toml"
+dst="$HERDR_CONFIG_DIR/config.toml"
+if [ -f "$dst" ] && [ ! -L "$dst" ]; then
+  mv "$dst" "$dst.backup"
+  info "Existing config moved to config.toml.backup"
+fi
+force_link "$src" "$dst"
+success "Herdr config linked"
+
+# the tab-state plugin publishes the $tab_idle / $tab_busy sidebar tokens the
+# config above relies on. `plugin link` works without a running server and
+# re-linking an already linked plugin is a no-op
+if [ -x "$HERDR_BIN" ]; then
+  if "$HERDR_BIN" plugin link "$DIR/herdr/plugins/tab-state" > /dev/null 2>&1; then
+    success "Herdr tab-state plugin linked"
+  else
+    warn "Could not link the herdr tab-state plugin, run: herdr plugin link $DIR/herdr/plugins/tab-state"
+  fi
+
+  # only reachable when a server is running - apply the config and refresh the
+  # plugin tokens right away instead of waiting for the next launch
+  if "$HERDR_BIN" server reload-config > /dev/null 2>&1; then
+    "$HERDR_BIN" plugin action invoke dotfiles.tab-state.sync > /dev/null 2>&1 || true
+    success "Herdr config reloaded"
+  fi
+fi

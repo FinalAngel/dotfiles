@@ -6,10 +6,11 @@ info "Setup \033[0;37m[herdr]\033[0m"
 # the installer drops a single binary into ~/.local/bin, which is not on the
 # path yet on a fresh machine — check the file rather than the command
 if [ -x "${HERDR_INSTALL_DIR:-$HOME/.local/bin}/herdr" ]; then
-  # already there, the updater pulls the latest release
+  # already there, the updater pulls the latest release and relinks config + plugin
   source "$DIR/herdr/update"
 elif curl -fsSL https://herdr.dev/install.sh | sh > /dev/null 2>&1; then
   success "Herdr successfully installed"
+  source "$DIR/herdr/link"
 else
   # the installer resolves a release per os/arch — a machine it has no build
   # for used to abort the entire run under `set -e`

@@ -11,3 +11,6 @@ if curl -fsSL https://herdr.dev/install.sh | sh > /dev/null 2>&1; then
 else
   warn "Could not update herdr, see https://herdr.dev"
 fi
+
+# config symlink and local plugin, idempotent
+source "$DIR/herdr/link"
