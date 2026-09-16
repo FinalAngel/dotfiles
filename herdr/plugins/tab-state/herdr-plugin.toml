@@ -1,0 +1,35 @@
+# Mirrors each agent pane's tab label into two pane tokens so the sidebar can
+# style the tab name by agent state:  $tab_idle  when idle/blocked/done,
+#                                      $tab_busy  while the agent is working.
+# Used by [ui.sidebar.agents] rows in ~/.config/herdr/config.toml.
+id = "dotfiles.tab-state"
+name = "Tab state tokens"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Exposes the tab label as $tab_idle / $tab_busy so the sidebar can dim a tab name while its agent works"
+platforms = ["macos", "linux"]
+
+[[startup]]
+command = ["./tab_state.py", "all"]
+
+[[actions]]
+id = "sync"
+title = "Resync tab state tokens"
+contexts = ["workspace"]
+command = ["./tab_state.py", "all"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["./tab_state.py", "event"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["./tab_state.py", "event"]
+
+[[events]]
+on = "tab.renamed"
+command = ["./tab_state.py", "all"]
+
+[[events]]
+on = "pane.moved"
+command = ["./tab_state.py", "all"]
