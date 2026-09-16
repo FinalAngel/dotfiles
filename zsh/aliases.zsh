@@ -30,7 +30,12 @@ function enhanced_command() {
 
 # for claude switching. devguard is the default config; divio work (and
 # anything else under the divio tree) uses the plain ~/.claude config
+# --divio / --devguard force a config, otherwise it's picked from $PWD
 claude() {
+    case "$1" in
+        --divio)    shift; command claude "$@"; return ;;
+        --devguard) shift; CLAUDE_CONFIG_DIR=~/.claude-devguard command claude "$@"; return ;;
+    esac
     if [[ "$PWD" == */divio/* || "$PWD" == */divio ]]; then
         command claude "$@"
     else
