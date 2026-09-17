@@ -110,7 +110,7 @@ The macOS package list lives in `homebrew/Brewfile`, the Linux one in
 
 A few things are kept in sync across machines rather than installed:
 
-- **Claude** config (`~/.claude`, `~/.agents`) lives in iCloud and is symlinked into place, so settings, memory, skills and hooks follow both machines
+- **Claude** config (`~/.claude-divio`, `~/.claude-devguard`, `~/.agents`) lives in iCloud and is symlinked into place, so settings, memory, skills and hooks follow both machines. The `claude` shell function picks the profile from `$PWD`, or `--divio` / `--devguard` forces one; `~/.claude` is a compatibility symlink to `~/.claude-divio` for the editors and apps that never see that function
 - **Private files** (secrets, `.pypirc`, tmuxinator projects) are linked out of iCloud too, which keeps them out of this public repository
 - **The Dock** is declared in `macos/Dockfile` and reapplied on every update; `macos/dock-dump` regenerates it from the current Dock
 - **Dark mode** re-themes a running tmux server automatically through a `dark-notify` launch agent

@@ -29,8 +29,16 @@ function enhanced_command() {
 }
 
 # for claude switching. devguard is the default config; divio work (and
-# anything else under the divio tree) uses the plain ~/.claude config
+# anything else under the divio tree) uses ~/.claude-divio
 # --divio / --devguard force a config, otherwise it's picked from $PWD
+#
+# the divio branch deliberately sets no CLAUDE_CONFIG_DIR. Claude Code keeps
+# its state file at ~/.claude.json when the var is unset, but at
+# $CLAUDE_CONFIG_DIR/.claude.json when it is set — so pointing this branch at
+# ~/.claude-divio would start a second, empty state file and split project
+# trust, history and MCP config away from Zed and the desktop app, which never
+# see this function. Instead ~/.claude is a symlink to ~/.claude-divio, so
+# every entry point lands on the same profile. See claude/install.
 claude() {
     case "$1" in
         --divio)    shift; command claude "$@"; return ;;

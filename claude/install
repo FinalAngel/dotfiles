@@ -47,9 +47,32 @@ link_icloud_dir () {
   success "Claude $name linked to iCloud"
 }
 
+# migration: the divio profile used to be called .claude. Rename it in iCloud
+# before anything links it, so a machine still on the old layout converges.
+# Both names sit next to .agents, so the relative skill links
+# (../../.agents/skills/...) keep resolving across the rename.
+if [ -d "$SYSTEM_DIR/.claude" ] && [ ! -d "$SYSTEM_DIR/.claude-divio" ]; then
+  mv "$SYSTEM_DIR/.claude" "$SYSTEM_DIR/.claude-divio"
+  info "Renamed iCloud .claude to .claude-divio"
+fi
+
 link_icloud_dir ".agents"
-link_icloud_dir ".claude"
+link_icloud_dir ".claude-divio"
 link_icloud_dir ".claude-devguard"
+
+# ~/.claude stays as a compatibility symlink. Claude Code falls back to it
+# whenever CLAUDE_CONFIG_DIR is unset, which is every entry point that can't
+# see the zsh wrapper: the Zed and VS Code extensions, the desktop app, cron
+# and any non-interactive shell. Without it those would each silently start a
+# blank profile with no skills, settings or login.
+if [ -d "$HOME/.claude-divio" ]; then
+  if [ -e "$HOME/.claude" ] && [ ! -L "$HOME/.claude" ]; then
+    mv "$HOME/.claude" "$HOME/.claude.backup"
+    info "Existing .claude moved to .claude.backup"
+  fi
+  ln -sfn "$HOME/.claude-divio" "$HOME/.claude"
+  success "Claude .claude linked to .claude-divio"
+fi
 
 # the devguard profile (CLAUDE_CONFIG_DIR=~/.claude-devguard) has its own
 # skills dir, so personal skills from .agents are linked in individually;

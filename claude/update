@@ -15,3 +15,19 @@ if [ -f "$HOME/.claude.json" ] && [ ! -L "$HOME/.claude.json" ]; then
 else
   success "Nothing to back up"
 fi
+
+# claude-tips teaches commands that Claude Code keeps changing, so compare the
+# tip list against the published reference and say what drifted. Reporting only
+# — rewriting a tip needs judgement, which is what /claude-tips:refresh is for.
+check_tips="$DIR/claude/marketplace/plugins/claude-tips/scripts/check-tips.sh"
+if [ -x "$check_tips" ]; then
+  tips_report=$("$check_tips" 2>&1)
+  case $? in
+    0) success "Claude tips are current" ;;
+    1)
+      warn "Claude tips have drifted, run /claude-tips:refresh"
+      printf '%s\n' "$tips_report" | sed 's/^/         /'
+      ;;
+    *) warn "Could not check Claude tips: $(printf '%s' "$tips_report" | head -1)" ;;
+  esac
+fi
