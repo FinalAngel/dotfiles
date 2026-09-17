@@ -27,6 +27,30 @@ claude plugin uninstall claude-tips@finalangel
 claude plugin install claude-tips@finalangel
 ```
 
+## Keeping tips current
+
+Claude Code changes fast: commands get added, and some get removed (`/vim` and
+`/pr-comments` are already tombstones). `scripts/check-tips.sh` compares the tip
+list against the published command reference and reports three kinds of drift:
+
+- **new** — documented upstream, not tipped yet
+- **removed** — a tip teaches something upstream marks as removed
+- **gone** — a tip names a command upstream no longer documents
+
+Exit codes are 0 for no drift, 1 for drift, 2 for could-not-check (offline, or
+the docs page changed shape). It refuses to report drift when it parses zero
+commands, so an upstream layout change can't make every tip look stale.
+
+`claude/update` runs it, so `dotfiles update` tells you when the list has rotted.
+To act on that, run `/claude-tips:refresh`: it re-runs the check, reads each
+affected command's row from the docs, and rewrites the tips — writing from the
+source rather than from memory, because a confident tip for a flag that doesn't
+exist is worse than no tip.
+
+Commands deliberately not tipped live in `tips/ignore.txt`, which keeps the
+report down to things actually worth a decision instead of the same ~50 rows
+every week.
+
 ## Turning it off
 
 - One session: `CLAUDE_TIPS=0 claude`

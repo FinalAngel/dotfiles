@@ -76,3 +76,17 @@ Ctrl+B sends a running command to the background and gives you the prompt back
 /release-notes — browse the changelog in a version picker
 /usage — session cost and plan limits; aliases /cost and /stats
 /help — the full command list, any time
+
+# --- bigger guns ---------------------------------------------------------
+/batch <instruction> — split a large change into 5-30 units, each built by its own subagent in its own worktree
+/deep-research <question> — fan out web searches, cross-check the sources, and come back with a cited report
+/code-review — review the changes on your branch, at an effort level you choose
+/workflows — watch, pause, resume, or save running workflows
+/add-dir <path> — give Claude file access to another directory for this session
+/artifacts — list artifacts you own or that were shared with you, then attach, open, or copy a link
+/fast — toggle fast mode: the same Opus model, with faster output
+/auto-mode-setup — draft auto mode environment entries from your project and recent sessions
+/dataviz — design guidance for charts and dashboards, with a colorblind-safe palette check
+/design [brief] — draft UI mockups as artboards on a canvas, published as an artifact
+/design-sync — upload your repo's React design system so Claude Design uses your real components
+/design-login — authorize design-system access, the one-time step before /design-sync works
