@@ -1,0 +1,78 @@
+# One tip per line. Blank lines and # comments are skipped.
+# Shown in order, one per turn, wrapping around at the end — so add new tips
+# anywhere and you will still see every one of them before any repeats.
+# Editing this file takes effect on the next turn. Installing copies the plugin
+# into a cache, but the hook script deliberately reads this checked-out file
+# first, so there is nothing to reinstall after adding a tip.
+
+# --- context and memory -------------------------------------------------
+/context — colored grid of what is eating your context window, with suggestions
+/compact [instructions] — summarize the conversation to free context; pass focus instructions
+/clear — start fresh with empty context; /resume brings the old conversation back
+/memory — edit CLAUDE.md files, toggle auto memory, and browse what Claude saved about you
+/init — generate a starting CLAUDE.md by analyzing the codebase
+Ask "remember that ..." in plain language and it goes to auto memory; say "add to CLAUDE.md" for a rule
+CLAUDE.local.md at a project root holds personal notes — gitignore it, it loads alongside CLAUDE.md
+.claude/rules/*.md with a paths: frontmatter loads instructions only when Claude touches matching files
+@path/to/file inside CLAUDE.md imports that file at launch, up to four hops deep
+/doctor — setup checkup; finds unused skills, slow hooks, and trims a bloated CLAUDE.md
+
+# --- moving around a session --------------------------------------------
+/rewind — roll the conversation and/or the code back to an earlier point; aliases /checkpoint, /undo
+/resume — reopen a past conversation by name or from a picker
+/branch — fork the conversation here to try another direction without losing this one
+/fork [prompt] — copy the session into a background agent and keep working in this one
+/subtask <task> — hand a side task to a forked subagent that reports back into this conversation
+/rename — name the session so the /resume picker is actually readable
+/btw <question> — ask a side question that never enters the conversation history
+/recap — one-line summary of where the session has got to
+/copy [N] — copy the Nth-latest response, or pick out individual code blocks
+/export — dump the whole conversation to a file or the clipboard
+
+# --- reviewing work ------------------------------------------------------
+/diff — review the working tree, including every edit Claude has made so far
+/security-review — scan the branch diff for injection, auth, and data-exposure risks
+/review — code review of your changes, at an effort level you choose
+/simplify — four parallel agents hunt for reuse, simplification, and efficiency cleanups
+/run — build and drive the actual app, instead of trusting that tests passing means it works
+/verify — confirm a change does what it should by running the app and observing the result
+/run-skill-generator — teach /run how to launch this project once, then reuse it forever
+
+# --- configuration -------------------------------------------------------
+/config key=value — set a setting without opening the panel, e.g. /config theme=dark
+/permissions — manage allow, ask, and deny rules; alias /allowed-tools
+/fewer-permission-prompts — mine your transcripts for safe read-only calls and allowlist them
+/hooks — see which hooks are configured and on which events
+/statusline — describe the status line you want and have it built for you
+/keybindings — open your keyboard shortcuts file
+/theme — light, dark, auto, and colorblind-accessible themes
+/terminal-setup — install a Shift+Enter binding for newlines in your terminal
+/model — switch model; press s on a row to switch for this session only
+/effort — adjust how much reasoning effort the model spends
+
+# --- skills and plugins --------------------------------------------------
+/skills — list skills; press t to sort by token cost, Space to toggle visibility
+/skill-doctor — what each skill costs in context versus how often you actually use it
+/reload-skills — pick up skills you just edited on disk, without restarting
+/plugin — install, enable, and disable plugins; /reload-plugins applies changes without a restart
+
+# --- typing faster -------------------------------------------------------
+Prefix a line with ! to run a shell command in the session so its output lands in the conversation
+Prefix with @ to reference a file path in your prompt
+Ctrl+G, or Ctrl+X Ctrl+E, opens the current prompt in your $EDITOR
+Press ? to see every keyboard shortcut for your terminal
+Ctrl+B sends a running command to the background and gives you the prompt back
+/plan [description] — enter plan mode directly, so Claude designs before it edits
+
+# --- automation ----------------------------------------------------------
+/loop [interval] <prompt> — repeat a prompt, e.g. /loop 5m check if the deploy finished
+/goal <condition> — a session-scoped Stop hook: keep working until the condition holds
+/schedule — create cloud routines that run on a cron
+/tasks — view and manage background work in this session; alias /bashes
+
+# --- finding your way ----------------------------------------------------
+/powerup — interactive lessons with animated demos, the built-in way to learn features
+/insights — an HTML report on how you actually use Claude Code and what to try next
+/release-notes — browse the changelog in a version picker
+/usage — session cost and plan limits; aliases /cost and /stats
+/help — the full command list, any time

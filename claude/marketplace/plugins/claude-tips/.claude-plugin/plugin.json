@@ -1,0 +1,11 @@
+{
+  "name": "claude-tips",
+  "displayName": "Claude Tips",
+  "description": "Prints one Claude Code tip after every turn, rotating through a curated list",
+  "version": "1.0.0",
+  "author": {
+    "name": "Angelo Dini"
+  },
+  "license": "MIT",
+  "keywords": ["tips", "learning", "hooks"]
+}
