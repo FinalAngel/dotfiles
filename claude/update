@@ -19,8 +19,11 @@ fi
 # claude-tips teaches commands that Claude Code keeps changing, so compare the
 # tip list against the published reference and say what drifted. Reporting only
 # — rewriting a tip needs judgement, which is what /claude-tips:refresh is for.
-check_tips="$DIR/claude/marketplace/plugins/claude-tips/scripts/check-tips.sh"
-if [ -x "$check_tips" ]; then
+# the plugin is installed from github.com/FinalAngel/claude-tips, so the script
+# lives in whichever profile's plugin cache. Newest match wins, so a stale cache
+# left behind by an old marketplace can't shadow the current one.
+check_tips=$(ls -t "$HOME"/.claude*/plugins/cache/*/claude-tips/*/scripts/check-tips.sh 2>/dev/null | head -1)
+if [ -n "$check_tips" ] && [ -x "$check_tips" ]; then
   tips_report=$("$check_tips" 2>&1)
   case $? in
     0) success "Claude tips are current" ;;
@@ -30,4 +33,6 @@ if [ -x "$check_tips" ]; then
       ;;
     *) warn "Could not check Claude tips: $(printf '%s' "$tips_report" | head -1)" ;;
   esac
+else
+  warn "claude-tips is not installed, run: claude plugin install claude-tips@claude-tips"
 fi

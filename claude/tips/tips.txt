@@ -1,0 +1,9 @@
+# Personal Claude Code tips, layered on top of the ones bundled with
+# claude-tips (github.com/FinalAngel/claude-tips). One per line; blank lines
+# and # comments are skipped. Takes effect on the next turn.
+#
+# This file is for tips that are yours alone — machine-specific habits, things
+# about this setup. A tip that would help anyone belongs in the plugin itself:
+# edit tips/tips.txt in the repo and push, rather than adding it here.
+
+/plugin marketplace update — pull the newest claude-tips list without reinstalling

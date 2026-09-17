@@ -1,0 +1,2 @@
+# Commands you personally never want tipped, layered on top of the plugin's own
+# ignore list. One per line. Only affects the drift report, not the tips shown.

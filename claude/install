@@ -102,5 +102,34 @@ if [ ! -f "$HOME/.claude.json" ] && [ -f "$SYSTEM_DIR/.claude.json.backup" ]; th
   success "Restored .claude.json from iCloud"
 fi
 
+# claude-tips is installed from github.com/FinalAngel/claude-tips rather than
+# vendored here, so both machines track the published plugin. Personal tips are
+# an overlay the plugin appends to its own bundled list — kept in this repo and
+# linked into place, so they survive the reinstall that every plugin update
+# performs. A tip worth sharing belongs in the plugin repo, not in the overlay.
+CLAUDE_TIPS_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/claude-tips"
+mkdir -p "$CLAUDE_TIPS_CONFIG"
+for f in tips ignore; do
+  ln -sfn "$DIR/claude/tips/$f.txt" "$CLAUDE_TIPS_CONFIG/$f.txt"
+done
+success "Claude tips overlay linked"
+
+# the plugin is per profile, and installing needs the network — so this is
+# best-effort and never blocks the rest of the bootstrap
+for profile in "$HOME/.claude-divio" "$HOME/.claude-devguard"; do
+  [ -d "$profile" ] || continue
+  name="$(basename "$profile")"
+  if CLAUDE_CONFIG_DIR="$profile" claude plugin list 2>/dev/null | grep -q "claude-tips@claude-tips"; then
+    success "Claude tips already installed in $name"
+    continue
+  fi
+  if CLAUDE_CONFIG_DIR="$profile" claude plugin marketplace add FinalAngel/claude-tips >/dev/null 2>&1 &&
+     CLAUDE_CONFIG_DIR="$profile" claude plugin install claude-tips@claude-tips >/dev/null 2>&1; then
+    success "Claude tips installed in $name"
+  else
+    warn "Could not install claude-tips in $name, run: claude plugin install claude-tips@claude-tips"
+  fi
+done
+
 # run updates
 source "$DIR/claude/update"
