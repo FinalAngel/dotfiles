@@ -52,3 +52,10 @@ bell-features = audio,attention,title,border
 
 # NOTE: macos-option-as-alt is deliberately left unset. On the Swiss German
 # layout Option composes characters (@, #, [, ]) — binding it to Alt breaks them.
+
+# --- app icon -----------------------------------------------------------
+# All-black ghost on an all-black screen, in the glossy dark plastic frame.
+macos-icon = custom-style
+macos-icon-frame = plastic
+macos-icon-ghost-color = #000000
+macos-icon-screen-color = #000000,#000000
