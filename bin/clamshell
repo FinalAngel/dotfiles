@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# `clamshell` keeps the Mac running with the lid closed and the displays off,
+# then restores the previous sleep setting once the lid opens again.
+
+set -e
+
+lid_closed() {
+  ioreg -r -k AppleClamshellState -d 4 | grep -q '"AppleClamshellState" = Yes'
+}
+
+# remember the current setting so we put back exactly what was there
+previous=$(pmset -g | awk '/SleepDisabled/ {print $2}')
+previous=${previous:-0}
+
+sudo -v
+# keep sudo fresh so restore never needs a password (e.g. terminal closed)
+while true; do sudo -n -v; sleep 60; done 2>/dev/null &
+keepalive=$!
+
+restore() {
+  sudo -n pmset -a disablesleep "$previous"
+  kill "$keepalive" 2>/dev/null
+  echo "restored (disablesleep $previous), bye"
+}
+trap restore EXIT
+trap 'exit 130' INT TERM HUP
+
+sudo pmset -a disablesleep 1
+echo "clamshell on. Close the lid; open it again to end."
+
+until lid_closed; do sleep 2; done
+pmset displaysleepnow
+echo "  lid closed → displays off"
+
+while lid_closed; do sleep 2; done
+echo "  lid opened"
