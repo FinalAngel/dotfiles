@@ -7,3 +7,7 @@
 # edit tips/tips.txt in the repo and push, rather than adding it here.
 
 /plugin marketplace update — pull the newest claude-tips list without reinstalling
+/output-style [style] — list output styles or switch to one, for when you want terser or more explanatory replies
+/update-config [request] — describe a settings change like allowing a command or adding a hook, and Claude edits settings.json for you
+/claude-in-chrome [task] — have Claude test a page, fill a form or read console logs in your browser
+/slides [brief] — turn a brief into a Claude Slides deck as an artifact, no .pptx wrangling

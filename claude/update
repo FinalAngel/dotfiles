@@ -24,8 +24,9 @@ fi
 # left behind by an old marketplace can't shadow the current one.
 check_tips=$(ls -t "$HOME"/.claude*/plugins/cache/*/claude-tips/*/scripts/check-tips.sh 2>/dev/null | head -1)
 if [ -n "$check_tips" ] && [ -x "$check_tips" ]; then
-  tips_report=$("$check_tips" 2>&1)
-  case $? in
+  # exit 1 means drift, not failure — capture it so `set -e` doesn't abort the run
+  tips_report=$("$check_tips" 2>&1) && tips_rc=0 || tips_rc=$?
+  case $tips_rc in
     0) success "Claude tips are current" ;;
     1)
       warn "Claude tips have drifted, run /claude-tips:refresh"
