@@ -53,6 +53,3 @@ claude() {
 
 # alias for easy usage
 alias enh="enhanced_command"
-
-# Harvest time tracking (bin/harvest)
-alias hv="harvest"

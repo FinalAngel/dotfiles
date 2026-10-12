@@ -16,7 +16,7 @@ spacer
 /Applications/Google Chrome.app
 spacer
 /Applications/Affinity.app
-/Applications/Harvest.app
+/Applications/KimaiTray.app
 /Applications/Pages.app
 /Applications/Numbers.app
 /Applications/Keynote.app
@@ -26,7 +26,7 @@ spacer
 /Applications/Zed.app
 /Applications/Tower.app
 /Applications/Docker.app/Contents/MacOS/Docker Desktop.app
-/Applications/yaak.app
+/Applications/Yaak.app
 /Applications/Kaleidoscope.app
 /Applications/Modern CSV.app
 /Applications/Dash.app
@@ -35,7 +35,6 @@ spacer
 /Applications/Slack.app
 /Applications/Notion.app
 /Applications/Claude.app
-/Applications/LM Studio.app
 /Applications/WhatsApp.app
 /System/Applications/Messages.app
 /Applications/Discord.app

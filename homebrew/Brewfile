@@ -154,7 +154,6 @@ brew "mas"
 # 2Do is no longer available in the App Store — installed copy kept manually
 mas "Be Focused - Focus Timer", id: 973134470
 mas "GoodNotes 6", id: 1444383602
-mas "Harvest", id: 506189836
 mas "In Your Face", id: 1476964367
 mas "Keynote", id: 409183694
 mas "Numbers", id: 409203825

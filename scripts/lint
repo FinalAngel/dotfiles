@@ -78,10 +78,6 @@ else
   warn "ruby not installed, skipped"
 fi
 
-info "Lint \033[0;37m[python]\033[0m"
-# parsed rather than py_compile'd, which would litter the repo with __pycache__
-check "bin/harvest" python3 -c 'import ast,sys; ast.parse(open(sys.argv[1]).read())' bin/harvest
-
 info "Lint \033[0;37m[shellcheck]\033[0m"
 if type shellcheck > /dev/null 2>&1; then
   # error level only. the warning level flags intentional choices here, such
