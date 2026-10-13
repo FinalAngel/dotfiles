@@ -78,6 +78,9 @@ else
   warn "ruby not installed, skipped"
 fi
 
+info "Lint \033[0;37m[python]\033[0m"
+check "bin/kimai" python3 bin/kimai selftest
+
 info "Lint \033[0;37m[shellcheck]\033[0m"
 if type shellcheck > /dev/null 2>&1; then
   # error level only. the warning level flags intentional choices here, such

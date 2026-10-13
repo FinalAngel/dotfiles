@@ -1,0 +1,877 @@
+#!/usr/bin/env -S uv run --script --quiet
+# /// script
+# requires-python = ">=3.11"
+# dependencies = []
+# ///
+"""kimai — fill a Kimai timesheet from a two-week grid in the terminal.
+
+    kimai              open the grid (last week + this week)
+    kimai start 8:15   say when today started (default: now)
+    kimai status       hours per day for the last four weeks
+    kimai setup        store the API token, index projects
+    kimai sync         refresh the project/activity index
+
+Rows are activities, cells are durations. Kimai stores begin and end times, so
+each day is laid out back to back from its start time, in row order, with the
+lunch break cut in at its time. Saving rewrites only the days you changed.
+
+Config: ~/.config/kimai/config.json (all keys optional):
+    {"url": "https://divio.kimai.cloud", "day_start": "08:00",
+     "lunch_at": "12:00", "lunch": 60, "target": 480}
+"""
+
+from __future__ import annotations
+
+import copy
+import curses
+import datetime as dt
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+KEYCHAIN_SERVICE = "kimai-cli"
+CONFIG_DIR = os.path.expanduser("~/.config/kimai")
+CONFIG_PATH = os.path.join(CONFIG_DIR, "config.json")
+INDEX_PATH = os.path.join(CONFIG_DIR, "index.json")
+STARTS_PATH = os.path.join(CONFIG_DIR, "starts.json")
+DEFAULTS = {
+    "url": "https://divio.kimai.cloud",
+    "day_start": "08:00",
+    "lunch_at": "12:00",
+    "lunch": 60,
+    "target": 480,
+}
+
+_TTY = sys.stdout.isatty() and os.environ.get("NO_COLOR") is None
+
+
+def _c(code, text):
+    return f"\033[{code}m{text}\033[0m" if _TTY else text
+
+
+def die(msg, hint=None):
+    print(f"{_c('31', '✗')} {msg}", file=sys.stderr)
+    if hint:
+        print(f"  {_c('2', hint)}", file=sys.stderr)
+    sys.exit(1)
+
+
+# --------------------------------------------------------------------------- #
+# time maths (minutes everywhere)
+# --------------------------------------------------------------------------- #
+
+
+def parse_dur(text, clock=False):
+    """'2' → 2h, '230' → 2:30, '45' → 45m, '1.5' → 1:30, '8:15' → 8:15.
+
+    clock=True reads one or two digits as hours always ('13' → 13:00).
+    """
+    s = text.strip().replace("h", ":")
+    if not s:
+        raise ValueError("empty")
+    if ":" in s:
+        h, _, m = s.partition(":")
+        return int(h or 0) * 60 + int(m or 0)
+    if "." in s:
+        return round(float(s) * 60)
+    n = int(s)
+    if len(s) >= 3:
+        return n // 100 * 60 + n % 100
+    return n * 60 if clock or n <= 12 else n
+
+
+def fmt(mins):
+    return f"{mins // 60}:{mins % 60:02d}"
+
+
+def clock(mins):
+    return f"{mins // 60:02d}:{mins % 60:02d}"
+
+
+def layout(start, lunch_at, lunch, items):
+    """Lay durations out back to back from start, cutting the lunch break in.
+
+    items: [(key, minutes)] in row order. Returns [(begin, end, key)], with
+    key None for the lunch break. A day that starts after lunch_at, or ends
+    before it, gets no break.
+    """
+    out, t = [], start
+    pending = lunch if start < lunch_at else 0
+    for key, m in items:
+        while m > 0:
+            if pending and t >= lunch_at:
+                out.append((t, t + pending, None))
+                t, pending = t + pending, 0
+            chunk = min(m, lunch_at - t) if pending else m
+            out.append((t, t + chunk, key))
+            t, m = t + chunk, m - chunk
+    return out
+
+
+def selftest():
+    assert parse_dur("2") == 120 and parse_dur("230") == 150 and parse_dur("45") == 45
+    assert parse_dur("1.5") == 90 and parse_dur("8:15") == 495 and parse_dur("13", clock=True) == 780
+    a, b = ("a", "b")
+    assert layout(480, 720, 60, [(a, 150), (b, 330)]) == [
+        (480, 630, a), (630, 720, b), (720, 780, None), (780, 1020, b)]
+    assert layout(480, 720, 60, [(a, 240), (b, 60)]) == [
+        (480, 720, a), (720, 780, None), (780, 840, b)]
+    assert layout(480, 720, 60, [(a, 120)]) == [(480, 600, a)]
+    assert layout(780, 720, 60, [(a, 60)]) == [(780, 840, a)]
+    print("ok")
+
+
+# --------------------------------------------------------------------------- #
+# config, credentials, api
+# --------------------------------------------------------------------------- #
+
+
+def load_json(path, default):
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        return default
+
+
+def save_json(path, data):
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(path, "w") as fh:
+        json.dump(data, fh, indent=2)
+        fh.write("\n")
+
+
+def load_config():
+    cfg = {**DEFAULTS, **load_json(CONFIG_PATH, {})}
+    for k in ("day_start", "lunch_at"):
+        cfg[k] = parse_dur(cfg[k], clock=True)
+    return cfg
+
+
+def token():
+    if t := os.environ.get("KIMAI_TOKEN"):
+        return t
+    out = subprocess.run(
+        ["security", "find-generic-password", "-s", KEYCHAIN_SERVICE, "-w"],
+        capture_output=True, text=True,
+    )
+    return out.stdout.strip() or None
+
+
+class ApiError(Exception):
+    pass
+
+
+class Api:
+    def __init__(self, url, tok):
+        self.root, self.tok = url.rstrip("/") + "/api", tok
+
+    def __call__(self, method, path, params=None, body=None):
+        url = self.root + path + ("?" + urllib.parse.urlencode(params) if params else "")
+        data = json.dumps(body).encode() if body is not None else None
+        req = urllib.request.Request(url, data=data, method=method)
+        req.add_header("Authorization", f"Bearer {self.tok}")
+        req.add_header("Accept", "application/json")
+        if data:
+            req.add_header("Content-Type", "application/json")
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    raw = resp.read()
+                    return json.loads(raw) if raw else {}
+            except urllib.error.HTTPError as exc:
+                detail = exc.read().decode(errors="replace")[:300]
+                if exc.code == 401:
+                    raise ApiError("Kimai rejected the token (401), run: kimai setup")
+                raise ApiError(f"{method} {path}: {exc.code} {detail}")
+            except urllib.error.URLError as exc:
+                if attempt == 2:
+                    raise ApiError(f"could not reach Kimai: {exc.reason}")
+                time.sleep(2**attempt)
+
+
+def connect():
+    cfg = load_config()
+    tok = token()
+    if not tok:
+        die(f"no Kimai token in the Keychain (service '{KEYCHAIN_SERVICE}')", "run: kimai setup")
+    return Api(cfg["url"], tok), cfg
+
+
+def sync_index(api):
+    customers = {c["id"]: c["name"] for c in api("GET", "/customers", {"visible": 1})}
+    projects = api("GET", "/projects", {"visible": 1})
+    activities = api("GET", "/activities", {"visible": 1})
+    rows = []
+    for p in projects:
+        for a in activities:
+            if a.get("project") in (None, p["id"]):
+                label = f"{customers.get(p['customer'], '?')} / {p['name']} / {a['name']}"
+                rows.append([p["id"], a["id"], label])
+    rows.sort(key=lambda r: r[2].lower())
+    save_json(INDEX_PATH, {"synced_at": time.time(), "rows": rows})
+    return rows
+
+
+def load_index(api):
+    idx = load_json(INDEX_PATH, None)
+    if not idx or time.time() - idx["synced_at"] > 86400:
+        return sync_index(api)
+    return idx["rows"]
+
+
+def fetch(api, first, last):
+    """Timesheets between two dates, grouped by date."""
+    out = {}
+    for e in api("GET", "/timesheets", {
+        "begin": f"{first}T00:00:00", "end": f"{last}T23:59:59", "size": 1000,
+    }):
+        out.setdefault(dt.date.fromisoformat(e["begin"][:10]), []).append(e)
+    return out
+
+
+def minute_of(stamp):
+    """Kimai returns local wall time with an offset, so the clock part is it."""
+    return int(stamp[11:13]) * 60 + int(stamp[14:16])
+
+
+# --------------------------------------------------------------------------- #
+# the grid
+# --------------------------------------------------------------------------- #
+
+
+def infer_day(entries, cfg, start_override=None):
+    """Read a day's start, lunch and per-row minutes back from its entries."""
+    es = sorted(entries, key=lambda e: e["begin"])
+    day = {"start": cfg["day_start"], "lunch_at": cfg["lunch_at"], "lunch": cfg["lunch"],
+           "h": {}, "order": []}
+    if es:
+        spans = [(minute_of(e["begin"]), minute_of(e["end"])) for e in es if e.get("end")]
+        if spans:
+            day["start"] = spans[0][0]
+            gaps = [(b2 - e1, e1) for (_, e1), (b2, _) in zip(spans, spans[1:]) if b2 > e1]
+            if gaps:
+                day["lunch"], day["lunch_at"] = max(gaps)
+            elif spans[-1][1] > cfg["lunch_at"]:
+                day["lunch"] = 0
+    for e in es:
+        if e.get("end"):
+            key = (e["project"], e["activity"])
+            day["h"][key] = day["h"].get(key, 0) + e["duration"] // 60
+            if key not in day["order"]:
+                day["order"].append(key)
+    if start_override is not None:
+        day["start"] = start_override
+    return day
+
+
+class Grid:
+    def __init__(self, api, cfg):
+        self.api, self.cfg = api, cfg
+        self.labels = {(p, a): lbl for p, a, lbl in load_index(api)}
+        self.server, self.days, self.orig = {}, {}, {}
+        self.rows, self.undo = [], []
+        self.week = 0
+        self.r, self.c = 2, 0
+        self.buf = None
+        self.msg = ""
+        today = dt.date.today()
+        self.c = min(today.weekday(), 4) + 5
+        self.load()
+
+    # --- data -------------------------------------------------------------- #
+
+    def dates(self):
+        mon = dt.date.today() - dt.timedelta(days=dt.date.today().weekday())
+        mon += dt.timedelta(weeks=self.week - 1)
+        return [mon + dt.timedelta(days=w * 7 + d) for w in (0, 1) for d in range(5)]
+
+    def load(self, force=False):
+        ds = self.dates()
+        if not force and all(d in self.days for d in ds):
+            return
+        got = fetch(self.api, ds[0], ds[-1])
+        starts = load_json(STARTS_PATH, {})
+        for d in ds:
+            if not force and d in self.days:
+                continue
+            self.server[d] = got.get(d, [])
+            # a start from `kimai start` counts as known, not as an edit
+            self.orig[d] = infer_day(self.server[d], self.cfg, starts.get(d.isoformat()))
+            self.days[d] = copy.deepcopy(self.orig[d])
+        # rows in the order they happen on the earliest day that has them
+        seen = sorted(
+            (e["begin"][:10], minute_of(e["begin"]), (e["project"], e["activity"]))
+            for d in ds for e in self.server[d]
+        )
+        for *_, key in seen:
+            if key not in self.rows:
+                self.rows.append(key)
+
+    def locked(self, d):
+        for e in self.server.get(d, []):
+            if e.get("exported"):
+                return "exported"
+            if not e.get("end"):
+                return "timer running"
+        return None
+
+    def dirty(self):
+        return [d for d in sorted(self.days) if self.days[d] != self.orig[d]]
+
+    def items(self, d):
+        h = self.days[d]["h"]
+        # the day's own order first, rows added since go after it
+        order = self.days[d]["order"] + [k for k in self.rows if k not in self.days[d]["order"]]
+        return [(k, h[k]) for k in order if h.get(k)]
+
+    def timeline(self, d):
+        day = self.days[d]
+        return layout(day["start"], day["lunch_at"], day["lunch"], self.items(d))
+
+    def total(self, d):
+        return sum(self.days[d]["h"].values())
+
+    def save(self, draw):
+        starts = {k: v for k, v in load_json(STARTS_PATH, {}).items()
+                  if k >= dt.date.today().isoformat()}
+        for d in self.dirty():
+            if self.timeline(d) and self.timeline(d)[-1][1] > 24 * 60:
+                raise ApiError(f"{d:%a %d %b} runs past midnight")
+        for d in self.dirty():
+            draw(f"saving {d:%a %d %b}…")
+            notes = {(e["project"], e["activity"]): e.get("description") or ""
+                     for e in self.server[d]}
+            for e in self.server[d]:
+                self.api("DELETE", f"/timesheets/{e['id']}")
+            self.server[d] = []
+            for b, e, key in self.timeline(d):
+                if key:
+                    self.server[d].append(self.api("POST", "/timesheets", body={
+                        "begin": f"{d}T{clock(b)}:00", "end": f"{d}T{clock(e)}:00",
+                        "project": key[0], "activity": key[1],
+                        "description": notes.get(key, ""),
+                    }))
+            self.orig[d] = copy.deepcopy(self.days[d])
+            if d >= dt.date.today():
+                starts[d.isoformat()] = self.days[d]["start"]
+        save_json(STARTS_PATH, starts)
+
+    # --- editing ----------------------------------------------------------- #
+
+    def snapshot(self):
+        self.undo.append((copy.deepcopy(self.days), list(self.rows)))
+        del self.undo[:-200]
+
+    def day(self):
+        return self.dates()[self.c]
+
+    def get(self, r=None, d=None, src=None):
+        r = self.r if r is None else r
+        day = (src or self.days)[d or self.day()]
+        if r == 0:
+            return day["start"]
+        if r == 1:
+            return day["lunch"]
+        return day["h"].get(self.rows[r - 2], 0)
+
+    def set(self, mins):
+        d = self.day()
+        if why := self.locked(d):
+            self.msg = f"{d:%a %d %b} is locked ({why})"
+            return
+        self.snapshot()
+        mins = max(0, min(mins, 24 * 60 - 1))
+        day = self.days[d]
+        if self.r == 0:
+            day["start"] = mins
+        elif self.r == 1:
+            day["lunch"] = mins
+        elif mins:
+            day["h"][self.rows[self.r - 2]] = mins
+        else:
+            day["h"].pop(self.rows[self.r - 2], None)
+
+    def commit(self):
+        if self.buf is None:
+            return
+        text, self.buf = self.buf, None
+        try:
+            self.set(parse_dur(text, clock=self.r == 0))
+        except ValueError:
+            self.msg = f"cannot read {text!r}: try 2, 230, 1.5 or 45"
+
+
+# --------------------------------------------------------------------------- #
+# curses
+# --------------------------------------------------------------------------- #
+
+CW = 6  # cell width
+GUT = 7  # left gutter
+
+
+def label_runs(lbl, width, words=()):
+    """Split a label into (text, attr) runs: the path dim, the activity plain,
+    [CODES] dim, typed words bold. Too long → the middle goes first."""
+    parts = lbl.split(" / ")
+    if len(lbl) > width and len(parts) > 2:
+        mid = " / ".join(parts[1:-1])
+        room = width - len(parts[0]) - len(parts[-1]) - 6
+        parts = [parts[0], mid[:room - 1] + "…" if room >= 4 else "…", parts[-1]]
+    text = " / ".join(parts)
+    if len(text) > width:
+        text = text[:max(0, width - 1)] + "…"
+    act = text.rfind(" / ") + 3 if " / " in text else 0
+    attrs = [curses.A_DIM if i < act else 0 for i in range(len(text))]
+    depth = 0
+    for i, ch in enumerate(text):
+        depth += ch == "["
+        if depth:
+            attrs[i] = curses.A_DIM
+        depth -= ch == "]" and depth > 0
+    low = text.lower()
+    for w in words:
+        at = low.find(w)
+        while w and at >= 0:
+            for i in range(at, at + len(w)):
+                attrs[i] = curses.A_BOLD
+            at = low.find(w, at + len(w))
+    runs = []
+    for ch, a in zip(text, attrs):
+        if runs and runs[-1][1] == a:
+            runs[-1][0] += ch
+        else:
+            runs.append([ch, a])
+    return runs
+
+
+def run_tui(stdscr, g):
+    curses.curs_set(0)
+    curses.use_default_colors()
+    for i, col in enumerate((curses.COLOR_YELLOW, curses.COLOR_GREEN, curses.COLOR_RED,
+                             curses.COLOR_CYAN), start=1):
+        curses.init_pair(i, col, -1)
+    YEL, GRN, RED, CYA = (curses.color_pair(i) for i in range(1, 5))
+    DIM, BOLD, REV = curses.A_DIM, curses.A_BOLD, curses.A_REVERSE
+
+    def put(y, x, text, attr=0):
+        h, w = stdscr.getmaxyx()
+        if 0 <= y < h and x < w:
+            stdscr.addnstr(y, x, text, w - x - 1, attr)
+
+    def col_x(i):
+        return GUT + i * CW + (2 if i >= 5 else 0)
+
+    def put_label(y, x, lbl, extra=0, words=()):
+        width = stdscr.getmaxyx()[1] - x - 2
+        for text, attr in label_runs(lbl, width, words):
+            put(y, x, text, attr | extra)
+            x += len(text)
+
+    LX = col_x(9) + 7  # where grid labels start
+    SEP = col_x(5) - 2  # the │ between the two weeks
+
+    def draw(status=None):
+        stdscr.erase()
+        ds, today = g.dates(), dt.date.today()
+        dirty = g.dirty()
+        put(0, 1, "kimai", BOLD)
+        put(0, 8, f"{ds[0]:%d %b} – {ds[-1]:%d %b}", DIM)
+        w = stdscr.getmaxyx()[1]
+        if status:
+            right, attr = status, CYA
+        elif g.msg:
+            right, attr = g.msg, RED
+        elif dirty:
+            right, attr = f"● {len(dirty)} day{'s' * (len(dirty) > 1)} unsaved · s to save", YEL
+        else:
+            right, attr = "✓ in sync with Kimai", GRN
+        put(0, max(30, w - len(right) - 2), right, attr)
+
+        y = 2
+        for i in (0, 5):
+            put(y - 1, col_x(i) + 1, f"W{ds[i].isocalendar().week}", DIM)
+        for i, d in enumerate(ds):
+            attr = YEL if d in dirty else DIM if g.locked(d) else 0
+            if d == today:
+                attr |= curses.A_UNDERLINE
+            if i == g.c:
+                attr |= BOLD
+            put(y, col_x(i), f"{d:%a}".rjust(5), attr)
+        put(y, SEP, "│", DIM)
+
+        def cell(y, r, i, val, shown):
+            d = ds[i]
+            # start and lunch only matter on days with hours
+            quiet = not val or (r < 2 and not g.total(d))
+            changed = val != g.get(r, d, g.orig)
+            attr = YEL if changed else DIM if quiet else 0
+            if changed:  # not by colour alone: yellow on light is faint
+                put(y, col_x(i) - 1, "•", YEL)
+            if i == 0:
+                put(y, SEP, "│", DIM)
+                if g.r == r:
+                    put(y, 0, "›", BOLD)
+            if (g.r, g.c) == (r, i):
+                attr = REV | (YEL if g.buf is not None else 0)
+                shown = (g.buf + "▏") if g.buf is not None else shown
+            put(y, col_x(i), shown.rjust(5), attr)
+
+        rows = [("start", lambda d: g.days[d]["start"], clock),
+                ("lunch", lambda d: g.days[d]["lunch"], fmt)]
+        for r, (name, get, show) in enumerate(rows):
+            put(y + 1 + r, 1, name, DIM)
+            for i, d in enumerate(ds):
+                v = get(d)
+                cell(y + 1 + r, r, i, v, show(v) if v else "·")
+        y += 3
+        put(y, 1, "─" * (col_x(9) + 4), DIM)
+        for j, key in enumerate(g.rows):
+            y += 1
+            for i, d in enumerate(ds):
+                v = g.days[d]["h"].get(key, 0)
+                cell(y, j + 2, i, v, fmt(v) if v else "·")
+            put_label(y, LX, g.labels.get(key, f"#{key[0]}/{key[1]}"))
+        if not g.rows:
+            y += 1
+            put(y, GUT, "no activities yet, press a to add one", DIM)
+        y += 1
+        put(y, 1, "─" * (col_x(9) + 4), DIM)
+        y += 1
+        put(y, 1, "total", DIM)
+        put(y, SEP, "│", DIM)
+        for i, d in enumerate(ds):
+            t = g.total(d)
+            attr = DIM if not t else RED if t > g.cfg["target"] + 120 else GRN if t >= g.cfg["target"] else 0
+            put(y, col_x(i), (fmt(t) if t else "·").rjust(5), attr | BOLD)
+        goal = fmt(5 * g.cfg["target"])
+        weeks = [f"W{ds[w].isocalendar().week} {fmt(sum(g.total(d) for d in ds[w:w + 5]))}/{goal}"
+                 for w in (0, 5)]
+        put(y, LX, "  ·  ".join(weeks), DIM)
+
+        # the selected day, as Kimai will see it
+        d = g.day()
+        y += 2
+        title = f"{d:%A %d %B}"
+        put(y, 1, title, BOLD)
+        tl = g.timeline(d)
+        tail = ""
+        if tl:
+            end, left = tl[-1][1], g.cfg["target"] - g.total(d)
+            tail = f"ends {clock(end)}" + (f" · {fmt(left)} to go" if left > 0 else "")
+            put(y, 4 + len(title), tail, DIM)
+        if why := g.locked(d):
+            put(y, 4 + len(title) + len(tail) + 3 * bool(tail), f"locked: {why}", RED)
+        for b, e, key in tl:
+            y += 1
+            attr = DIM if not key else 0
+            put(y, 3, f"{clock(b)}–{clock(e)}", attr | (RED if e > 24 * 60 else 0))
+            put(y, 16, fmt(e - b).rjust(5), attr)
+            if key:
+                put_label(y, 24, g.labels.get(key, "?"))
+            else:
+                put(y, 24, "lunch", DIM)
+        if not tl:
+            put(y + 1, 3, f"empty · starts {clock(g.days[d]['start'])} · type hours on a row", DIM)
+
+        h = stdscr.getmaxyx()[0]
+        hours = g.r >= 2
+        edit = [("←→↑↓", "move"), ("0-9", "type 2 · 230 · 1.5 · 45"), ("+/-", "15m")]
+        edit += [("f", "fill"), ("x", "clear")] if hours else [("x", "reset")]
+        edit += [("⏎", "lunch time")] if g.r == 1 else []
+        edit += [("c", "copy day"), ("u", "undo")]
+        rows_ = [("a", "add row")] + ([("d", "drop"), ("J/K", "reorder")] if hours else [])
+        for line, groups in ((h - 2, [edit]), (h - 1, [rows_, [("[ ]", "week"), ("s", "save"), ("q", "quit")]])):
+            x = 1
+            for n, group in enumerate(groups):
+                if n:
+                    put(line, x, "│ ", DIM)
+                    x += 2
+                for key, what in group:
+                    put(line, x, key)
+                    put(line, x + len(key) + 1, what, DIM)
+                    x += len(key) + len(what) + 3
+        stdscr.refresh()
+
+    def ask(prompt):
+        curses.curs_set(1)
+        curses.echo()
+        h = stdscr.getmaxyx()[0]
+        stdscr.move(h - 3, 0)
+        stdscr.clrtoeol()
+        put(h - 3, 1, prompt, YEL)
+        text = stdscr.getstr(h - 3, 2 + len(prompt), 20).decode()
+        curses.noecho()
+        curses.curs_set(0)
+        return text
+
+    while True:
+        draw()
+        k = stdscr.get_wch()
+        g.msg = ""
+        nrows = len(g.rows) + 2
+        if isinstance(k, str) and (k.isdigit() or k in ".:"):
+            g.buf = (g.buf or "") + k
+            continue
+        if g.buf is not None:
+            if k in ("\x7f", "\b", curses.KEY_BACKSPACE):
+                g.buf = g.buf[:-1] or None
+                continue
+            if k == "\x1b":
+                g.buf = None
+                continue
+            g.commit()
+            if k in ("\n", "\r", curses.KEY_ENTER):
+                continue
+        if k in (curses.KEY_LEFT, "h"):
+            g.c = max(0, g.c - 1)
+        elif k in (curses.KEY_RIGHT, "l"):
+            g.c = min(9, g.c + 1)
+        elif k in (curses.KEY_UP, "k"):
+            g.r = max(0, g.r - 1)
+        elif k in (curses.KEY_DOWN, "j"):
+            g.r = min(nrows - 1, g.r + 1)
+        elif k in ("+", "="):
+            g.set(g.get() + 15)
+        elif k == "-":
+            g.set(g.get() - 15)
+        elif k == "x":
+            g.set(g.cfg["day_start"] if g.r == 0 else 0)
+        elif k == "f" and g.r >= 2:
+            g.set(g.get() + g.cfg["target"] - g.total(g.day()))
+        elif k == "c":
+            src = next((d for d in reversed(sorted(g.days)) if d < g.day() and g.total(d)), None)
+            if not src:
+                g.msg = "no earlier day with hours"
+            elif not g.locked(g.day()):
+                g.snapshot()
+                g.days[g.day()]["h"] = dict(g.days[src]["h"])
+                g.days[g.day()]["order"] = list(g.days[src]["order"])
+        elif k == "u":
+            if g.undo:
+                g.days, g.rows = g.undo.pop()
+            else:
+                g.msg = "nothing to undo"
+        elif k in ("\n", "\r", curses.KEY_ENTER) and g.r == 1:
+            try:
+                at = parse_dur(ask("lunch from ›"), clock=True)
+                g.snapshot()
+                g.days[g.day()]["lunch_at"] = at
+            except ValueError:
+                g.msg = "lunch time not understood, try 12:30"
+        elif k == "a":
+            key = pick(stdscr, g, put, YEL, DIM, REV)
+            if key:
+                g.snapshot()
+                g.rows.append(key)
+                g.r = len(g.rows) + 1
+        elif k == "d" and g.r >= 2:
+            key = g.rows[g.r - 2]
+            if any(g.locked(d) and g.days[d]["h"].get(key) for d in g.days):
+                g.msg = "that row has hours on a locked day"
+                continue
+            g.snapshot()
+            for day in g.days.values():
+                day["h"].pop(key, None)
+                if key in day["order"]:
+                    day["order"].remove(key)
+            g.rows.remove(key)
+            g.r = min(g.r, len(g.rows) + 1)
+        elif k in ("J", "K") and g.r >= 2:
+            j, to = g.r - 2, g.r - 2 + (1 if k == "J" else -1)
+            if 0 <= to < len(g.rows):
+                g.snapshot()
+                a, b = g.rows[j], g.rows[to]
+                g.rows[j], g.rows[to] = b, a
+                g.r = to + 2
+                # and swap them in the selected day's timeline when both are in it
+                o = [x for x, _ in g.items(g.day())]
+                if a in o and b in o and not g.locked(g.day()):
+                    i, n = o.index(a), o.index(b)
+                    o[i], o[n] = b, a
+                    g.days[g.day()]["order"] = o
+        elif k in ("[", "]"):
+            draw("loading…")
+            g.week += -1 if k == "[" else 1
+            try:
+                g.load()
+            except ApiError as exc:
+                g.week -= -1 if k == "[" else 1
+                g.msg = str(exc)
+        elif k == "s":
+            if not g.dirty():
+                g.msg = "nothing to save"
+                continue
+            try:
+                g.save(draw)
+            except ApiError as exc:
+                g.msg = str(exc)
+                g.load(force=True)
+        elif k == "q":
+            if not g.dirty():
+                return
+            draw()
+            put(stdscr.getmaxyx()[0] - 3, 1,
+                f"{len(g.dirty())} unsaved day(s): s save and quit · q discard · any key back", YEL)
+            k = stdscr.get_wch()
+            if k == "q":
+                return
+            if k == "s":
+                try:
+                    g.save(draw)
+                    return
+                except ApiError as exc:
+                    g.msg = str(exc)
+                    g.load(force=True)
+
+
+def pick(stdscr, g, put, YEL, DIM, REV):
+    """Filter every project/activity by words typed; enter adds the highlighted one."""
+    pool = [(k, lbl) for k, lbl in g.labels.items() if k not in g.rows]
+    query, sel = "", 0
+    while True:
+        words = query.lower().split()
+        hits = [(k, lbl) for k, lbl in pool if all(w in lbl.lower() for w in words)]
+        sel = min(sel, max(0, len(hits) - 1))
+        stdscr.erase()
+        h = stdscr.getmaxyx()[0]
+        put(0, 1, "add row ›", YEL)
+        put(0, 11, query + "▏")
+        top = max(0, sel - (h - 5))
+        width = stdscr.getmaxyx()[1] - 3
+        for i, (_, lbl) in enumerate(hits[top:top + h - 4]):
+            x = 1
+            for text, attr in label_runs(lbl, width, words):
+                put(2 + i, x, text, attr | (REV if top + i == sel else 0))
+                x += len(text)
+        if not hits:
+            put(2, 1, "no match, fewer words?", DIM)
+        put(h - 1, 1, f"{len(hits)} of {len(pool)} · type words to filter · ↑↓ pick · ⏎ add · esc cancel", DIM)
+        stdscr.refresh()
+        k = stdscr.get_wch()
+        if k == "\x1b":
+            return None
+        if k in ("\n", "\r", curses.KEY_ENTER):
+            return hits[sel][0] if hits else None
+        if k == curses.KEY_UP:
+            sel = max(0, sel - 1)
+        elif k == curses.KEY_DOWN:
+            sel += 1
+        elif k in ("\x7f", "\b", curses.KEY_BACKSPACE):
+            query = query[:-1]
+        elif isinstance(k, str) and k.isprintable():
+            query, sel = query + k, 0
+
+
+# --------------------------------------------------------------------------- #
+# commands
+# --------------------------------------------------------------------------- #
+
+
+def cmd_grid():
+    api, cfg = connect()
+    try:
+        g = Grid(api, cfg)
+    except ApiError as exc:
+        die(str(exc))
+    os.environ.setdefault("ESCDELAY", "25")
+    curses.wrapper(run_tui, g)
+
+
+def cmd_start(arg):
+    cfg = load_config()
+    if arg:
+        start = parse_dur(arg, clock=True)
+    else:
+        now = dt.datetime.now()
+        start = now.hour * 60 + now.minute // 5 * 5
+    today = dt.date.today().isoformat()
+    starts = {k: v for k, v in load_json(STARTS_PATH, {}).items() if k >= today}
+    starts[today] = start
+    save_json(STARTS_PATH, starts)
+    end = layout(start, cfg["lunch_at"], cfg["lunch"], [(1, cfg["target"])])[-1][1]
+    lunch = f"lunch {clock(cfg['lunch_at'])}–{clock(cfg['lunch_at'] + cfg['lunch'])}" \
+        if start < cfg["lunch_at"] else "no lunch"
+    print(f"{_c('32', '✓')} day started {_c('1', clock(start))} · {lunch} · "
+          f"{fmt(cfg['target'])} done at {_c('1', clock(end))}")
+
+
+def cmd_status():
+    api, cfg = connect()
+    today = dt.date.today()
+    mon = today - dt.timedelta(days=today.weekday() + 21)
+    try:
+        days = fetch(api, mon, today)
+    except ApiError as exc:
+        die(str(exc))
+    print("          " + "".join(f"{n:>7}" for n in ("Mon", "Tue", "Wed", "Thu", "Fri")))
+    for w in range(4):
+        start = mon + dt.timedelta(weeks=w)
+        line = f"week {start.isocalendar().week:<4}"
+        for i in range(5):
+            d = start + dt.timedelta(days=i)
+            t = sum(e["duration"] for e in days.get(d, []) if e.get("end")) // 60
+            if d > today:
+                cell, code = "·", "2"
+            elif t >= cfg["target"]:
+                cell, code = fmt(t), "32"
+            elif t:
+                cell, code = fmt(t), "33"
+            else:
+                cell, code = "✗" if d < today else "·", "31" if d < today else "2"
+            line += " " * (7 - len(cell)) + _c(code, cell)
+        print(line)
+
+
+def cmd_setup():
+    cfg = load_config()
+    if not token():
+        print(f"{_c('31', '✗')} no token in the Keychain.\n")
+        print(f"  1. open {cfg['url']}, avatar → API access, create a token")
+        print("  2. store it (paste when prompted, then return):\n")
+        print(_c("36", f"     security add-generic-password -s {KEYCHAIN_SERVICE} -a $USER -w -U"))
+        print("\n  then re-run: kimai setup")
+        sys.exit(1)
+    api, cfg = connect()
+    try:
+        me = api("GET", "/users/me")
+        rows = sync_index(api)
+    except ApiError as exc:
+        die(str(exc))
+    print(f"{_c('32', '✓')} signed in as {_c('1', me.get('alias') or me['username'])} on {cfg['url']}")
+    print(f"{_c('32', '✓')} indexed {len(rows)} project/activity pairs")
+    print("\nIn the morning: kimai start 8:15 · during the day: kimai")
+
+
+def main(argv):
+    cmd = argv[0] if argv else "grid"
+    try:
+        if cmd == "grid":
+            cmd_grid()
+        elif cmd == "start":
+            cmd_start(argv[1] if len(argv) > 1 else None)
+        elif cmd == "status":
+            cmd_status()
+        elif cmd == "setup":
+            cmd_setup()
+        elif cmd == "sync":
+            api, _ = connect()
+            print(f"{_c('32', '✓')} indexed {len(sync_index(api))} project/activity pairs")
+        elif cmd == "selftest":
+            selftest()
+        else:
+            print(__doc__.strip())
+            sys.exit(0 if cmd in ("-h", "--help", "help") else 1)
+    except ApiError as exc:
+        die(str(exc))
+    except ValueError as exc:
+        die(f"could not read that: {exc}")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
