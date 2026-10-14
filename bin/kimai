@@ -417,7 +417,8 @@ GUT = 7  # left gutter
 
 def label_runs(lbl, width, words=()):
     """Split a label into (text, attr) runs: the path dim, the activity plain,
-    [CODES] dim, typed words bold. Too long → the middle goes first."""
+    [CODES] dim, typed words bold. Too long → the middle goes first, then the
+    start, so the activity at the end stays visible."""
     parts = lbl.split(" / ")
     if len(lbl) > width and len(parts) > 2:
         mid = " / ".join(parts[1:-1])
@@ -425,7 +426,7 @@ def label_runs(lbl, width, words=()):
         parts = [parts[0], mid[:room - 1] + "…" if room >= 4 else "…", parts[-1]]
     text = " / ".join(parts)
     if len(text) > width:
-        text = text[:max(0, width - 1)] + "…"
+        text = "…" + text[len(text) - width + 1:] if width > 0 else ""
     act = text.rfind(" / ") + 3 if " / " in text else 0
     attrs = [curses.A_DIM if i < act else 0 for i in range(len(text))]
     depth = 0
