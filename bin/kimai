@@ -13,11 +13,15 @@
 
 In the grid, t starts a timer on the selected row, or stops the running one.
 The day's first timer starts at the day's start time, later ones start now.
+A day with a running timer is locked until it stops.
+
 Tab moves into the day below the grid: pick a begin or end time and type a new
-one (the neighbouring entry gives or takes the minutes), d deletes an entry. A day with a running timer is locked until it stops.
+one. Only that entry changes, a neighbour it now overlaps gives way; d deletes
+an entry and leaves a gap. Days already in Kimai keep their times; hours typed
+in the grid stretch or shorten a row in place.
 
 Rows are activities, cells are durations. Kimai stores begin and end times, so
-each day is laid out back to back from its start time, in row order, with the
+a day with no entries yet is laid out back to back from its start time, in row order, with the
 lunch break cut in at its time. Saving rewrites only the days you changed.
 
 Config: ~/.config/kimai/config.json (all keys optional):
@@ -129,22 +133,25 @@ def selftest():
     assert layout(480, 720, 60, [(a, 120)]) == [(480, 600, a)]
     assert layout(780, 720, 60, [(a, 60)]) == [(780, 840, a)]
     g = Grid.__new__(Grid)
-    g.cfg, g.server, g.undo, g.msg, g.week, g.c = DEFAULTS, {}, [], "", 0, 0
+    g.cfg, g.server, g.undo, g.msg, g.week, g.c, g.r = {**DEFAULTS, "day_start": 480, "lunch_at": 720}, {}, [], "", 0, 0, 2
     d = g.dates()[0]
     g.rows = [a, b]
-    g.days = {d: {"start": 480, "lunch_at": 720, "lunch": 60, "h": {a: 150, b: 330}, "order": []}}
-    g.move(0, 435)  # day starts 7:15, a's end stays
-    assert g.timeline(d)[0] == (435, 630, a) and g.days[d]["h"][a] == 195
-    g.move(1, 660)  # a ends 11:00, b starts then
-    assert g.timeline(d)[:2] == [(435, 660, a), (660, 720, b)]
-    g.move(2, 750)  # lunch starts 12:30, still ends 13:00
-    assert g.timeline(d)[1:3] == [(660, 750, b), (750, 780, None)]
-    g.move(1, 800)  # past b's end
-    assert g.msg and g.timeline(d)[0] == (435, 660, a)
-    g.drop(2)  # lunch
-    assert g.days[d]["lunch"] == 0
-    g.drop(0)
-    assert g.timeline(d) == [(435, 435 + g.days[d]["h"][b], b)] and a not in g.days[d]["h"]
+    g.days = {d: day_from([(435, 600, a), (600, 660, b)], g.cfg)}  # morning only
+    g.retime(1, 1, 780)  # b now runs to 13:00, no lunch cut into it
+    assert g.timeline(d) == [(435, 600, a), (600, 780, b)]
+    g.retime(0, 1, 540)  # a ends 9:00, b keeps its 10:00 start, a gap opens
+    assert g.timeline(d) == [(435, 540, a), (540, 600, None), (600, 780, b)]
+    g.retime(1, 0, 500)  # b starts 8:20, cutting into a
+    assert g.timeline(d) == [(435, 500, a), (500, 780, b)]
+    g.retime(1, 0, 400)  # covers all of a
+    assert g.msg and g.timeline(d)[0] == (435, 500, a)
+    g.drop(0)  # b keeps its times
+    assert g.timeline(d) == [(500, 780, b)] and a not in g.days[d]["h"]
+    g.days = {d: day_from([(480, 600, a), (660, 720, b)], g.cfg)}
+    g.set(180)  # row a (r=2) to 3h pushes b, gap kept
+    assert g.timeline(d) == [(480, 660, a), (660, 720, b)]
+    g.set(60)  # back to 1h leaves a gap, b stays
+    assert g.timeline(d) == [(480, 540, a), (540, 660, None), (660, 720, b)]
     print("ok")
 
 
@@ -267,29 +274,63 @@ def minute_of(stamp):
 # --------------------------------------------------------------------------- #
 
 
-def infer_day(entries, cfg, start_override=None):
-    """Read a day's start, lunch and per-row minutes back from its entries."""
-    es = sorted(entries, key=lambda e: e["begin"])
-    day = {"start": cfg["day_start"], "lunch_at": cfg["lunch_at"], "lunch": cfg["lunch"],
-           "h": {}, "order": []}
-    if es:
-        spans = [(minute_of(e["begin"]), minute_of(e["end"])) for e in es if e.get("end")]
-        if spans:
-            day["start"] = spans[0][0]
-            gaps = [(b2 - e1, e1) for (_, e1), (b2, _) in zip(spans, spans[1:]) if b2 > e1]
-            if gaps:
-                day["lunch"], day["lunch_at"] = max(gaps)
-            elif spans[-1][1] > cfg["lunch_at"]:
-                day["lunch"] = 0
-    for e in es:
-        if e.get("end"):
-            key = (e["project"], e["activity"])
-            day["h"][key] = day["h"].get(key, 0) + e["duration"] // 60
-            if key not in day["order"]:
-                day["order"].append(key)
-    if start_override is not None:
-        day["start"] = start_override
+def day_from(spans, cfg, start=None):
+    """A day from its entries as [(begin, end, key)]: start, lunch (the longest
+    gap) and per-row minutes for the grid, the spans themselves for the times.
+    No spans → the grid lays the day out from start; `start` only counts then."""
+    spans = sorted(spans)
+    day = {"start": cfg["day_start"] if start is None else start, "lunch_at": cfg["lunch_at"],
+           "lunch": cfg["lunch"], "h": {}, "order": [], "spans": spans or None}
+    if spans:
+        day["start"] = spans[0][0]
+        gaps = [(b2 - e1, e1) for (_, e1, _), (b2, _, _) in zip(spans, spans[1:]) if b2 > e1]
+        if gaps:
+            day["lunch"], day["lunch_at"] = max(gaps)
+        elif spans[-1][1] > cfg["lunch_at"]:
+            day["lunch"] = 0
+    for b, e, key in spans:
+        day["h"][key] = day["h"].get(key, 0) + e - b
+        if key not in day["order"]:
+            day["order"].append(key)
     return day
+
+
+def infer_day(entries, cfg, start=None):
+    """Read a day back from its Kimai entries; a running timer is left out."""
+    return day_from([(minute_of(e["begin"]), minute_of(e["end"]), (e["project"], e["activity"]))
+                     for e in entries if e.get("end")], cfg, start)
+
+
+def with_gaps(spans):
+    out = []
+    for b, e, key in spans:
+        if out and b > out[-1][1]:
+            out.append((out[-1][1], b, None))
+        out.append((b, e, key))
+    return out
+
+
+def resize(spans, key, mins):
+    """Give a row `mins` minutes on a day with fixed times. More → its last
+    entry runs longer and pushes later ones; less → it ends sooner and leaves
+    a gap; a new row goes at the end. The other entries keep their length."""
+    spans = [list(s) for s in spans]
+    mine = [s for s in spans if s[2] == key]
+    delta = mins - sum(e - b for b, e, _ in mine)
+    if not mine:
+        b = spans[-1][1]
+        spans.append([b, b + mins, key])
+    elif delta > 0:
+        mine[-1][1] += delta
+        for p, s in zip(spans, spans[1:]):
+            if s[0] < p[1]:
+                s[0], s[1] = p[1], s[1] + p[1] - s[0]
+    else:
+        for s in reversed(mine):
+            take = min(-delta, s[1] - s[0])
+            s[1] -= take
+            delta += take
+    return [tuple(s) for s in spans if s[1] > s[0]]
 
 
 class Grid:
@@ -396,8 +437,20 @@ class Grid:
         return [(k, h[k]) for k in order if h.get(k)]
 
     def timeline(self, d):
+        """The day as Kimai will see it: its fixed times, or laid out from start."""
         day = self.days[d]
+        if day["spans"]:
+            return with_gaps(day["spans"])
         return layout(day["start"], day["lunch_at"], day["lunch"], self.items(d))
+
+    def respan(self, d, spans):
+        self.days[d] = day_from(spans, self.cfg, self.days[d]["start"])
+
+    def spans(self, d):
+        """The day's entries with fixed times, fixing them from the layout first."""
+        if not self.days[d]["spans"]:
+            self.respan(d, [s for s in self.timeline(d) if s[2]])
+        return self.days[d]["spans"] or []
 
     def total(self, d):
         return sum(self.days[d]["h"].values())
@@ -453,6 +506,17 @@ class Grid:
         self.snapshot()
         mins = max(0, min(mins, 24 * 60 - 1))
         day = self.days[d]
+        if spans := day["spans"]:
+            # fixed times: start shifts the whole day, a row resizes in place,
+            # lunch lays the day out again around the new break
+            if self.r == 0:
+                self.respan(d, [(b + mins - spans[0][0], e + mins - spans[0][0], k)
+                                for b, e, k in spans])
+                return
+            if self.r >= 2:
+                self.respan(d, resize(spans, self.rows[self.r - 2], mins))
+                return
+            day["spans"] = None
         if self.r == 0:
             day["start"] = mins
         elif self.r == 1:
@@ -462,52 +526,37 @@ class Grid:
         else:
             day["h"].pop(self.rows[self.r - 2], None)
 
-    def move(self, j, to):
-        """Move boundary j of the selected day's timeline (0 is the day's start,
-        j sits between entry j-1 and j) to a clock time. The entries on either
-        side give and take, so nothing else moves."""
+    def retime(self, i, side, to):
+        """Set the begin (side 0) or end (side 1) of entry i on the selected day.
+        Only that entry changes, unless it now overlaps a neighbour, which then
+        gives up the overlap."""
         d = self.day()
         if why := self.locked(d):
             self.msg = f"{d:%a %d %b} is locked ({why})"
             return
-        tl = self.timeline(d)
-        delta = to - (tl[j][0] if j < len(tl) else tl[-1][1])
-        if (j and tl[j - 1][1] - tl[j - 1][0] + delta < 0) or \
-                (j < len(tl) and tl[j][1] - tl[j][0] - delta < 0) or not 0 <= to < 24 * 60:
-            self.msg = f"{clock(to)} runs past the next entry, shorten that first"
+        spans = [list(s) for s in self.spans(d)]
+        s = spans[i]
+        nb = spans[i + 1] if side and i + 1 < len(spans) else spans[i - 1] if not side and i else None
+        if side and (to <= s[0] or to > 24 * 60 or nb and to >= nb[1]) or \
+                not side and (to >= s[1] or to < 0 or nb and to <= nb[0]):
+            self.msg = f"{clock(to)} does not fit there, delete the entry it would cover"
             return
-        day = copy.deepcopy(self.days[d])
-        if j == 0:
-            day["start"] += delta
-        elif key := tl[j - 1][2]:
-            day["h"][key] += delta
-        else:
-            day["lunch"] += delta
-        if j < len(tl):
-            if key := tl[j][2]:
-                day["h"][key] -= delta
-            else:
-                day["lunch_at"] += delta
-                day["lunch"] -= delta
-        day["h"] = {k: v for k, v in day["h"].items() if v}
+        s[side] = to
+        if nb:
+            nb[1 - side] = max(nb[0], to) if side else min(nb[1], to)
         self.snapshot()
-        self.days[d] = day
+        self.respan(d, [tuple(x) for x in spans])
 
     def drop(self, i):
-        """Delete entry i from the selected day's timeline; later ones move up."""
+        """Delete entry i on the selected day; the others keep their times."""
         d = self.day()
         if why := self.locked(d):
             self.msg = f"{d:%a %d %b} is locked ({why})"
             return
-        b, e, key = self.timeline(d)[i]
+        spans = list(self.spans(d))
+        del spans[i]
         self.snapshot()
-        day = self.days[d]
-        if not key:
-            day["lunch"] = 0
-        elif day["h"][key] > e - b:
-            day["h"][key] -= e - b
-        else:
-            del day["h"][key]
+        self.respan(d, spans)
 
     def commit(self):
         if self.buf is None:
@@ -515,7 +564,7 @@ class Grid:
         text, self.buf = self.buf, None
         try:
             if self.tl is not None:
-                self.move(sum(self.tl), parse_dur(text, clock=True))
+                self.retime(*self.tl, parse_dur(text, clock=True))
                 return
             self.set(parse_dur(text, clock=self.r == 0))
         except ValueError:
@@ -693,28 +742,32 @@ def run_tui(stdscr, g):
             put(y, 4 + len(title), tail, DIM)
         if why := g.locked(d):
             put(y, 4 + len(title) + len(tail) + 3 * bool(tail), f"locked: {why}", RED)
+        n = len([s for s in tl if s[2]])
         if g.tl is not None:
-            g.tl[0] = min(g.tl[0], len(tl) - 1)
-            if not tl:
+            g.tl[0] = min(g.tl[0], n - 1)
+            if not n:
                 g.tl = None
-        for n, (b, e, key) in enumerate(tl):
+        n = -1
+        for b, e, key in tl:
             y += 1
+            n += bool(key)
             attr = DIM if not key else 0
             for side, (x, t) in enumerate(((3, b), (9, e))):
                 a = attr | (RED if t > 24 * 60 else 0)
                 shown = clock(t)
-                if g.tl == [n, side]:
+                if key and g.tl == [n, side]:
                     a = REV | (YEL if g.buf is not None else 0)
                     shown = (g.buf + "▏") if g.buf is not None else shown
                 put(y, x, shown.ljust(5), a)
             put(y, 8, "–", attr)
-            if g.tl and g.tl[0] == n:
+            if key and g.tl and g.tl[0] == n:
                 put(y, 1, "›", BOLD)
             put(y, 16, fmt(e - b).rjust(5), attr)
             if key:
                 put_label(y, 24, g.labels.get(key, "?"))
             else:
-                put(y, 24, "lunch", DIM)
+                day = g.days[d]
+                put(y, 24, "lunch" if (b, e - b) == (day["lunch_at"], day["lunch"]) else "break", DIM)
         if not tl:
             put(y + 1, 3, f"empty · starts {clock(g.days[d]['start'])} · type hours on a row", DIM)
 
@@ -774,7 +827,7 @@ def run_tui(stdscr, g):
             if k in ("\n", "\r", curses.KEY_ENTER):
                 continue
         if g.tl is not None:
-            n = len(g.timeline(g.day()))
+            n = len(g.spans(g.day()))
             if k in ("\t", "\x1b"):
                 g.tl = None
             elif k in (curses.KEY_UP, "k"):
@@ -784,9 +837,8 @@ def run_tui(stdscr, g):
             elif k in (curses.KEY_LEFT, "h", curses.KEY_RIGHT, "l"):
                 g.tl[1] = int(k in (curses.KEY_RIGHT, "l"))
             elif k in ("+", "=", "-"):
-                tl = g.timeline(g.day())
-                at = tl[g.tl[0]][g.tl[1]]
-                g.move(sum(g.tl), at + (15 if k != "-" else -15))
+                at = g.spans(g.day())[g.tl[0]][g.tl[1]]
+                g.retime(*g.tl, at + (15 if k != "-" else -15))
             elif k == "d":
                 g.drop(g.tl[0])
             if k not in ("u", "s", "q", "t", "[", "]"):
@@ -818,8 +870,7 @@ def run_tui(stdscr, g):
                 g.msg = "no earlier day with hours"
             elif not g.locked(g.day()):
                 g.snapshot()
-                g.days[g.day()]["h"] = dict(g.days[src]["h"])
-                g.days[g.day()]["order"] = list(g.days[src]["order"])
+                g.days[g.day()] = copy.deepcopy(g.days[src])
         elif k == "u":
             if g.undo:
                 g.days, g.rows = g.undo.pop()
@@ -830,6 +881,7 @@ def run_tui(stdscr, g):
                 at = parse_dur(ask("lunch from ›"), clock=True)
                 g.snapshot()
                 g.days[g.day()]["lunch_at"] = at
+                g.days[g.day()]["spans"] = None
             except ValueError:
                 g.msg = "lunch time not understood, try 12:30"
         elif k == "a":
@@ -844,7 +896,10 @@ def run_tui(stdscr, g):
                 g.msg = "that row has hours on a locked day"
                 continue
             g.snapshot()
-            for day in g.days.values():
+            for d, day in g.days.items():
+                if day["spans"]:
+                    g.respan(d, [s for s in day["spans"] if s[2] != key])
+                    continue
                 day["h"].pop(key, None)
                 if key in day["order"]:
                     day["order"].remove(key)
@@ -863,6 +918,7 @@ def run_tui(stdscr, g):
                     i, n = o.index(a), o.index(b)
                     o[i], o[n] = b, a
                     g.days[g.day()]["order"] = o
+                    g.days[g.day()]["spans"] = None
         elif k == "t":
             draw("timer…")
             try:
