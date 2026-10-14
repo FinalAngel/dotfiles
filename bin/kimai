@@ -11,6 +11,11 @@
     kimai setup        store the API token, index projects
     kimai sync         refresh the project/activity index
 
+In the grid, t starts a timer on the selected row, or stops the running one.
+The day's first timer starts at the day's start time, later ones start now.
+Tab moves into the day below the grid: pick a begin or end time and type a new
+one (the neighbouring entry gives or takes the minutes), d deletes an entry. A day with a running timer is locked until it stops.
+
 Rows are activities, cells are durations. Kimai stores begin and end times, so
 each day is laid out back to back from its start time, in row order, with the
 lunch break cut in at its time. Saving rewrites only the days you changed.
@@ -123,6 +128,23 @@ def selftest():
         (480, 720, a), (720, 780, None), (780, 840, b)]
     assert layout(480, 720, 60, [(a, 120)]) == [(480, 600, a)]
     assert layout(780, 720, 60, [(a, 60)]) == [(780, 840, a)]
+    g = Grid.__new__(Grid)
+    g.cfg, g.server, g.undo, g.msg, g.week, g.c = DEFAULTS, {}, [], "", 0, 0
+    d = g.dates()[0]
+    g.rows = [a, b]
+    g.days = {d: {"start": 480, "lunch_at": 720, "lunch": 60, "h": {a: 150, b: 330}, "order": []}}
+    g.move(0, 435)  # day starts 7:15, a's end stays
+    assert g.timeline(d)[0] == (435, 630, a) and g.days[d]["h"][a] == 195
+    g.move(1, 660)  # a ends 11:00, b starts then
+    assert g.timeline(d)[:2] == [(435, 660, a), (660, 720, b)]
+    g.move(2, 750)  # lunch starts 12:30, still ends 13:00
+    assert g.timeline(d)[1:3] == [(660, 750, b), (750, 780, None)]
+    g.move(1, 800)  # past b's end
+    assert g.msg and g.timeline(d)[0] == (435, 660, a)
+    g.drop(2)  # lunch
+    assert g.days[d]["lunch"] == 0
+    g.drop(0)
+    assert g.timeline(d) == [(435, 435 + g.days[d]["h"][b], b)] and a not in g.days[d]["h"]
     print("ok")
 
 
@@ -279,6 +301,7 @@ class Grid:
         self.week = 0
         self.r, self.c = 2, 0
         self.buf = None
+        self.tl = None  # [entry, 0 begin | 1 end] while editing the day's timeline
         self.msg = ""
         today = dt.date.today()
         self.c = min(today.weekday(), 4) + 5
@@ -312,6 +335,48 @@ class Grid:
         for *_, key in seen:
             if key not in self.rows:
                 self.rows.append(key)
+
+    def refresh(self, d):
+        """Re-read one day from Kimai, dropping its local edits."""
+        self.server[d] = fetch(self.api, d, d).get(d, [])
+        self.orig[d] = infer_day(self.server[d], self.cfg,
+                                 load_json(STARTS_PATH, {}).get(d.isoformat()))
+        self.days[d] = copy.deepcopy(self.orig[d])
+        for e in self.server[d]:
+            if (key := (e["project"], e["activity"])) not in self.rows:
+                self.rows.append(key)
+
+    def running(self):
+        return [e for es in self.server.values() for e in es if not e.get("end")]
+
+    def toggle_timer(self):
+        """Stop the running timer, or start one now on the selected row."""
+        today = dt.date.today()
+        if today in self.dirty():
+            self.msg = "save today first, the timer reloads it"
+            return
+        active = self.api("GET", "/timesheets/active")
+        if not active and self.r < 2:
+            self.msg = "pick an activity row to time"
+            return
+        for e in active:
+            self.api("PATCH", f"/timesheets/{e['id']}/stop")
+        if not active:
+            # the first timer of the day starts at the day's start, so a late
+            # press loses nothing; later ones start now and the gap is lunch
+            now = dt.datetime.now()
+            begin = now.hour * 60 + now.minute
+            if not any(e.get("end") for e in fetch(self.api, today, today).get(today, [])):
+                start = load_json(STARTS_PATH, {}).get(today.isoformat(), self.cfg["day_start"])
+                begin = min(begin, start)
+            key = self.rows[self.r - 2]
+            self.api("POST", "/timesheets", body={
+                "begin": f"{today}T{clock(begin)}:00",
+                "project": key[0], "activity": key[1],
+            })
+        for d in {today} | {dt.date.fromisoformat(e["begin"][:10]) for e in active}:
+            if d in self.days:
+                self.refresh(d)
 
     def locked(self, d):
         for e in self.server.get(d, []):
@@ -397,11 +462,61 @@ class Grid:
         else:
             day["h"].pop(self.rows[self.r - 2], None)
 
+    def move(self, j, to):
+        """Move boundary j of the selected day's timeline (0 is the day's start,
+        j sits between entry j-1 and j) to a clock time. The entries on either
+        side give and take, so nothing else moves."""
+        d = self.day()
+        if why := self.locked(d):
+            self.msg = f"{d:%a %d %b} is locked ({why})"
+            return
+        tl = self.timeline(d)
+        delta = to - (tl[j][0] if j < len(tl) else tl[-1][1])
+        if (j and tl[j - 1][1] - tl[j - 1][0] + delta < 0) or \
+                (j < len(tl) and tl[j][1] - tl[j][0] - delta < 0) or not 0 <= to < 24 * 60:
+            self.msg = f"{clock(to)} runs past the next entry, shorten that first"
+            return
+        day = copy.deepcopy(self.days[d])
+        if j == 0:
+            day["start"] += delta
+        elif key := tl[j - 1][2]:
+            day["h"][key] += delta
+        else:
+            day["lunch"] += delta
+        if j < len(tl):
+            if key := tl[j][2]:
+                day["h"][key] -= delta
+            else:
+                day["lunch_at"] += delta
+                day["lunch"] -= delta
+        day["h"] = {k: v for k, v in day["h"].items() if v}
+        self.snapshot()
+        self.days[d] = day
+
+    def drop(self, i):
+        """Delete entry i from the selected day's timeline; later ones move up."""
+        d = self.day()
+        if why := self.locked(d):
+            self.msg = f"{d:%a %d %b} is locked ({why})"
+            return
+        b, e, key = self.timeline(d)[i]
+        self.snapshot()
+        day = self.days[d]
+        if not key:
+            day["lunch"] = 0
+        elif day["h"][key] > e - b:
+            day["h"][key] -= e - b
+        else:
+            del day["h"][key]
+
     def commit(self):
         if self.buf is None:
             return
         text, self.buf = self.buf, None
         try:
+            if self.tl is not None:
+                self.move(sum(self.tl), parse_dur(text, clock=True))
+                return
             self.set(parse_dur(text, clock=self.r == 0))
         except ValueError:
             self.msg = f"cannot read {text!r}: try 2, 230, 1.5 or 45"
@@ -483,6 +598,10 @@ def run_tui(stdscr, g):
         dirty = g.dirty()
         put(0, 1, "kimai", BOLD)
         put(0, 8, f"{ds[0]:%d %b} – {ds[-1]:%d %b}", DIM)
+        if run := g.running():
+            e = run[0]
+            put(0, 26, f"⏱ {clock(minute_of(e['begin']))} "
+                f"{g.labels.get((e['project'], e['activity']), '?').rsplit(' / ', 1)[-1]}", CYA)
         w = stdscr.getmaxyx()[1]
         if status:
             right, attr = status, CYA
@@ -506,6 +625,9 @@ def run_tui(stdscr, g):
             put(y, col_x(i), f"{d:%a}".rjust(5), attr)
         put(y, SEP, "│", DIM)
 
+        timing = {(dt.date.fromisoformat(e["begin"][:10]), (e["project"], e["activity"]))
+                  for e in g.running()}
+
         def cell(y, r, i, val, shown):
             d = ds[i]
             # start and lunch only matter on days with hours
@@ -514,6 +636,9 @@ def run_tui(stdscr, g):
             attr = YEL if changed else DIM if quiet else 0
             if changed:  # not by colour alone: yellow on light is faint
                 put(y, col_x(i) - 1, "•", YEL)
+            if r >= 2 and (d, g.rows[r - 2]) in timing:
+                attr = CYA | BOLD
+                put(y, col_x(i) - 1, "▶", CYA)
             if i == 0:
                 put(y, SEP, "│", DIM)
                 if g.r == r:
@@ -568,10 +693,23 @@ def run_tui(stdscr, g):
             put(y, 4 + len(title), tail, DIM)
         if why := g.locked(d):
             put(y, 4 + len(title) + len(tail) + 3 * bool(tail), f"locked: {why}", RED)
-        for b, e, key in tl:
+        if g.tl is not None:
+            g.tl[0] = min(g.tl[0], len(tl) - 1)
+            if not tl:
+                g.tl = None
+        for n, (b, e, key) in enumerate(tl):
             y += 1
             attr = DIM if not key else 0
-            put(y, 3, f"{clock(b)}–{clock(e)}", attr | (RED if e > 24 * 60 else 0))
+            for side, (x, t) in enumerate(((3, b), (9, e))):
+                a = attr | (RED if t > 24 * 60 else 0)
+                shown = clock(t)
+                if g.tl == [n, side]:
+                    a = REV | (YEL if g.buf is not None else 0)
+                    shown = (g.buf + "▏") if g.buf is not None else shown
+                put(y, x, shown.ljust(5), a)
+            put(y, 8, "–", attr)
+            if g.tl and g.tl[0] == n:
+                put(y, 1, "›", BOLD)
             put(y, 16, fmt(e - b).rjust(5), attr)
             if key:
                 put_label(y, 24, g.labels.get(key, "?"))
@@ -582,12 +720,18 @@ def run_tui(stdscr, g):
 
         h = stdscr.getmaxyx()[0]
         hours = g.r >= 2
-        edit = [("←→↑↓", "move"), ("0-9", "type 2 · 230 · 1.5 · 45"), ("+/-", "15m")]
-        edit += [("f", "fill"), ("x", "clear")] if hours else [("x", "reset")]
-        edit += [("⏎", "lunch time")] if g.r == 1 else []
-        edit += [("c", "copy day"), ("u", "undo")]
-        rows_ = [("a", "add row")] + ([("d", "drop"), ("J/K", "reorder")] if hours else [])
-        for line, groups in ((h - 2, [edit]), (h - 1, [rows_, [("[ ]", "week"), ("s", "save"), ("q", "quit")]])):
+        if g.tl is not None:
+            edit = [("←→↑↓", "pick a time"), ("0-9", "type 7:15"), ("+/-", "15m"),
+                    ("d", "delete entry"), ("u", "undo"), ("tab", "back to grid")]
+            rows_ = []
+        else:
+            edit = [("←→↑↓", "move"), ("0-9", "type 2 · 230 · 1.5 · 45"), ("+/-", "15m")]
+            edit += [("f", "fill"), ("x", "clear")] if hours else [("x", "reset")]
+            edit += [("⏎", "lunch time")] if g.r == 1 else []
+            edit += [("c", "copy day"), ("u", "undo"), ("tab", "edit times"),
+                     ("t", "stop timer" if g.running() else "start timer")]
+            rows_ = [("a", "add row")] + ([("d", "drop"), ("J/K", "reorder")] if hours else [])
+        for line, groups in ((h - 2, [edit]), (h - 1, [grp for grp in (rows_,) if grp] + [[("[ ]", "week"), ("s", "save"), ("q", "quit")]])):
             x = 1
             for n, group in enumerate(groups):
                 if n:
@@ -629,7 +773,30 @@ def run_tui(stdscr, g):
             g.commit()
             if k in ("\n", "\r", curses.KEY_ENTER):
                 continue
-        if k in (curses.KEY_LEFT, "h"):
+        if g.tl is not None:
+            n = len(g.timeline(g.day()))
+            if k in ("\t", "\x1b"):
+                g.tl = None
+            elif k in (curses.KEY_UP, "k"):
+                g.tl[0] = max(0, g.tl[0] - 1)
+            elif k in (curses.KEY_DOWN, "j"):
+                g.tl[0] = min(n - 1, g.tl[0] + 1)
+            elif k in (curses.KEY_LEFT, "h", curses.KEY_RIGHT, "l"):
+                g.tl[1] = int(k in (curses.KEY_RIGHT, "l"))
+            elif k in ("+", "=", "-"):
+                tl = g.timeline(g.day())
+                at = tl[g.tl[0]][g.tl[1]]
+                g.move(sum(g.tl), at + (15 if k != "-" else -15))
+            elif k == "d":
+                g.drop(g.tl[0])
+            if k not in ("u", "s", "q", "t", "[", "]"):
+                continue
+        if k == "\t":
+            if g.timeline(g.day()):
+                g.tl = [0, 0]
+            else:
+                g.msg = "no entries on this day yet"
+        elif k in (curses.KEY_LEFT, "h"):
             g.c = max(0, g.c - 1)
         elif k in (curses.KEY_RIGHT, "l"):
             g.c = min(9, g.c + 1)
@@ -696,6 +863,12 @@ def run_tui(stdscr, g):
                     i, n = o.index(a), o.index(b)
                     o[i], o[n] = b, a
                     g.days[g.day()]["order"] = o
+        elif k == "t":
+            draw("timer…")
+            try:
+                g.toggle_timer()
+            except ApiError as exc:
+                g.msg = str(exc)
         elif k in ("[", "]"):
             draw("loading…")
             g.week += -1 if k == "[" else 1
