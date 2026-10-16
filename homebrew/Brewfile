@@ -108,9 +108,6 @@ cask "gcloud-cli" # gcloud, needed by the Google Analytics MCP server; renamed u
 cask "ableton-live-standard"
 cask "anki"
 cask "calibre"
-# upstream deprecated hakuneko on 2026-09-01 for failing the Gatekeeper check —
-# the cask will stop resolving then, drop this line once that happens
-cask "hakuneko"
 cask "handbrake-app"
 cask "imageoptim"
 cask "screen-studio"
