@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# `fxb` (fix bridge) restarts the Stream Deck Philips Hue plugin.
+#
+# After the Mac sleeps the plugin's HTTP/2 session to the bridge is dead, but
+# its "connected" flag stays set, so the wake handler skips reconnecting and
+# every key press fails with "session is closed". Stream Deck relaunches a
+# plugin whose process stops, and the fresh process reconnects with the stored
+# bridge credentials. Removing and re-adding the bridge in the app does the
+# same thing the long way round.
+set -e
+
+log=~/Library/Logs/ElgatoStreamDeck/com.elgato.philipshue0.log
+pattern="com.elgato.philipshue.sdPlugin/index.js"
+
+if ! pgrep -qf "$pattern"; then
+  echo "hue plugin is not running, is Stream Deck open?"
+  exit 1
+fi
+
+# the plugin rotates its logs on start, so a new inode on 0.log means the
+# relaunched process is writing and its lines are the only ones in there
+inode() { stat -f %i "$log" 2>/dev/null || true; }
+old=$(inode)
+pkill -f "$pattern"
+echo "hue plugin stopped, waiting for Stream Deck to relaunch it"
+
+for _ in $(seq 1 30); do
+  sleep 1
+  [ "$(inode)" != "$old" ] || continue
+  if grep -q "setting connected property of .* to true" "$log"; then
+    echo "bridge connected"
+    exit 0
+  fi
+done
+
+echo "no reconnect within 30s, see $log"
+exit 1
