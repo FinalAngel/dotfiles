@@ -39,15 +39,28 @@ function enhanced_command() {
 # trust, history and MCP config away from Zed and the desktop app, which never
 # see this function. Instead ~/.claude is a symlink to ~/.claude-divio, so
 # every entry point lands on the same profile. See claude/install.
+# Claude Code re-sends every running subagent's whole transcript to the model
+# every 30 s just to refresh the 3-word status in the agents panel, and has no
+# switch for it (anthropics/claude-code#86879). claude/no-agent-summary.js is a
+# Bun preload that disarms that timer. It matches the timer by source text, so
+# an update can silently undo it: after one, spawn an agent and check
+# `grep suppressed ~/.cache/no-agent-summary.log`. Only processes started
+# through this function get the preload.
 claude() {
+    local hook=$HOME/.dotfiles/claude/no-agent-summary.js
+    local -a hooked=(CC_AGENT_SUMMARY_LOG=$HOME/.cache/no-agent-summary.log)
+    case " ${BUN_OPTIONS-} " in
+        *" --preload $hook "*) ;;
+        *) hooked+=(BUN_OPTIONS="${BUN_OPTIONS:+$BUN_OPTIONS }--preload $hook") ;;
+    esac
     case "$1" in
-        --divio)    shift; command claude "$@"; return ;;
-        --devguard) shift; CLAUDE_CONFIG_DIR=~/.claude-devguard command claude "$@"; return ;;
+        --divio)    shift; env "${hooked[@]}" claude "$@"; return ;;
+        --devguard) shift; env "${hooked[@]}" CLAUDE_CONFIG_DIR=$HOME/.claude-devguard claude "$@"; return ;;
     esac
     if [[ "$PWD" == */divio/* || "$PWD" == */divio ]]; then
-        command claude "$@"
+        env "${hooked[@]}" claude "$@"
     else
-        CLAUDE_CONFIG_DIR=~/.claude-devguard command claude "$@"
+        env "${hooked[@]}" CLAUDE_CONFIG_DIR=$HOME/.claude-devguard claude "$@"
     fi
 }
 
